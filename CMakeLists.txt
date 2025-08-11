@@ -40,6 +40,7 @@ add_executable(cad
   src/main.cpp
   src/LuaBindings.cpp
   src/GeoPrimitives.cpp
+  src/GeoTransform.cpp
   src/GeoBoolean.cpp
   src/IOExport.cpp
 )

@@ -9,19 +9,12 @@
 
 #include "Geo/Boolean.hpp"
 #include "Geo/Primitives.hpp"
+#include "Geo/Transform.hpp"
 #include "IO/Export.hpp"
 
 namespace Runtime {
 
 using Geo::ShapePtr;
-
-// Helpers to check and unwrap userdata
-static ShapePtr CheckShape(const sol::object& obj) {
-    if (obj.is<ShapePtr>()) {
-        return obj.as<ShapePtr>();
-    }
-    throw std::runtime_error("expected Shape");
-}
 
 LuaBindings::LuaBindings() = default;
 
@@ -53,6 +46,18 @@ void LuaBindings::Register(sol::state& lua) {
         }
         return Geo::MakeUnion(shapes);
     });
+
+    lua.set_function("difference",
+                     [](const ShapePtr& a, const ShapePtr& b) -> ShapePtr { return Geo::MakeDifference(a, b); });
+
+    // Transforms
+    lua.set_function("translate", [](const ShapePtr& s, double dx, double dy, double dz) -> ShapePtr {
+        return Geo::Translate(s, dx, dy, dz);
+    });
+    lua.set_function("rot_x", [](const ShapePtr& s, double degs) -> ShapePtr { return Geo::RotateX(s, degs); });
+    lua.set_function("rot_y", [](const ShapePtr& s, double degs) -> ShapePtr { return Geo::RotateY(s, degs); });
+    lua.set_function("rot_z", [](const ShapePtr& s, double degs) -> ShapePtr { return Geo::RotateZ(s, degs); });
+    lua.set_function("scale", [](const ShapePtr& s, double factor) -> ShapePtr { return Geo::Scale(s, factor); });
 
     // emit
     lua.set_function("emit", [this](const ShapePtr& s) { this->m_Emitted = s; });

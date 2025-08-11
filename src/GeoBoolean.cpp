@@ -1,3 +1,5 @@
+#include <BRepAlgoAPI_Common.hxx>
+#include <BRepAlgoAPI_Cut.hxx>
 #include <BRepAlgoAPI_Fuse.hxx>
 
 #include "Geo/Boolean.hpp"
@@ -11,6 +13,18 @@ ShapePtr MakeUnion(const std::vector<ShapePtr>& shapes) {
         acc = BRepAlgoAPI_Fuse(acc, shapes[i]->Get()).Shape();
     }
     return std::make_shared<Shape>(acc);
+}
+
+ShapePtr MakeDifference(const ShapePtr& a, const ShapePtr& b) {
+    if (!a || !b) return nullptr;
+    TopoDS_Shape r = BRepAlgoAPI_Cut(a->Get(), b->Get()).Shape();
+    return std::make_shared<Shape>(r);
+}
+
+ShapePtr MakeIntersect(const ShapePtr& a, const ShapePtr& b) {
+    if (!a || !b) return nullptr;
+    TopoDS_Shape r = BRepAlgoAPI_Common(a->Get(), b->Get()).Shape();
+    return std::make_shared<Shape>(r);
 }
 
 }  // namespace Geo

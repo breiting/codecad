@@ -1,4 +1,4 @@
--- examples/hello_box.lua
+-- examples/simple.lua
 -- Minimal MVP example: create two boxes, union them, emit and save to STL/STEP
 
 local a = box(50, 20, 10)
