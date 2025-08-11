@@ -58,7 +58,5 @@ Outputs:
 
 This is a minimal first example. Next steps:
 
-- add `translate/rotate`
-- add `difference`
 - add `extrude(rect(...), h)` etc.
 - implement a file watch / live preview loop
