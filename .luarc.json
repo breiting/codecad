@@ -4,6 +4,9 @@
   "Lua.workspace.checkThirdParty": false,
   "Lua.diagnostics.globals": [
     "require",
+    "assembly",
+    "add_part",
+    "part",
     "param",
     "mm",
     "deg",
@@ -21,6 +24,7 @@
     "fillet",
     "chamfer",
     "emit",
+    "emit_assembly",
     "save_stl",
     "save_step",
     "PARAMS",
