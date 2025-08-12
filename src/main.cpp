@@ -3,6 +3,7 @@
 #include <sol/sol.hpp>
 #include <string>
 
+#include "IO/Export.hpp"
 #include "Runtime/LuaBindings.hpp"
 
 namespace fs = std::filesystem;
@@ -68,6 +69,9 @@ int main(int argc, char** argv) {
         // If user emitted a shape but didn't save it, write a default STL
         auto emitted = bindings.GetEmitted();
         if (emitted) {
+            const auto stem = fs::path(cmd.script).stem().string();
+            const fs::path out_stl = cmd.outdir / (stem + ".stl");
+            IO::SaveSTL(emitted, out_stl.string(), 0.1);
             std::cout << "Build succeeded.\n";
         } else {
             std::cout << "Script didn't call emit(...). Nothing to build.\n";
