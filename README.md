@@ -50,9 +50,8 @@ Outputs:
 - `simple.stl` and/or
 - `simple.step`
 
-## Notes
+## TODO
 
-This is a minimal first example. Next steps:
-
+- Groups of shapes, e.g. 4 legs
+- code refactoring (architecture)
 - add `extrude(rect(...), h)` etc.
-- implement a file watch / live preview loop

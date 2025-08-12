@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sol/sol.hpp>
 #include <string>
+#include <thread>
 
 #include "IO/Export.hpp"
 #include "Runtime/LuaBindings.hpp"
@@ -9,13 +10,13 @@
 namespace fs = std::filesystem;
 
 struct Cmd {
-    std::string subcommand;  // "build"
+    std::string subcommand;  // "build", "live"
     std::string script;
     fs::path outdir = "out";
 };
 
 static void PrintUsage() {
-    std::cout << "Usage: cad build <script.lua> [-o <outdir>]\n";
+    std::cout << "Usage: cad <command> <script.lua> [-o <outdir>]\n";
 }
 
 static bool ParseArgs(int argc, char** argv, Cmd& cmd) {
@@ -31,7 +32,40 @@ static bool ParseArgs(int argc, char** argv, Cmd& cmd) {
             return false;
         }
     }
-    return cmd.subcommand == "build";
+    return cmd.subcommand == "build" || cmd.subcommand == "live";
+}
+
+static bool BuildOnce(const Cmd& cmd, Runtime::LuaBindings& bindings) {
+    sol::state lua;
+    lua.open_libraries(sol::lib::base, sol::lib::math, sol::lib::table, sol::lib::package);
+    bindings.Register(lua);
+
+    // Provide a small helper in Lua to set output directory
+    lua["__OUTDIR"] = cmd.outdir.string();
+
+    // Run user's script
+    sol::load_result chunk = lua.load_file(cmd.script);
+    if (!chunk.valid()) {
+        sol::error err = chunk;
+        std::cerr << "Lua load error: " << err.what() << "\n";
+        return 1;
+    }
+    sol::protected_function_result result = chunk();
+    if (!result.valid()) {
+        sol::error err = result;
+        std::cerr << "Lua runtime error: " << err.what() << "\n";
+        return 1;
+    }
+
+    // If user emitted a shape but didn't save it, write a default STL
+    auto emitted = bindings.GetEmitted();
+    if (emitted) {
+        const auto stem = fs::path(cmd.script).stem().string();
+        const fs::path out_stl = cmd.outdir / (stem + ".stl");
+        IO::SaveSTL(emitted, out_stl.string(), 0.1);
+        std::cout << "Build succeeded.\n";
+    }
+    return true;
 }
 
 int main(int argc, char** argv) {
@@ -43,41 +77,34 @@ int main(int argc, char** argv) {
 
     try {
         fs::create_directories(cmd.outdir);
-        sol::state lua;
-        lua.open_libraries(sol::lib::base, sol::lib::math, sol::lib::table, sol::lib::package);
 
+        if (cmd.subcommand == "build") {
+            Runtime::LuaBindings bindings;
+            BuildOnce(cmd, bindings);
+            return 0;
+        }
+
+        // -- live mode
         Runtime::LuaBindings bindings;
-        bindings.Register(lua);
+        auto last = fs::last_write_time(cmd.script);
+        std::cout << "Watching " << cmd.script << " (Ctrl-C to stop)\n";
+        BuildOnce(cmd, bindings);  // initial
 
-        // Provide a small helper in Lua to set output directory
-        lua["__OUTDIR"] = cmd.outdir.string();
-
-        // Run user's script
-        sol::load_result chunk = lua.load_file(cmd.script);
-        if (!chunk.valid()) {
-            sol::error err = chunk;
-            std::cerr << "Lua load error: " << err.what() << "\n";
-            return 1;
-        }
-        sol::protected_function_result result = chunk();
-        if (!result.valid()) {
-            sol::error err = result;
-            std::cerr << "Lua runtime error: " << err.what() << "\n";
-            return 1;
-        }
-
-        // If user emitted a shape but didn't save it, write a default STL
-        auto emitted = bindings.GetEmitted();
-        if (emitted) {
-            const auto stem = fs::path(cmd.script).stem().string();
-            const fs::path out_stl = cmd.outdir / (stem + ".stl");
-            IO::SaveSTL(emitted, out_stl.string(), 0.1);
-            std::cout << "Build succeeded.\n";
-        } else {
-            std::cout << "Script didn't call emit(...). Nothing to build.\n";
+        while (true) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(300));
+            try {
+                auto now = fs::last_write_time(cmd.script);
+                if (now != last) {
+                    last = now;
+                    std::cout << "\nChange detected. Rebuilding...\n";
+                    bindings = Runtime::LuaBindings{};  // reset emitted
+                    BuildOnce(cmd, bindings);
+                }
+            } catch (...) {
+                // ignore transient errors (file being written)
+            }
         }
 
-        return 0;
     } catch (const std::exception& e) {
         std::cerr << "Fatal: " << e.what() << "\n";
         return 1;
