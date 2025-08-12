@@ -1,6 +1,6 @@
+#include <Runtime/SolConfig.hpp>
 #include <filesystem>
 #include <iostream>
-#include <sol/sol.hpp>
 #include <string>
 #include <thread>
 

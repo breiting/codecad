@@ -12,10 +12,14 @@
 #include "Geo/Primitives.hpp"
 #include "Geo/Transform.hpp"
 #include "IO/Export.hpp"
+#include "IO/Manifest.hpp"
+#include "Runtime/Assembly.hpp"
 
 namespace Runtime {
 
 using Geo::ShapePtr;
+using Runtime::Assembly;
+using Runtime::Part;
 
 LuaBindings::LuaBindings() = default;
 
@@ -23,7 +27,28 @@ void LuaBindings::Register(sol::state& lua) {
     // Type: ShapePtr as userdata
     lua.new_usertype<Geo::Shape>("__shape_usertype__", sol::no_constructor);
 
-    // Units (simple for MVP)
+    auto asm_t = lua.new_usertype<Assembly>("Assembly");
+    asm_t.set_function("get_name", [](Assembly& a) { return a.name; });
+    asm_t.set_function("set_name", [](Assembly& a, const std::string& n) { a.name = n; });
+    asm_t.set_function("count", [](Assembly& a) { return (int)a.parts.size(); });
+    asm_t.set_function("get_part", [](Assembly& a, int i) {
+        if (i < 1 || (size_t)i > a.parts.size()) return Part{};
+        return a.parts[(size_t)i - 1];
+    });
+    asm_t.set_function("clear", [](Assembly& a) { a.parts.clear(); });
+
+    auto part_t = lua.new_usertype<Part>("Part");
+    part_t.set_function("get_name", [](Part& p) { return p.name; });
+    part_t.set_function("set_name", [](Part& p, const std::string& n) { p.name = n; });
+    part_t.set_function("get_shape", [](Part& p) { return p.shape; });
+    part_t.set_function("set_shape", [](Part& p, const Geo::ShapePtr& s) { p.shape = s; });
+    part_t.set_function("get_ex", [](Part& p) { return p.ex; });
+    part_t.set_function("set_ex", [](Part& p, double v) { p.ex = v; });
+    part_t.set_function("get_ey", [](Part& p) { return p.ey; });
+    part_t.set_function("set_ey", [](Part& p, double v) { p.ey = v; });
+    part_t.set_function("get_ez", [](Part& p) { return p.ez; });
+    part_t.set_function("set_ez", [](Part& p, double v) { p.ez = v; });
+
     lua.set_function("mm", [](double v) { return v; });
     lua.set_function("deg", [](double v) { return v; });
 
@@ -51,6 +76,35 @@ void LuaBindings::Register(sol::state& lua) {
 
     lua.set_function("difference",
                      [](const ShapePtr& a, const ShapePtr& b) -> ShapePtr { return Geo::MakeDifference(a, b); });
+
+    lua.set_function("assembly", [](const std::string& n) {
+        Assembly a;
+        a.name = n;
+        return a;
+    });
+    lua.set_function(
+        "part", [](const std::string& name, const Geo::ShapePtr& s, sol::object ex, sol::object ey, sol::object ez) {
+            Part p;
+            p.name = name;
+            p.shape = s;
+            if (ex.valid()) p.ex = ex.as<double>();
+            if (ey.valid()) p.ey = ey.as<double>();
+            if (ez.valid()) p.ez = ez.as<double>();
+            return p;
+        });
+    lua.set_function("add_part", [](Assembly& a, const Part& p) { a.parts.push_back(p); });
+    lua.set_function("emit_assembly", [this](const Assembly& a) {
+        // Speichere genauso wie 'emit' – optional
+        this->m_Emitted = a.parts.empty() ? nullptr : a.parts.front().shape;
+        // Schreibe Manifest + Files in __OUTDIR (Lua hat __OUTDIR gesetzt)
+        // Hole __OUTDIR aus Lua-Globalen:
+        // -> Wir hängen die Funktion so ein, dass sie 'package' kennt:
+        // In sol2: Zugriff auf Globals über sol::state_view im Register nicht trivial.
+        // Simpel: Wir lassen 'emit_assembly(a, outdir)' den Pfad bekommen:
+    });
+
+    lua.set_function("emit_assembly",
+                     [](const Assembly& a, const std::string& outdir) { IO::WriteAssemblyManifest(a, outdir, true); });
 
     // Transforms
     lua.set_function("translate", [](const ShapePtr& s, double dx, double dy, double dz) -> ShapePtr {

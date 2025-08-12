@@ -44,6 +44,7 @@ add_executable(cad
   src/GeoBoolean.cpp
   src/GeoFeatures.cpp
   src/IOExport.cpp
+  src/IOManifest.cpp
 )
 
 target_include_directories(cad PRIVATE
@@ -66,7 +67,7 @@ endif()
 if (MSVC)
   target_compile_options(cad PRIVATE /W4)
 else()
-  target_compile_options(cad PRIVATE -Wall -Wextra -Wpedantic)
+	target_compile_options(cad PRIVATE -Wall -Wextra -Wpedantic -Wno-unknown-warning-option)
 endif()
 
 # Installation

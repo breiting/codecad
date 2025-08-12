@@ -1,5 +1,5 @@
 #pragma once
-#include <sol/sol.hpp>
+#include <Runtime/SolConfig.hpp>
 
 #include "Geo/Shape.hpp"
 
