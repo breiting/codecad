@@ -22,10 +22,15 @@ function param(name, default) end
 ---@return Shape
 function box(x, y, z) end
 
----@param r number @mm
----@param h number @mm
+---@param d number Diameter
+---@param h number Height
 ---@return Shape
-function cylinder(r, h) end
+function cylinder(d, h) end
+
+---@param across_flats number across flats
+---@param h number Height
+---@return Shape
+function hex_prism(across_flats, h) end
 
 ---@param a Shape
 ---@param b Shape

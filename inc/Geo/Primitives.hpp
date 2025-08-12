@@ -7,6 +7,9 @@ namespace Geo {
 ShapePtr MakeBox(double x, double y, double z);
 
 // Create a cylinder (in mm).
-ShapePtr MakeCylinder(double r, double h);
+ShapePtr MakeCylinder(double diameter, double height);
+
+// Hex-Prisma (across-flats = Schlüsselweite SW)
+ShapePtr MakeHexPrism(double across_flats, double height);
 
 }  // namespace Geo

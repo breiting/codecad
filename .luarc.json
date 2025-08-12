@@ -8,6 +8,7 @@
     "deg",
     "box",
     "cylinder",
+    "hex_prism",
     "union",
     "difference",
     "intersect",

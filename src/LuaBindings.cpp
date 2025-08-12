@@ -29,8 +29,9 @@ void LuaBindings::Register(sol::state& lua) {
 
     // Primitives
     lua.set_function("box", [](double x, double y, double z) -> ShapePtr { return Geo::MakeBox(x, y, z); });
-    lua.set_function("cylinder", [](double r, double h) -> ShapePtr { return Geo::MakeCylinder(r, h); });
-
+    lua.set_function("cylinder", [](double d, double h) -> ShapePtr { return Geo::MakeCylinder(d, h); });
+    lua.set_function("hex_prism",
+                     [](double across_flats, double h) -> ShapePtr { return Geo::MakeHexPrism(across_flats, h); });
     // Boolean union
     lua.set_function("union", [](sol::variadic_args va) -> ShapePtr {
         std::vector<ShapePtr> shapes;
