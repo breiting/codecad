@@ -32,6 +32,16 @@ function cylinder(r, h) end
 ---@return Shape
 function difference(a, b) end
 
+---@param s Shape
+---@param r number Radius for fillet in mm
+---@return Shape
+function fillet(s, r) end
+
+---@param s Shape
+---@param d number Distance for chamfer in mm
+---@return Shape
+function chamfer(s, d) end
+
 ---@param ... Shape
 ---@return Shape
 function union(...) end

@@ -8,6 +8,7 @@
 #include <TopoDS_Shape.hxx>
 
 #include "Geo/Boolean.hpp"
+#include "Geo/Features.hpp"
 #include "Geo/Primitives.hpp"
 #include "Geo/Transform.hpp"
 #include "IO/Export.hpp"
@@ -61,6 +62,27 @@ void LuaBindings::Register(sol::state& lua) {
 
     // emit
     lua.set_function("emit", [this](const ShapePtr& s) { this->m_Emitted = s; });
+
+    // fillet/chamfer
+    lua.set_function("fillet", [](const ShapePtr& s, double radius_mm) -> ShapePtr {
+        try {
+            return Geo::FilletAll(s, radius_mm);
+        } catch (const Standard_Failure& e) {
+            throw std::runtime_error(std::string("fillet failed: ") + e.GetMessageString());
+        } catch (const std::exception& e) {
+            throw;  // sol2 zeigt die std::exception message
+        }
+    });
+
+    lua.set_function("chamfer", [](const ShapePtr& s, double distance_mm) -> ShapePtr {
+        try {
+            return Geo::ChamferAll(s, distance_mm);
+        } catch (const Standard_Failure& e) {
+            throw std::runtime_error(std::string("chamfer failed: ") + e.GetMessageString());
+        } catch (const std::exception& e) {
+            throw;
+        }
+    });
 
     // save_stl/save_step
     lua.set_function("save_stl", [](const ShapePtr& s, const std::string& relpath) {

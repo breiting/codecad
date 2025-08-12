@@ -16,6 +16,8 @@
     "rot_y",
     "rot_z",
     "scale",
+    "fillet",
+    "chamfer",
     "emit",
     "save_stl",
     "save_step",

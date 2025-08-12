@@ -42,6 +42,7 @@ add_executable(cad
   src/GeoPrimitives.cpp
   src/GeoTransform.cpp
   src/GeoBoolean.cpp
+  src/GeoFeatures.cpp
   src/IOExport.cpp
 )
 
