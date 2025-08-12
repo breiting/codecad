@@ -1,5 +1,3 @@
-package.path = "../lib/?.lua;../lib/?/init.lua;../lib/?/?.lua;" .. package.path
-
 local bolt = require("mech.bolt")
 local nut = require("mech.nut")
 local washer = require("mech.washer")

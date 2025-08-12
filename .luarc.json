@@ -1,8 +1,9 @@
 {
   "$schema": "https://raw.githubusercontent.com/sumneko/vscode-lua/master/setting/schema.json",
-  "Lua.workspace.library": ["./types"],
+  "Lua.workspace.library": ["./types", "./lib"],
   "Lua.workspace.checkThirdParty": false,
   "Lua.diagnostics.globals": [
+    "require",
     "param",
     "mm",
     "deg",

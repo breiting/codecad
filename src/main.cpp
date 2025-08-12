@@ -38,6 +38,12 @@ static bool ParseArgs(int argc, char** argv, Cmd& cmd) {
 static bool BuildOnce(const Cmd& cmd, Runtime::LuaBindings& bindings) {
     sol::state lua;
     lua.open_libraries(sol::lib::base, sol::lib::math, sol::lib::table, sol::lib::package);
+
+    // add additional paths
+    std::string libPath = "./lib/?.lua;./lib/?/init.lua;./vendor/?.lua;./vendor/?/init.lua;";
+    std::string current = lua["package"]["path"];
+    lua["package"]["path"] = libPath + current;
+
     bindings.Register(lua);
 
     // Provide a small helper in Lua to set output directory
