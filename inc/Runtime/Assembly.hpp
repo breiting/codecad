@@ -2,13 +2,13 @@
 #include <string>
 #include <vector>
 
-#include "Geo/Shape.hpp"
+#include "geo/Shape.hpp"
 
-namespace Runtime {
+namespace runtime {
 
 struct Part {
     std::string name;
-    Geo::ShapePtr shape;
+    geo::ShapePtr shape;
     double ex = 0.0, ey = 0.0, ez = 0.0;  // explode vector
 };
 
@@ -17,4 +17,4 @@ struct Assembly {
     std::vector<Part> parts;
 };
 
-}  // namespace Runtime
+}  // namespace runtime

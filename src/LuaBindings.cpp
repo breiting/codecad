@@ -1,4 +1,4 @@
-#include "Runtime/LuaBindings.hpp"
+#include "runtime/LuaBindings.hpp"
 
 #include <BRepAlgoAPI_Fuse.hxx>
 #include <BRepMesh_IncrementalMesh.hxx>
@@ -7,25 +7,25 @@
 #include <StlAPI_Writer.hxx>
 #include <TopoDS_Shape.hxx>
 
-#include "Geo/Boolean.hpp"
-#include "Geo/Features.hpp"
-#include "Geo/Primitives.hpp"
-#include "Geo/Transform.hpp"
-#include "IO/Export.hpp"
-#include "IO/Manifest.hpp"
-#include "Runtime/Assembly.hpp"
+#include "geo/Boolean.hpp"
+#include "geo/Features.hpp"
+#include "geo/Primitives.hpp"
+#include "geo/Transform.hpp"
+#include "io/Export.hpp"
+#include "io/Manifest.hpp"
+#include "runtime/Assembly.hpp"
 
-namespace Runtime {
+namespace runtime {
 
-using Geo::ShapePtr;
-using Runtime::Assembly;
-using Runtime::Part;
+using geo::ShapePtr;
+using runtime::Assembly;
+using runtime::Part;
 
 LuaBindings::LuaBindings() = default;
 
 void LuaBindings::Register(sol::state& lua) {
     // Type: ShapePtr as userdata
-    lua.new_usertype<Geo::Shape>("__shape_usertype__", sol::no_constructor);
+    lua.new_usertype<geo::Shape>("__shape_usertype__", sol::no_constructor);
 
     auto asm_t = lua.new_usertype<Assembly>("Assembly");
     asm_t.set_function("get_name", [](Assembly& a) { return a.name; });
@@ -41,7 +41,7 @@ void LuaBindings::Register(sol::state& lua) {
     part_t.set_function("get_name", [](Part& p) { return p.name; });
     part_t.set_function("set_name", [](Part& p, const std::string& n) { p.name = n; });
     part_t.set_function("get_shape", [](Part& p) { return p.shape; });
-    part_t.set_function("set_shape", [](Part& p, const Geo::ShapePtr& s) { p.shape = s; });
+    part_t.set_function("set_shape", [](Part& p, const geo::ShapePtr& s) { p.shape = s; });
     part_t.set_function("get_ex", [](Part& p) { return p.ex; });
     part_t.set_function("set_ex", [](Part& p, double v) { p.ex = v; });
     part_t.set_function("get_ey", [](Part& p) { return p.ey; });
@@ -78,10 +78,10 @@ void LuaBindings::Register(sol::state& lua) {
     lua.set_function("deg", [](double v) { return v; });
 
     // Primitives
-    lua.set_function("box", [](double x, double y, double z) -> ShapePtr { return Geo::MakeBox(x, y, z); });
-    lua.set_function("cylinder", [](double d, double h) -> ShapePtr { return Geo::MakeCylinder(d, h); });
+    lua.set_function("box", [](double x, double y, double z) -> ShapePtr { return geo::MakeBox(x, y, z); });
+    lua.set_function("cylinder", [](double d, double h) -> ShapePtr { return geo::MakeCylinder(d, h); });
     lua.set_function("hex_prism",
-                     [](double across_flats, double h) -> ShapePtr { return Geo::MakeHexPrism(across_flats, h); });
+                     [](double across_flats, double h) -> ShapePtr { return geo::MakeHexPrism(across_flats, h); });
     // Boolean union
     lua.set_function("union", [](sol::variadic_args va) -> ShapePtr {
         std::vector<ShapePtr> shapes;
@@ -96,11 +96,11 @@ void LuaBindings::Register(sol::state& lua) {
         if (shapes.size() < 2) {
             throw std::runtime_error("union(...) expects at least 2 shapes");
         }
-        return Geo::MakeUnion(shapes);
+        return geo::MakeUnion(shapes);
     });
 
     lua.set_function("difference",
-                     [](const ShapePtr& a, const ShapePtr& b) -> ShapePtr { return Geo::MakeDifference(a, b); });
+                     [](const ShapePtr& a, const ShapePtr& b) -> ShapePtr { return geo::MakeDifference(a, b); });
 
     lua.set_function("assembly", [](const std::string& n) {
         Assembly a;
@@ -108,7 +108,7 @@ void LuaBindings::Register(sol::state& lua) {
         return a;
     });
     lua.set_function(
-        "part", [](const std::string& name, const Geo::ShapePtr& s, sol::object ex, sol::object ey, sol::object ez) {
+        "part", [](const std::string& name, const geo::ShapePtr& s, sol::object ex, sol::object ey, sol::object ez) {
             Part p;
             p.name = name;
             p.shape = s;
@@ -129,16 +129,16 @@ void LuaBindings::Register(sol::state& lua) {
     });
 
     lua.set_function("emit_assembly",
-                     [](const Assembly& a, const std::string& outdir) { IO::WriteAssemblyManifest(a, outdir, true); });
+                     [](const Assembly& a, const std::string& outdir) { io::WriteAssemblyManifest(a, outdir, true); });
 
     // Transforms
     lua.set_function("translate", [](const ShapePtr& s, double dx, double dy, double dz) -> ShapePtr {
-        return Geo::Translate(s, dx, dy, dz);
+        return geo::Translate(s, dx, dy, dz);
     });
-    lua.set_function("rot_x", [](const ShapePtr& s, double degs) -> ShapePtr { return Geo::RotateX(s, degs); });
-    lua.set_function("rot_y", [](const ShapePtr& s, double degs) -> ShapePtr { return Geo::RotateY(s, degs); });
-    lua.set_function("rot_z", [](const ShapePtr& s, double degs) -> ShapePtr { return Geo::RotateZ(s, degs); });
-    lua.set_function("scale", [](const ShapePtr& s, double factor) -> ShapePtr { return Geo::Scale(s, factor); });
+    lua.set_function("rot_x", [](const ShapePtr& s, double degs) -> ShapePtr { return geo::RotateX(s, degs); });
+    lua.set_function("rot_y", [](const ShapePtr& s, double degs) -> ShapePtr { return geo::RotateY(s, degs); });
+    lua.set_function("rot_z", [](const ShapePtr& s, double degs) -> ShapePtr { return geo::RotateZ(s, degs); });
+    lua.set_function("scale", [](const ShapePtr& s, double factor) -> ShapePtr { return geo::Scale(s, factor); });
 
     // emit
     lua.set_function("emit", [this](const ShapePtr& s) { this->m_Emitted = s; });
@@ -146,7 +146,7 @@ void LuaBindings::Register(sol::state& lua) {
     // fillet/chamfer
     lua.set_function("fillet", [](const ShapePtr& s, double radius_mm) -> ShapePtr {
         try {
-            return Geo::FilletAll(s, radius_mm);
+            return geo::FilletAll(s, radius_mm);
         } catch (const Standard_Failure& e) {
             throw std::runtime_error(std::string("fillet failed: ") + e.GetMessageString());
         } catch (const std::exception& e) {
@@ -156,7 +156,7 @@ void LuaBindings::Register(sol::state& lua) {
 
     lua.set_function("chamfer", [](const ShapePtr& s, double distance_mm) -> ShapePtr {
         try {
-            return Geo::ChamferAll(s, distance_mm);
+            return geo::ChamferAll(s, distance_mm);
         } catch (const Standard_Failure& e) {
             throw std::runtime_error(std::string("chamfer failed: ") + e.GetMessageString());
         } catch (const std::exception& e) {
@@ -168,13 +168,13 @@ void LuaBindings::Register(sol::state& lua) {
     lua.set_function("save_stl", [](const ShapePtr& s, const std::string& relpath) {
         std::string path = relpath;
         // Allow relative paths: join with __OUTDIR from Lua if not absolute
-        return IO::SaveSTL(s, path, 0.1);
+        return io::SaveSTL(s, path, 0.1);
     });
 
     lua.set_function("save_step", [](const ShapePtr& s, const std::string& relpath) {
         std::string path = relpath;
-        return IO::SaveSTEP(s, path);
+        return io::SaveSTEP(s, path);
     });
 }
 
-}  // namespace Runtime
+}  // namespace runtime

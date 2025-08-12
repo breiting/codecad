@@ -1,14 +1,14 @@
+#include "io/Export.hpp"
+
 #include <BRepMesh_IncrementalMesh.hxx>
 #include <STEPControl_Writer.hxx>
 #include <StlAPI_Writer.hxx>
 #include <TopoDS_Shape.hxx>
 #include <iostream>
 
-#include "IO/Export.hpp"
+namespace io {
 
-namespace IO {
-
-bool SaveSTL(const Geo::ShapePtr& shape, const std::string& path, double deflection) {
+bool SaveSTL(const geo::ShapePtr& shape, const std::string& path, double deflection) {
     if (!shape) return false;
     // Tessellate
     BRepMesh_IncrementalMesh mesher(shape->Get(), deflection);
@@ -22,7 +22,7 @@ bool SaveSTL(const Geo::ShapePtr& shape, const std::string& path, double deflect
     return false;
 }
 
-bool SaveSTEP(const Geo::ShapePtr& shape, const std::string& path) {
+bool SaveSTEP(const geo::ShapePtr& shape, const std::string& path) {
     if (!shape) return false;
     STEPControl_Writer stepWriter;
     IFSelect_ReturnStatus status = stepWriter.Transfer(shape->Get(), STEPControl_AsIs);
@@ -38,4 +38,4 @@ bool SaveSTEP(const Geo::ShapePtr& shape, const std::string& path) {
     return false;
 }
 
-}  // namespace IO
+}  // namespace io

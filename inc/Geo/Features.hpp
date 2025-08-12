@@ -1,12 +1,12 @@
 #pragma once
-#include "Geo/Shape.hpp"
+#include "geo/Shape.hpp"
 
-namespace Geo {
+namespace geo {
 
 // Rundung an allen Kanten mit konstantem Radius (mm)
-ShapePtr FilletAll(const Geo::ShapePtr& s, double radius_mm);
+ShapePtr FilletAll(const ShapePtr& s, double radius_mm);
 
 // Fase an allen Kanten mit konstantem Abstand (mm, symmetrisch)
-ShapePtr ChamferAll(const Geo::ShapePtr& s, double distance_mm);
+ShapePtr ChamferAll(const ShapePtr& s, double distance_mm);
 
-}  // namespace Geo
+}  // namespace geo

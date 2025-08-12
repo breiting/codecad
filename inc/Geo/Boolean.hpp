@@ -1,9 +1,9 @@
 #pragma once
 #include <vector>
 
-#include "Geo/Shape.hpp"
+#include "geo/Shape.hpp"
 
-namespace Geo {
+namespace geo {
 
 // Boolean union (fuse) of multiple shapes. Expects at least 2 shapes.
 ShapePtr MakeUnion(const std::vector<ShapePtr>& shapes);
@@ -14,4 +14,4 @@ ShapePtr MakeDifference(const ShapePtr& a, const ShapePtr& b);
 // Intersection
 ShapePtr MakeIntersect(const ShapePtr& a, const ShapePtr& b);
 
-}  // namespace Geo
+}  // namespace geo

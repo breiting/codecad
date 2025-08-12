@@ -1,9 +1,10 @@
+#include "io/Manifest.hpp"
+
 #include <filesystem>
 #include <fstream>
 #include <sstream>
 
-#include "IO/Export.hpp"
-#include "IO/Manifest.hpp"
+#include "io/Export.hpp"
 
 namespace fs = std::filesystem;
 
@@ -34,9 +35,9 @@ static std::string JsonEscape(const std::string& s) {
     return o.str();
 }
 
-namespace IO {
+namespace io {
 
-bool WriteAssemblyManifest(const Runtime::Assembly& A, const std::string& outdir, bool write_step) {
+bool WriteAssemblyManifest(const runtime::Assembly& A, const std::string& outdir, bool write_step) {
     try {
         fs::create_directories(outdir);
         // Dateien schreiben + JSON zusammenbauen
@@ -50,8 +51,8 @@ bool WriteAssemblyManifest(const Runtime::Assembly& A, const std::string& outdir
             const auto stl = fs::path(outdir) / (base + ".stl");
             const auto step = fs::path(outdir) / (base + ".step");
 
-            IO::SaveSTL(p.shape, stl.string(), 0.1);
-            if (write_step) IO::SaveSTEP(p.shape, step.string());
+            io::SaveSTL(p.shape, stl.string(), 0.1);
+            if (write_step) io::SaveSTEP(p.shape, step.string());
 
             json << "    {\"name\":\"" << JsonEscape(p.name) << "\","
                  << "\"stl\":\"" << JsonEscape(stl.filename().string()) << "\","
@@ -72,4 +73,4 @@ bool WriteAssemblyManifest(const Runtime::Assembly& A, const std::string& outdir
     }
 }
 
-}  // namespace IO
+}  // namespace io

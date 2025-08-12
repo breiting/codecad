@@ -1,11 +1,11 @@
-#include <Runtime/SolConfig.hpp>
 #include <filesystem>
 #include <iostream>
+#include <runtime/SolConfig.hpp>
 #include <string>
 #include <thread>
 
-#include "IO/Export.hpp"
-#include "Runtime/LuaBindings.hpp"
+#include "io/Export.hpp"
+#include "runtime/LuaBindings.hpp"
 
 namespace fs = std::filesystem;
 
@@ -35,7 +35,7 @@ static bool ParseArgs(int argc, char** argv, Cmd& cmd) {
     return cmd.subcommand == "build" || cmd.subcommand == "live";
 }
 
-static bool BuildOnce(const Cmd& cmd, Runtime::LuaBindings& bindings) {
+static bool BuildOnce(const Cmd& cmd, runtime::LuaBindings& bindings) {
     sol::state lua;
     lua.open_libraries(sol::lib::base, sol::lib::math, sol::lib::table, sol::lib::package);
 
@@ -68,7 +68,7 @@ static bool BuildOnce(const Cmd& cmd, Runtime::LuaBindings& bindings) {
     if (emitted) {
         const auto stem = fs::path(cmd.script).stem().string();
         const fs::path out_stl = cmd.outdir / (stem + ".stl");
-        IO::SaveSTL(emitted, out_stl.string(), 0.1);
+        io::SaveSTL(emitted, out_stl.string(), 0.1);
         std::cout << "Build succeeded.\n";
     }
     return true;
@@ -85,13 +85,13 @@ int main(int argc, char** argv) {
         fs::create_directories(cmd.outdir);
 
         if (cmd.subcommand == "build") {
-            Runtime::LuaBindings bindings;
+            runtime::LuaBindings bindings;
             BuildOnce(cmd, bindings);
             return 0;
         }
 
         // -- live mode
-        Runtime::LuaBindings bindings;
+        runtime::LuaBindings bindings;
         auto last = fs::last_write_time(cmd.script);
         std::cout << "Watching " << cmd.script << " (Ctrl-C to stop)\n";
         BuildOnce(cmd, bindings);  // initial
@@ -103,7 +103,7 @@ int main(int argc, char** argv) {
                 if (now != last) {
                     last = now;
                     std::cout << "\nChange detected. Rebuilding...\n";
-                    bindings = Runtime::LuaBindings{};  // reset emitted
+                    bindings = runtime::LuaBindings{};  // reset emitted
                     BuildOnce(cmd, bindings);
                 }
             } catch (...) {

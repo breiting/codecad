@@ -1,11 +1,11 @@
+#include "geo/Transform.hpp"
+
 #include <BRepBuilderAPI_Transform.hxx>
 #include <gp_Ax1.hxx>
 #include <gp_Pnt.hxx>
 #include <gp_Trsf.hxx>
 
-#include "Geo/Transform.hpp"
-
-namespace Geo {
+namespace geo {
 
 static constexpr double kPi = 3.14159265358979323846;
 static double DegToRad(double d) {
@@ -52,4 +52,4 @@ ShapePtr Scale(const ShapePtr& s, double factor) {
     return std::make_shared<Shape>(out);
 }
 
-}  // namespace Geo
+}  // namespace geo
