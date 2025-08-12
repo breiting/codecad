@@ -18,13 +18,10 @@ Install dependencies:
 ```bash
 sudo apt update
 sudo apt install -y build-essential cmake git \
-  liboce-foundation-dev liboce-modeling-dev liboce-ocaf-dev liboce-visualization-dev \
   libocct-data-exchange-dev libocct-foundation-dev libocct-modeling-algorithms-dev \
   libocct-modeling-data-dev libocct-ocaf-dev libocct-visualization-dev \
   lua5.4 liblua5.4-dev
 ```
-
-> Note: On newer distros OpenCascade packages are named `libocct-...`. On older ones, `liboce-...` (OCE). Prefer OCCT.
 
 ### macOS (Homebrew)
 
@@ -37,21 +34,20 @@ brew install cmake lua opencascade
 ```bash
 git clone <this-project>
 cd codecad
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j
+mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=Release ..
+make
 ```
 
 ## Run example
 
 ```bash
-cmake --build build --target run_example
-# or directly:
-./build/cad build examples/simple.lua
+./cad build ../examples/simple.lua
 ```
 
 Outputs:
 
-- `simple.stl`
+- `simple.stl` and/or
 - `simple.step`
 
 ## Notes

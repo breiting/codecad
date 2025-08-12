@@ -1,0 +1,28 @@
+{
+  "$schema": "https://raw.githubusercontent.com/sumneko/vscode-lua/master/setting/schema.json",
+  "Lua.workspace.library": ["./types"],
+  "Lua.workspace.checkThirdParty": false,
+  "Lua.diagnostics.globals": [
+    "param",
+    "mm",
+    "deg",
+    "box",
+    "cylinder",
+    "union",
+    "difference",
+    "intersect",
+    "translate",
+    "rot_x",
+    "rot_y",
+    "rot_z",
+    "scale",
+    "emit",
+    "save_stl",
+    "save_step",
+    "PARAMS",
+    "__OUTDIR"
+  ],
+  "Lua.runtime.version": "Lua 5.4",
+  "Lua.hint.enable": true,
+  "Lua.completion.callSnippet": "Both"
+}
