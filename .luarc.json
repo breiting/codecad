@@ -3,7 +3,6 @@
   "Lua.workspace.library": ["./types", "./lib"],
   "Lua.workspace.checkThirdParty": false,
   "Lua.diagnostics.globals": [
-    "require",
     "assembly",
     "add_part",
     "part",

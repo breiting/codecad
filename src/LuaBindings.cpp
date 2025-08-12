@@ -49,6 +49,31 @@ void LuaBindings::Register(sol::state& lua) {
     part_t.set_function("get_ez", [](Part& p) { return p.ez; });
     part_t.set_function("set_ez", [](Part& p, double v) { p.ez = v; });
 
+    sol::table params = lua.create_named_table("PARAMS");
+
+    lua.set_function("param", [&lua](const std::string& name, sol::object def) -> sol::object {
+        sol::table p = lua["PARAMS"];
+        sol::object v = p[name];
+        if (v.valid() && v.get_type() != sol::type::nil && v.get_type() != sol::type::none) {
+            // Wenn default Zahl ist und v ein String (z. B. von -D), versuch zu parsen
+            if (def.is<double>() && v.is<std::string>()) {
+                try {
+                    double d = std::stod(v.as<std::string>());
+                    return sol::make_object(lua, d);
+                } catch (...) { /* fallback unten */
+                }
+            }
+            if (def.is<bool>() && v.is<std::string>()) {
+                std::string s = v.as<std::string>();
+                for (auto& c : s) c = std::tolower(c);
+                bool b = (s == "1" || s == "true" || s == "yes" || s == "on");
+                return sol::make_object(lua, b);
+            }
+            return v;  // sonst direkt zurückgeben (string, number, bool, etc.)
+        }
+        return def;  // kein Override -> default
+    });
+
     lua.set_function("mm", [](double v) { return v; });
     lua.set_function("deg", [](double v) { return v; });
 
