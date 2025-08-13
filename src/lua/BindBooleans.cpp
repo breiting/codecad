@@ -25,6 +25,10 @@ void RegisterBooleans(sol::state& lua) {
     lua.set_function("difference", [](const geo::ShapePtr& a, const geo::ShapePtr& b) -> geo::ShapePtr {
         return geo::MakeDifference(a, b);
     });
+
+    lua.set_function("intersection", [](const geo::ShapePtr& a, const geo::ShapePtr& b) -> geo::ShapePtr {
+        return geo::MakeIntersect(a, b);
+    });
 }
 
 }  // namespace runtime

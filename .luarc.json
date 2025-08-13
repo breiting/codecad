@@ -3,30 +3,44 @@
   "Lua.workspace.library": ["./types", "./lib"],
   "Lua.workspace.checkThirdParty": false,
   "Lua.diagnostics.globals": [
-    "assembly",
-    "add_part",
-    "part",
-    "param",
-    "mm",
-    "gear_involute",
-    "deg",
     "box",
     "cylinder",
     "hex_prism",
+
+    "translate",
+    "rotate_x",
+    "rotate_y",
+    "rotate_z",
+    "scale",
+
     "union",
     "difference",
-    "intersect",
-    "translate",
-    "rot_x",
-    "rot_y",
-    "rot_z",
-    "scale",
+    "intersection",
+
     "fillet",
     "chamfer",
+
+    "poly_xy",
+    "poly_xz",
+
+    "extrude",
+    "revolve",
+
     "emit",
-    "emit_assembly",
     "save_stl",
     "save_step",
+    "save_assembly",
+
+    "gear_involute",
+
+    "param",
+    "mm",
+    "deg",
+
+    "assembly",
+    "add_part",
+    "part",
+
     "PARAMS",
     "__OUTDIR"
   ],

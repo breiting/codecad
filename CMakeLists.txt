@@ -39,6 +39,7 @@ add_executable(ccad
   src/lua/BindingUtils.cpp
   src/lua/BindPrimitives.cpp
   src/lua/BindTransforms.cpp
+  src/lua/BindAssembly.cpp
   src/lua/BindBooleans.cpp
   src/lua/BindFeatures.cpp
   src/lua/BindSketch.cpp
