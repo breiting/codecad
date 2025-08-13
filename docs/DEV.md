@@ -19,12 +19,7 @@ docs/                # Documentation
 
 ## CMake Targets
 
-- **ccad** — CLI that loads Lua, executes a script and writes STL/STEP.
-- **ccad_core (OBJECT)** — all geometry/IO code (OCCT wrappers).
-- **ccad_lua (OBJECT)** — modular Lua bindings in `src/lua`.
-
-The final executable links both object libraries to keep compile times small and
-split responsibilities cleanly.
+- **ccad** — CLI that loads Lua, executes a script, processes and/or writes STL/STEP.
 
 ## Coding Style
 
