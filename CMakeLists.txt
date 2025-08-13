@@ -36,6 +36,15 @@ message(STATUS "Found OpenCASCADE: ${OpenCASCADE_VERSION}")
 add_executable(ccad
   src/main.cpp
   src/LuaBindings.cpp
+  src/lua/BindingUtils.cpp
+  src/lua/BindPrimitives.cpp
+  src/lua/BindTransforms.cpp
+  src/lua/BindBooleans.cpp
+  src/lua/BindFeatures.cpp
+  src/lua/BindSketch.cpp
+  src/lua/BindConstruct.cpp
+  src/lua/BindGears.cpp
+  src/lua/BindIO.cpp
   src/Primitives.cpp
   src/Transform.cpp
   src/Boolean.cpp
