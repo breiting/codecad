@@ -54,11 +54,10 @@ ShapePtr PolylineXY_Face(const std::vector<std::pair<double, double>>& pts, bool
     return std::make_shared<Shape>(f);
 }
 
-ShapePtr PolylineXZ_Face(const std::vector<std::pair<double, double>>& rz, bool closed, bool close_to_axis) {
+ShapePtr PolylineXZ_Face(const std::vector<std::pair<double, double>>& rz, bool closed, bool closeToAxis) {
     TopoDS_Wire w = MakeWireFromXZ(rz, closed);
     if (w.IsNull()) return nullptr;
-    if (close_to_axis) {
-        // schließe zur Z-Achse (r=0): letzter Punkt → (0,z_last) → (0,z_first) → erster Punkt
+    if (closeToAxis) {
         BRepBuilderAPI_MakeWire mw(w);
         const auto& p0 = rz.front();
         const auto& pn = rz.back();

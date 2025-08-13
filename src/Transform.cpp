@@ -7,9 +7,8 @@
 
 namespace geo {
 
-static constexpr double kPi = 3.14159265358979323846;
 static double DegToRad(double d) {
-    return d * kPi / 180.0;
+    return d * M_PI / 180.0;
 }
 
 ShapePtr Translate(const ShapePtr& s, double dx, double dy, double dz) {

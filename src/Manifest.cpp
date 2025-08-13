@@ -37,7 +37,7 @@ static std::string JsonEscape(const std::string& s) {
 
 namespace io {
 
-bool WriteAssemblyManifest(const runtime::Assembly& A, const std::string& outdir, bool write_step) {
+bool WriteAssemblyManifest(const runtime::Assembly& A, const std::string& outdir, bool writeStep) {
     try {
         fs::create_directories(outdir);
         // Dateien schreiben + JSON zusammenbauen
@@ -52,7 +52,7 @@ bool WriteAssemblyManifest(const runtime::Assembly& A, const std::string& outdir
             const auto step = fs::path(outdir) / (base + ".step");
 
             io::SaveSTL(p.shape, stl.string(), 0.1);
-            if (write_step) io::SaveSTEP(p.shape, step.string());
+            if (writeStep) io::SaveSTEP(p.shape, step.string());
 
             json << "    {\"name\":\"" << JsonEscape(p.name) << "\","
                  << "\"stl\":\"" << JsonEscape(stl.filename().string()) << "\","

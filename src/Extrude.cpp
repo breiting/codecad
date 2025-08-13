@@ -31,7 +31,7 @@ ShapePtr RevolveZ(const ShapePtr& shp, double angle_deg) {
     } else if (tp == TopAbs_WIRE) {
         out = BRepPrimAPI_MakeRevol(TopoDS::Wire(shp->Get()), axis, ang).Shape();
     } else {
-        // Best-effort: direkt rotieren (keine Revolve-Geometrie)
+        // Best-effort
         out = BRepPrimAPI_MakeRevol(shp->Get(), axis, ang).Shape();
     }
     return std::make_shared<Shape>(out);
