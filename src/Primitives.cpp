@@ -22,9 +22,9 @@ ShapePtr MakeCylinder(double diameter, double height) {
     return std::make_shared<Shape>(s);
 }
 
-static TopoDS_Face MakeRegularPolygonFace(int n, double across_flats) {
-    // Für Hex: across_flats = 2*Ri, Ri = Rc*cos(30°), also Rc = A/√3
-    const double Rc = across_flats / std::sqrt(3.0);
+static TopoDS_Face MakeRegularPolygonFace(int n, double acrossFlats) {
+    // For Hex: across_flats = 2*Ri, Ri = Rc*cos(30°), also Rc = A/√3
+    const double Rc = acrossFlats / std::sqrt(3.0);
     BRepBuilderAPI_MakePolygon poly;
     for (int i = 0; i < n; ++i) {
         double ang = (2.0 * M_PI * i) / n;

@@ -7,9 +7,8 @@
 
 namespace geo {
 
-static constexpr double kPi = 3.14159265358979323846;
 static double DegToRad(double d) {
-    return d * kPi / 180.0;
+    return d * M_PI / 180.0;
 }
 
 ShapePtr Translate(const ShapePtr& s, double dx, double dy, double dz) {
@@ -44,7 +43,7 @@ ShapePtr RotateZ(const ShapePtr& s, double degrees) {
     return std::make_shared<Shape>(out);
 }
 
-ShapePtr Scale(const ShapePtr& s, double factor) {
+ShapePtr ScaleUniform(const ShapePtr& s, double factor) {
     if (!s) return nullptr;
     gp_Trsf tr;
     tr.SetScale(gp_Pnt(0, 0, 0), factor);

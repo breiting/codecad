@@ -34,11 +34,10 @@ ShapePtr FilletAll(const ShapePtr& s, double r) {
 
         BRepFilletAPI_MakeFillet mk(in);
 
-        // Kanten einsammeln
         int edge_count = 0;
         for (TopExp_Explorer ex(in, TopAbs_EDGE); ex.More(); ex.Next()) {
             const TopoDS_Edge& e = TopoDS::Edge(ex.Current());
-            // Optional: nur „scharfe“ Kanten filtern – fürs MVP fügen wir alle hinzu.
+            // Optional: only selection edges (filter) - future idea
             mk.Add(r, e);
             ++edge_count;
         }
@@ -77,7 +76,7 @@ ShapePtr ChamferAll(const ShapePtr& s, double d) {
 
         BRepFilletAPI_MakeChamfer mk(in);
 
-        // Edge → Faces-Mapping (Chamfer braucht zusätzlich eine Face)
+        // Edge → Faces-Mapping
         TopTools_IndexedDataMapOfShapeListOfShape edge2faces;
         TopExp::MapShapesAndAncestors(in, TopAbs_EDGE, TopAbs_FACE, edge2faces);
 
@@ -87,12 +86,10 @@ ShapePtr ChamferAll(const ShapePtr& s, double d) {
             const TopTools_ListOfShape& faces = edge2faces.FindFromIndex(i);
             if (!faces.IsEmpty()) {
                 const TopoDS_Face& f = TopoDS::Face(faces.First());
-                // symmetrischer Chamfer: gleicher Abstand auf beiden Seiten
                 try {
                     mk.Add(d, d, e, f);
                     ++added;
                 } catch (const Standard_Failure&) {
-                    // einzelne „schwierige“ Kante überspringen
                 }
             }
         }
