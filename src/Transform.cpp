@@ -44,7 +44,7 @@ ShapePtr RotateZ(const ShapePtr& s, double degrees) {
     return std::make_shared<Shape>(out);
 }
 
-ShapePtr Scale(const ShapePtr& s, double factor) {
+ShapePtr ScaleUniform(const ShapePtr& s, double factor) {
     if (!s) return nullptr;
     gp_Trsf tr;
     tr.SetScale(gp_Pnt(0, 0, 0), factor);

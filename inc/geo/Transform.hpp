@@ -14,6 +14,6 @@ ShapePtr RotateY(const ShapePtr& s, double degrees);
 /// \brief RotateZ — see docs/LUA_API.md for typical usage.
 ShapePtr RotateZ(const ShapePtr& s, double degrees);
 /// \brief Scale — see docs/LUA_API.md for typical usage.
-ShapePtr Scale(const ShapePtr& s, double factor);
+ShapePtr ScaleUniform(const ShapePtr& s, double factor);
 
 }  // namespace geo
