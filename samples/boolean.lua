@@ -6,5 +6,5 @@ cut = translate(cut, 100, 0, 0)
 
 local result = difference(base, cut)
 emit(result)
-save_stl(result, "boolean.stl")
+save_stl(result, "out/boolean.stl")
 -- save_step(result, "boolean.step")

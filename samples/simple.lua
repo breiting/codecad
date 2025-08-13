@@ -13,5 +13,5 @@ a = chamfer(a, 1)
 
 local model = union(a, b, c)
 
-save_stl(model, "simple.stl")
+save_stl(model, "out/simple.stl")
 print("Done.")
