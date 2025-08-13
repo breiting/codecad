@@ -22,15 +22,30 @@ function param(name, default) end
 ---@return Shape
 function box(x, y, z) end
 
----@param r number @mm
----@param h number @mm
+---@param d number Diameter
+---@param h number Height
 ---@return Shape
-function cylinder(r, h) end
+function cylinder(d, h) end
+
+---@param across_flats number across flats
+---@param h number Height
+---@return Shape
+function hex_prism(across_flats, h) end
 
 ---@param a Shape
 ---@param b Shape
 ---@return Shape
 function difference(a, b) end
+
+---@param s Shape
+---@param r number Radius for fillet in mm
+---@return Shape
+function fillet(s, r) end
+
+---@param s Shape
+---@param d number Distance for chamfer in mm
+---@return Shape
+function chamfer(s, d) end
 
 ---@param ... Shape
 ---@return Shape

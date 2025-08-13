@@ -1,4 +1,4 @@
-# codecad
+# CodeCAD
 
 A simple and puristic approach for a Lua-based parametric CAD modeling software.
 
@@ -52,6 +52,6 @@ Outputs:
 
 ## TODO
 
-- Groups of shapes, e.g. 4 legs
 - code refactoring (architecture)
-- add `extrude(rect(...), h)` etc.
+- add `extrude(rect(...), h)`
+- Read and import STEP files

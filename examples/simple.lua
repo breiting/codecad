@@ -1,15 +1,17 @@
 -- examples/simple.lua
 -- Minimal MVP example: create two boxes, union them, emit and save to STL/STEP
 
-local a = box(50, 20, 10)
-local b = box(10, 30, 20)
-local c = cylinder(10, 50)
+local a = box(500, 200, 100)
+local b = box(100, 250, 200)
+local c = cylinder(100, 500)
 
--- Shift b by 20 in X by stacking with another box (MVP lacks translate; just union overlap)
+b = fillet(b, 1)
+a = chamfer(a, 1)
+
 local model = union(a, b, c)
 
 emit(model)
-save_stl(model, "hello_box.stl")
+-- save_stl(model, "hello_box.stl")
 -- Optional STEP for CAD exchange
 -- save_step(model, "hello_box.step")
 print("Done.")

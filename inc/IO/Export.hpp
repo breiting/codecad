@@ -1,11 +1,11 @@
 #pragma once
 #include <string>
 
-#include "Geo/Shape.hpp"
+#include "geo/Shape.hpp"
 
-namespace IO {
+namespace io {
 
-bool SaveSTL(const Geo::ShapePtr& shape, const std::string& path, double deflection = 0.1);
-bool SaveSTEP(const Geo::ShapePtr& shape, const std::string& path);
+bool SaveSTL(const geo::ShapePtr& shape, const std::string& path, double deflection = 0.1);
+bool SaveSTEP(const geo::ShapePtr& shape, const std::string& path);
 
-}  // namespace IO
+}  // namespace io

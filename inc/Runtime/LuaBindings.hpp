@@ -1,9 +1,9 @@
 #pragma once
-#include <sol/sol.hpp>
+#include <runtime/SolConfig.hpp>
 
-#include "Geo/Shape.hpp"
+#include "geo/Shape.hpp"
 
-namespace Runtime {
+namespace runtime {
 
 class LuaBindings {
    public:
@@ -12,15 +12,15 @@ class LuaBindings {
     void Register(sol::state& lua);
 
     // Storage for the "emitted" model.
-    void SetEmitted(const Geo::ShapePtr& s) {
+    void SetEmitted(const geo::ShapePtr& s) {
         m_Emitted = s;
     }
-    Geo::ShapePtr GetEmitted() const {
+    geo::ShapePtr GetEmitted() const {
         return m_Emitted;
     }
 
    private:
-    Geo::ShapePtr m_Emitted;
+    geo::ShapePtr m_Emitted;
 };
 
-}  // namespace Runtime
+}  // namespace runtime
