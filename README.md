@@ -1,5 +1,9 @@
 # CodeCAD
 
+Code-first 3D modeling for 3D manufacturing. Simple, math-oriented, automated, script-based, easily integrated. Based on proper OCCT (opencascade) backende. Robust.
+
+Works with LLM in future.
+
 A simple and puristic approach for a Lua-based parametric CAD modeling software.
 
 Tiny MVP for a code-first CAD tool:

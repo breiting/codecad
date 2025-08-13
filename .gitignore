@@ -1,4 +1,5 @@
 .cache/
+.crush/
 build/
 .DS_Store
 out/

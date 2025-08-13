@@ -39,6 +39,9 @@ add_executable(ccad
   src/Primitives.cpp
   src/Transform.cpp
   src/Boolean.cpp
+  src/Extrude.cpp
+  src/Gear.cpp
+  src/Sketch.cpp
   src/Features.cpp
   src/Export.cpp
   src/Manifest.cpp

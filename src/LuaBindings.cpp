@@ -8,8 +8,11 @@
 #include <TopoDS_Shape.hxx>
 
 #include "geo/Boolean.hpp"
+#include "geo/Extrude.hpp"
 #include "geo/Features.hpp"
+#include "geo/Gear.hpp"
 #include "geo/Primitives.hpp"
+#include "geo/Sketch.hpp"
 #include "geo/Transform.hpp"
 #include "io/Export.hpp"
 #include "io/Manifest.hpp"
@@ -22,6 +25,32 @@ using runtime::Assembly;
 using runtime::Part;
 
 LuaBindings::LuaBindings() = default;
+
+// Helper: parse table like { {x,y}, {x,y}, ... } into std::vector<std::pair<double,double>>
+static std::vector<std::pair<double, double>> parse_point_table(sol::table t) {
+    std::vector<std::pair<double, double>> out;
+    out.reserve(t.size());
+    for (std::size_t i = 1; i <= t.size(); ++i) {
+        sol::object row = t[i];
+        if (row.get_type() == sol::type::table) {
+            sol::table pairtbl = row.as<sol::table>();
+            // allow both {x, y} and {x = ..., y = ...}
+            sol::object ox = pairtbl[1];
+            sol::object oy = pairtbl[2];
+            if (!ox.valid() || !oy.valid()) {
+                ox = pairtbl["x"];
+                oy = pairtbl["y"];
+            }
+            if (!ox.valid() || !oy.valid() || !ox.is<double>() || !oy.is<double>()) {
+                throw std::runtime_error("poly: each point must be {x, y} numbers");
+            }
+            out.emplace_back(ox.as<double>(), oy.as<double>());
+        } else {
+            throw std::runtime_error("poly: points must be tables like {x, y}");
+        }
+    }
+    return out;
+}
 
 void LuaBindings::Register(sol::state& lua) {
     // Type: ShapePtr as userdata
@@ -130,6 +159,41 @@ void LuaBindings::Register(sol::state& lua) {
 
     lua.set_function("emit_assembly",
                      [](const Assembly& a, const std::string& outdir) { io::WriteAssemblyManifest(a, outdir, true); });
+
+    // --- Sketch / Profiles ---
+    lua.set_function("poly_xy", [](sol::table pts_tbl, sol::optional<bool> closed_opt) -> ShapePtr {
+        auto pts = parse_point_table(pts_tbl);
+        bool closed = closed_opt.value_or(true);
+        return geo::PolylineXY_Face(pts, closed);
+    });
+
+    lua.set_function(
+        "poly_xz",
+        [](sol::table rz_tbl, sol::optional<bool> closed_opt, sol::optional<bool> close_to_axis_opt) -> ShapePtr {
+            auto rz = parse_point_table(rz_tbl);
+            bool closed = closed_opt.value_or(false);
+            bool close_to_axis = close_to_axis_opt.value_or(false);
+            return geo::PolylineXZ_Face(rz, closed, close_to_axis);
+        });
+
+    // --- Extrude / Revolve ---
+    lua.set_function("extrude",
+                     [](const ShapePtr& face, double height) -> ShapePtr { return geo::ExtrudeZ(face, height); });
+    lua.set_function("revolve",
+                     [](const ShapePtr& prof, double angle_deg) -> ShapePtr { return geo::RevolveZ(prof, angle_deg); });
+
+    // --- Gear ---
+    lua.set_function("gear_involute",
+                     [](int z, double m, double th, double bore, sol::object pressure_deg) -> ShapePtr {
+                         try {
+                             double p = pressure_deg.valid() ? pressure_deg.as<double>() : 20.0;
+                             return geo::MakeInvoluteGear(z, m, th, bore, p);
+                         } catch (const Standard_Failure& e) {
+                             throw std::runtime_error(std::string("gear_involute failed: ") + e.GetMessageString());
+                         } catch (const std::exception& e) {
+                             throw;
+                         }
+                     });
 
     // Transforms
     lua.set_function("translate", [](const ShapePtr& s, double dx, double dy, double dz) -> ShapePtr {

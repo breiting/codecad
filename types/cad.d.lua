@@ -16,6 +16,17 @@ function deg(v) end
 ---@return any
 function param(name, default) end
 
+---@param pts { [1]: number, [2]: number }[] | { x: number, y: number }[]
+---@param closed? boolean
+---@return Shape
+function poly_xy(pts, closed) end
+
+---@param pts { [1]: number, [2]: number }[] | { x: number, y: number }[]
+---@param closed? boolean
+---@param close_to_axis? boolean
+---@return Shape
+function poly_xz(pts, closed, close_to_axis) end
+
 ---@param x number @mm
 ---@param y number @mm
 ---@param z number @mm
