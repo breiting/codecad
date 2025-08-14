@@ -5,6 +5,8 @@
   "Lua.diagnostics.globals": [
     "box",
     "cylinder",
+    "cone",
+    "sphere",
     "hex_prism",
 
     "translate",

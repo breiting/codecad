@@ -13,6 +13,14 @@ ShapePtr MakeBox(double x, double y, double z);
 /// \brief MakeCylinder — see docs/LUA_API.md for typical usage.
 ShapePtr MakeCylinder(double diameter, double height);
 
+// Create a sphere (in mm).
+/// \brief MakeSphere — see docs/LUA_API.md for typical usage.
+ShapePtr MakeSphere(double diameter);
+
+// Create a cone (in mm).
+/// \brief MakeCone — see docs/LUA_API.md for typical usage.
+ShapePtr MakeCone(double diameter1, double diameter2, double height);
+
 // Hexgonal Prism (e.g. bolt)
 /// \brief MakeHexPrism — see docs/LUA_API.md for typical usage.
 ShapePtr MakeHexPrism(double acrossFlats, double height);

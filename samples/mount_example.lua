@@ -1,9 +1,10 @@
 local T = require("util.transform")
+local B = require("util.box")
 
 -- --- Inputs (constraints) ---
-local L_left = param("L_left", 200)   -- mm
-local L_right = param("L_right", 200) -- mm
-local spacing = param("D", 220)       -- distance between hole centers (constraint)
+local L_left = param("L_left", 120)   -- mm
+local L_right = param("L_right", 120) -- mm
+local spacing = param("D", 200)       -- distance between hole centers (constraint)
 local wide = param("wide", 20)        -- bar width
 local thick = param("thick", 6)       -- extrusion thickness
 local hole_d = param("hole_d", 8)
@@ -43,12 +44,17 @@ local left = T.move_y(T.rot_z(make_handle(L_left, wide, thick), 180), wide)
 local right = make_handle(L_right, wide, thick)
 
 -- calculate angle theta
-local theta = 90
+local theta
 theta = calc_theta(L_left - hole_recession, L_right - hole_recession)
+
+theta = 180 - theta
+print(theta)
 
 left = T.rot_z(left, -theta / 2)
 right = T.rot_z(right, theta / 2)
 
-local shape = union(left, right)
+local b = T.move_y(B.rounded_shell(100, 50, 20, 4, 5), -70)
+
+local shape = union(left, right, b)
 
 emit(shape)

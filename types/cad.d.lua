@@ -46,16 +46,26 @@ function Part:set_explosion_vector(x, y, z) end
 -- ========================= PRIMITIVES =========================
 -- ]]
 
----@param x number @width (X)
----@param y number @depth (Y)
----@param z number @height (Z)
+---@param x number width (X)
+---@param y number depth (Y)
+---@param z number height (Z)
 ---@return Shape
 function box(x, y, z) end
 
----@param d number @diameter
----@param h number @height
+---@param d number diameter
+---@param h number height
 ---@return Shape
 function cylinder(d, h) end
+
+---@param d1 number first diameter
+---@param d2 number second diameter
+---@param h number height
+---@return Shape
+function cone(d1, d2, h) end
+
+---@param d number @diameter
+---@return Shape
+function sphere(d) end
 
 ---@param across_flats number
 ---@param h number
