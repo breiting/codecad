@@ -40,6 +40,7 @@ end
 --- Rotates the shape around the z axis
 --- @param shape Shape
 --- @param angle number angle in degrees
+--- @return Shape
 function M.rot_z(shape, angle)
 	return rotate_z(shape, angle)
 end

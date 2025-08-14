@@ -78,8 +78,14 @@ function translate(s, dx, dy, dz) end
 ---@return Shape
 function rotate_x(s, deg) end
 
+---@param s Shape
+---@param deg number @degrees
+---@return Shape
 function rotate_y(s, deg) end
 
+---@param s Shape
+---@param deg number @degrees
+---@return Shape
 function rotate_z(s, deg) end
 
 ---@param s Shape
