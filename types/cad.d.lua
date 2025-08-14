@@ -35,6 +35,13 @@ function Part:set_shape(s) end
 ---@param z number
 function Part:set_explosion_vector(x, y, z) end
 
+---@class BBox
+---@field valid boolean
+---@field min {x:number,y:number,z:number}
+---@field max {x:number,y:number,z:number}
+---@field size {x:number,y:number,z:number}
+---@field center {x:number,y:number,z:number}
+
 -- [[
 -- ========================= PRIMITIVES =========================
 -- ]]
@@ -90,6 +97,7 @@ function scale(s, factor) end
 ---@return Shape
 function union(a, b, ...) end
 
+--- Performs a boolean difference operation and removes b from a
 ---@param a Shape
 ---@param b Shape
 ---@return Shape
@@ -193,6 +201,42 @@ function mm(v) end
 ---@param v number
 ---@return number
 function deg(v) end
+
+-- [[
+-- ========================= MEASURE =========================
+-- ]]
+
+---@param s Shape
+---@param useTriangulation? boolean
+---@return BBox
+function bbox(s, useTriangulation) end
+
+---@param s Shape @returns a new, centered shape
+---@return Shape
+function center_x(s) end
+
+---@param s Shape @returns a new, centered shape
+---@return Shape
+function center_y(s) end
+
+---@param s Shape @returns a new, centered shape
+---@return Shape
+function center_z(s) end
+
+---@param s Shape @returns a new, centered shape
+---@return Shape
+function center_xy(s) end
+
+---@param s Shape @returns a new, centered shape
+---@return Shape
+function center_xyz(s) end
+
+---@param s Shape
+---@param cx number
+---@param cy number
+---@param cz number
+---@return Shape
+function center_to(s, cx, cy, cz) end
 
 -- [[
 -- ========================= GEARS =========================

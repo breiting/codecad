@@ -2,11 +2,12 @@
 
 Here are my thoughts on the next steps for this project.
 
-- [ ] Update documentation and fix samples
-- [ ] Build lua base library
-- [ ] Think about licensing
+- [x] Update documentation and fix samples
+- [x] Build lua base library
 - [ ] Somehow integrate cosma viewer
 - [ ] Fix gears
+- [ ] Chamfer specific edges and round off corners
+- [ ] Simple "extend" lengths (Sparren sollen in alle beiden Richtungen verlaengert werden)
 - [ ] Import STEP
 - [ ] Import DXF
 - [ ] Fix units and degrees
@@ -14,3 +15,4 @@ Here are my thoughts on the next steps for this project.
 - [ ] Fix params with cli
 - [ ] Deep copy of a Shape?
 - [ ] Center option for a shape
+- [ ] Think about licensing

@@ -12,6 +12,13 @@
     "rotate_y",
     "rotate_z",
     "scale",
+    "bbox",
+    "center_x",
+    "center_y",
+    "center_z",
+    "center_xy",
+    "center_xyz",
+    "center_to",
 
     "union",
     "difference",

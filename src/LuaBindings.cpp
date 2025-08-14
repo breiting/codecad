@@ -5,6 +5,7 @@
 #include "runtime/BindFeatures.hpp"
 #include "runtime/BindGears.hpp"
 #include "runtime/BindIO.hpp"
+#include "runtime/BindMeasure.hpp"
 #include "runtime/BindPrimitives.hpp"
 #include "runtime/BindSketch.hpp"
 #include "runtime/BindTransforms.hpp"
@@ -58,6 +59,7 @@ void LuaBindings::Register(sol::state& lua) {
     RegisterSketch(lua);
     RegisterConstruct(lua);
     RegisterGears(lua);
+    RegisterMeasure(lua);
     RegisterIO(lua, this);
 }
 

@@ -41,4 +41,4 @@ local hinge_holder = T.move_z(make_hinge_holder(hinge_height), hinge_height)
 local res = union(bottom, hinge_holder)
 
 emit(res)
--- save_stl(bottom_half, "out/bottom_half_with_hinge.stl")
+-- save_stl(res, "out/hindged_box.stl")
