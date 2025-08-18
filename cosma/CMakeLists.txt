@@ -50,6 +50,7 @@ add_library(cosma STATIC
     src/CameraOrbit.cpp
     src/CameraPath.cpp
     src/ConeNode.cpp
+	src/CosmaController.cpp
     src/CosmaViewer.cpp
     src/CylinderNode.cpp
     src/DirectionalLight.cpp

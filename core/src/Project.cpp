@@ -41,7 +41,7 @@ static json j_vec3(const glm::vec3& v) {
     return json::array({v.x, v.y, v.z});
 }
 
-static json j_transform(const Transform& t) {
+static json j_transform(const ProjectTransform& t) {
     json jt;
     jt["translate"] = j_vec3(t.translate);
     jt["rotate"] = j_vec3(t.rotate);
@@ -49,8 +49,8 @@ static json j_transform(const Transform& t) {
     return jt;
 }
 
-static Transform getTransform(const json& jt) {
-    Transform t{};
+static ProjectTransform getTransform(const json& jt) {
+    ProjectTransform t{};
     if (jt.is_null()) return t;
     t.translate = getVec3(jt, "translate");
     t.rotate = getVec3(jt, "rotate");
@@ -85,7 +85,7 @@ Project LoadProject(const std::string& path) {
     // materials
     if (j.contains("materials") && j["materials"].is_object()) {
         for (auto it = j["materials"].begin(); it != j["materials"].end(); ++it) {
-            Material m{};
+            ProjectMaterial m{};
             m.color = it.value().value("color", "");
             p.materials[it.key()] = m;
         }
@@ -147,7 +147,7 @@ bool SaveProject(const Project& p, const std::string& path, bool pretty) {
         json mat = json::object();
         for (const auto& kv : p.materials) {
             const std::string& key = kv.first;
-            const Material& m = kv.second;
+            const ProjectMaterial& m = kv.second;
             json mj;
             mj["color"] = m.color;
             mat[key] = std::move(mj);

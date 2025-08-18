@@ -1,6 +1,7 @@
 #pragma once
 #include <core/InputHandler.hpp>
-#include <string>
+
+#include "io/Project.hpp"
 
 class Renderer;
 class Window;
@@ -14,9 +15,7 @@ class Application : public InputHandler {
     virtual void Render() = 0;
     virtual void Shutdown() = 0;
 
-    virtual void Load(const std::string&) {
-        // Can be overridden in order to load supported filetypes (optional)
-    }
+    virtual void LoadProject(const Project& project) = 0;
 
     // InputHandler
     virtual void OnFramebufferSize(int width, int height) = 0;

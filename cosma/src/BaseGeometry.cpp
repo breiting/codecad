@@ -11,7 +11,7 @@ void BaseGeometry::AddVertex(const Vertex& v) {
     m_Dirty = true;
 }
 
-const size_t BaseGeometry::VertexCount() const {
+size_t BaseGeometry::VertexCount() const {
     return m_Vertices.size();
 }
 

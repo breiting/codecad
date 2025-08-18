@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <vector>
 
-struct Transform {
+struct ProjectTransform {
     glm::vec3 translate{0, 0, 0};
     glm::vec3 rotate{0, 0, 0};  // degrees
     glm::vec3 scale{1, 1, 1};
@@ -14,7 +14,7 @@ struct WorkArea {
     glm::vec2 size{0, 0};
 };
 
-struct Material {
+struct ProjectMaterial {
     std::string name;
     std::string color;  // hex color
 };
@@ -25,7 +25,7 @@ struct Part {
     std::string stl;       // path (optional)
     std::string source;    // lua file path (optional)
     std::string material;  // material key (optional)
-    Transform transform;
+    ProjectTransform transform;
 };
 
 struct Animation {
@@ -43,7 +43,7 @@ struct Project {
         std::string units{"mm"};
     } meta;
     WorkArea workarea;
-    std::unordered_map<std::string, Material> materials;
+    std::unordered_map<std::string, ProjectMaterial> materials;
     std::vector<Part> parts;
     std::unordered_map<std::string, Animation> animations;
 };

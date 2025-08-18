@@ -12,7 +12,7 @@ class BaseGeometry {
     virtual ~BaseGeometry() = default;
 
     void AddVertex(const Vertex& v);
-    const size_t VertexCount() const;
+    size_t VertexCount() const;
     const std::vector<Vertex>& GetVertices() const;
 
    protected:
