@@ -1,5 +1,6 @@
-# sol2 via FetchContent (header-only) - Lua integration
 include(FetchContent)
+
+# sol2 (header-only) - Lua integration
 FetchContent_Declare(
   sol2
   GIT_REPOSITORY https://github.com/ThePhD/sol2.git
@@ -18,36 +19,54 @@ endif()
 message(STATUS "Lua include: ${LUA_INCLUDE_DIR}")
 message(STATUS "Lua libs: ${LUA_LIBRARIES}")
 
+# GLM library
+FetchContent_Declare(
+  glm
+  GIT_REPOSITORY https://github.com/g-truc/glm.git
+  GIT_TAG 1.0.1   # oder aktuelles Release
+)
+FetchContent_MakeAvailable(glm)
+
+
+# JSON
+FetchContent_Declare(
+  json
+  GIT_REPOSITORY https://github.com/nlohmann/json.git
+  GIT_TAG v3.11.3
+)
+FetchContent_MakeAvailable(json)
+
 # Find OpenCascade
 find_package(OpenCASCADE REQUIRED)
 message(STATUS "Found OpenCASCADE: ${OpenCASCADE_VERSION}")
 
 # --- define library first ---
 add_library(core STATIC
-   src/LuaBindings.cpp
-   src/lua/BindingUtils.cpp
-   src/lua/BindPrimitives.cpp
-   src/lua/BindTransforms.cpp
-   src/lua/BindAssembly.cpp
-   src/lua/BindDraft.cpp
-   src/lua/BindBooleans.cpp
-   src/lua/BindMeasure.cpp
-   src/lua/BindFeatures.cpp
-   src/lua/BindSketch.cpp
-   src/lua/BindConstruct.cpp
-   src/lua/BindGears.cpp
-   src/lua/BindIO.cpp
-   src/Primitives.cpp
-   src/Transform.cpp
-   src/Measure.cpp
    src/Boolean.cpp
    src/Draft.cpp
-   src/Extrude.cpp
-   src/Gear.cpp
-   src/Sketch.cpp
-   src/Features.cpp
    src/Export.cpp
+   src/Extrude.cpp
+   src/Features.cpp
+   src/Gear.cpp
+   src/LuaBindings.cpp
    src/Manifest.cpp
+   src/Measure.cpp
+   src/Primitives.cpp
+   src/Project.cpp
+   src/Sketch.cpp
+   src/Transform.cpp
+   src/lua/BindAssembly.cpp
+   src/lua/BindBooleans.cpp
+   src/lua/BindConstruct.cpp
+   src/lua/BindDraft.cpp
+   src/lua/BindFeatures.cpp
+   src/lua/BindGears.cpp
+   src/lua/BindIO.cpp
+   src/lua/BindMeasure.cpp
+   src/lua/BindPrimitives.cpp
+   src/lua/BindSketch.cpp
+   src/lua/BindTransforms.cpp
+   src/lua/BindingUtils.cpp
 )
 
 # --- now configure the target ---
@@ -65,5 +84,7 @@ endif()
 target_link_libraries(core PRIVATE
     project_settings
     ${OpenCASCADE_LIBRARIES}
+    glm::glm
+    nlohmann_json::nlohmann_json
     ${LUA_LIBRARIES}
 )
