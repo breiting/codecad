@@ -40,7 +40,6 @@ FetchContent_MakeAvailable(json)
 find_package(OpenCASCADE REQUIRED)
 message(STATUS "Found OpenCASCADE: ${OpenCASCADE_VERSION}")
 
-# --- define library first ---
 add_library(core STATIC
    src/Boolean.cpp
    src/Draft.cpp

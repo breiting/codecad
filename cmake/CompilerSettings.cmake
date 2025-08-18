@@ -20,3 +20,9 @@ else()
     )
 endif()
 
+target_compile_definitions(project_settings INTERFACE 
+	GLM_ENABLE_EXPERIMENTAL
+	STB_PERLIN_IMPLEMENTATION
+	STB_IMAGE_IMPLEMENTATION
+)
+

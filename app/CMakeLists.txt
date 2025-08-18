@@ -22,5 +22,5 @@ target_link_libraries(codecad PRIVATE
 
 if(ENABLE_COSMA)
     target_link_libraries(codecad PRIVATE cosma)
-    target_compile_definitions(codecad PRIVATE ENABLE_COSMA)
+	target_compile_definitions(codecad PRIVATE ENABLE_COSMA)
 endif()
