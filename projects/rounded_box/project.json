@@ -5,10 +5,9 @@
     "author": "Bernhard",
     "units": "mm"
   },
-  "viewer": { "bg": "#101418", "grid": true },
-  "bed": { "type": "rect", "size": [220, 220], "origin": "center" },
+  "workarea": { "size": [220, 220] },
   "materials": {
-    "pla_black": { "color": "#222222", "density": 1.25 }
+    "pla_black": { "color": "#222222" }
   },
   "parts": [
     {
@@ -16,26 +15,22 @@
       "source": "parts/box_base.lua",
       "stl": "out/box_base.stl",
       "material": "pla_black",
-      "color": "#3a3a3a",
       "transform": {
         "translate": [0, 0, 0],
         "rotate": [0, 0, 0],
         "scale": [1, 1, 1]
-      },
-      "bed_place": { "xy": [-60, 0], "angle": 0 }
+      }
     },
     {
       "name": "box_lid",
       "source": "parts/box_lid.lua",
       "stl": "out/box_lid.stl",
       "material": "pla_black",
-      "color": "#555555",
       "transform": {
         "translate": [0, 0, 0],
         "rotate": [0, 0, 0],
         "scale": [1, 1, 1]
-      },
-      "bed_place": { "xy": [60, 0], "angle": 0 }
+      }
     }
   ]
 }
