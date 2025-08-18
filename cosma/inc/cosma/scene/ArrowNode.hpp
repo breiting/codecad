@@ -8,8 +8,4 @@ class ArrowNode : public ShapeNode {
     ~ArrowNode() = default;
 
     void SetDirection(const glm::vec3& direction);
-
-   private:
-    float m_Length;
-    float m_HeadLength;
 };

@@ -14,16 +14,9 @@
 #include <material/FlatShadedMaterial.hpp>
 #include <material/Material.hpp>
 #include <material/Shader.hpp>
-#include <physics/core/RigidBody.hpp>
 #include <scene/AxesNode.hpp>
-#include <scene/BoxNode.hpp>
-#include <scene/ConeNode.hpp>
-#include <scene/CylinderNode.hpp>
-#include <scene/GridNode.hpp>
 #include <scene/InfinityGridNode.hpp>
-#include <scene/LandscapeNode.hpp>
 #include <scene/Scene.hpp>
-#include <scene/SphereNode.hpp>
 
 using namespace std;
 

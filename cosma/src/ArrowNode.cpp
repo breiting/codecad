@@ -3,7 +3,7 @@
 #include <material/LineSetMaterial.hpp>
 #include <scene/ArrowNode.hpp>
 
-ArrowNode::ArrowNode(float length, float headLength) : m_Length(length), m_HeadLength(headLength) {
+ArrowNode::ArrowNode(float length, float headLength) {
     auto geo = std::make_unique<LineSet>();
     auto mat = std::make_shared<LineSetMaterial>();
 
@@ -28,7 +28,7 @@ ArrowNode::ArrowNode(float length, float headLength) : m_Length(length), m_HeadL
 }
 
 void ArrowNode::SetDirection(const glm::vec3& direction) {
-    glm::vec3 up = glm::vec3(0, 1, 0);
+    // glm::vec3 up = glm::vec3(0, 1, 0);
     glm::quat rot = glm::rotation(glm::vec3(0, 0, 1), glm::normalize(direction));
     SetRotation(rot);
 }

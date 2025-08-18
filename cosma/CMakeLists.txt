@@ -46,41 +46,32 @@ add_library(cosma STATIC
     src/ArrowNode.cpp
     src/AxesNode.cpp
     src/BaseGeometry.cpp
-    src/BoxNode.cpp
     src/CameraOrbit.cpp
     src/CameraPath.cpp
-    src/ConeNode.cpp
 	src/CosmaController.cpp
     src/CosmaViewer.cpp
-    src/CylinderNode.cpp
     src/DirectionalLight.cpp
     src/Engine.cpp
     src/FlatShadedMaterial.cpp
-    src/GridNode.cpp
     src/GuiLayer.cpp
     src/ImageNode.cpp
     src/InfinityGridMaterial.cpp
     src/InfinityGridNode.cpp
-    src/LandscapeNode.cpp
     src/LineSet.cpp
     src/LineSetMaterial.cpp
     src/Mesh.cpp
     src/MeshNode.cpp
-    src/PhysicsWorld.cpp
     src/PointCloud.cpp
     src/Renderable.cpp
     src/Renderer.cpp
-    src/RigidBody.cpp
-    src/RigidBodyComponent.cpp
     src/Scene.cpp
     src/SceneNode.cpp
     src/Shader.cpp
     src/ShapeNode.cpp
-    src/SphereNode.cpp
     src/Stl.cpp
     src/Texture.cpp
-    src/TriangleNode.cpp
     src/Window.cpp
+
     ${IMGUI}
     external/glad/src/gl.cpp
 )
