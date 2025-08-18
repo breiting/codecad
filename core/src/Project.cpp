@@ -1,6 +1,7 @@
 #include "io/Project.hpp"
 
 #include <fstream>
+#include <iostream>
 #include <nlohmann/json.hpp>
 #include <sstream>
 #include <stdexcept>
@@ -197,4 +198,55 @@ bool SaveProject(const Project& p, const std::string& path, bool pretty) {
     f.write(result.data(), static_cast<std::streamsize>(result.size()));
 
     return true;
+}
+
+void PrintProject(const Project& p) {
+    std::ostringstream oss;
+
+    oss << "Project (version " << p.version << ")\n";
+    oss << "  Meta:\n";
+    oss << "    Name   : " << p.meta.name << "\n";
+    oss << "    Author : " << p.meta.author << "\n";
+    oss << "    Units  : " << p.meta.units << "\n";
+
+    oss << "  Workarea:\n";
+    oss << "    Size: (" << p.workarea.size.x << ", " << p.workarea.size.y << ")\n";
+
+    if (!p.materials.empty()) {
+        oss << "  Materials:\n";
+        for (const auto& kv : p.materials) {
+            oss << "    " << kv.first << ": color=" << kv.second.color << "\n";
+        }
+    }
+
+    if (!p.parts.empty()) {
+        oss << "  Parts:\n";
+        for (const auto& pr : p.parts) {
+            oss << "    Part: " << pr.name << " (id=" << pr.id << ")\n";
+            oss << "      stl     : " << pr.stl << "\n";
+            oss << "      source  : " << pr.source << "\n";
+            oss << "      material: " << pr.material << "\n";
+            oss << "      transform:\n";
+            oss << "        translate = (" << pr.transform.translate.x << ", " << pr.transform.translate.y << ", "
+                << pr.transform.translate.z << ")\n";
+            oss << "        rotate    = (" << pr.transform.rotate.x << ", " << pr.transform.rotate.y << ", "
+                << pr.transform.rotate.z << ")\n";
+            oss << "        scale     = (" << pr.transform.scale.x << ", " << pr.transform.scale.y << ", "
+                << pr.transform.scale.z << ")\n";
+        }
+    }
+
+    if (!p.animations.empty()) {
+        oss << "  Animations:\n";
+        for (const auto& kv : p.animations) {
+            const auto& a = kv.second;
+            oss << "    " << kv.first << ":\n";
+            oss << "      component: " << a.component << "\n";
+            oss << "      type     : " << a.type << "\n";
+            oss << "      from     : (" << a.from.x << ", " << a.from.y << ", " << a.from.z << ")\n";
+            oss << "      to       : (" << a.to.x << ", " << a.to.y << ", " << a.to.z << ")\n";
+        }
+    }
+
+    std::cout << oss.str() << std::endl;
 }

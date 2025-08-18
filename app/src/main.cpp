@@ -1,4 +1,5 @@
 #include <core/Viewer.hpp>
+#include <exception>
 #include <iostream>
 
 #include "io/Project.hpp"
@@ -39,7 +40,13 @@ int main(int argc, char** argv) {
     }
 
     // load project
-    auto project = LoadProject(cmd.projectFile);
+    Project project;
+    try {
+        project = LoadProject(cmd.projectFile);
+    } catch (std::exception e) {
+        std::cerr << e.what() << std::endl;
+    }
+    PrintProject(project);
 
     // core::Core coreEngine;
     // coreEngine.load(projectFile);
