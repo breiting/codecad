@@ -33,6 +33,21 @@ static glm::vec3 getVec3(const json& j, const char* key) {
     return v;
 }
 
+static json j_vec2(const glm::vec2& v) {
+    return json::array({v.x, v.y});
+}
+static json j_vec3(const glm::vec3& v) {
+    return json::array({v.x, v.y, v.z});
+}
+
+static json j_transform(const Transform& t) {
+    json jt;
+    jt["translate"] = j_vec3(t.translate);
+    jt["rotate"] = j_vec3(t.rotate);
+    jt["scale"] = j_vec3(t.scale);
+    return jt;
+}
+
 static Transform getTransform(const json& jt) {
     Transform t{};
     if (jt.is_null()) return t;
@@ -104,8 +119,97 @@ Project LoadProject(const std::string& path) {
             anim.type = it.value().value("type", "");
             anim.from = getVec3(it.value(), "from");
             anim.to = getVec3(it.value(), "to");
+            p.animations[it.key()] = std::move(anim);
         }
     }
 
     return p;
+}
+
+bool SaveProject(const Project& p, const std::string& path, bool pretty) {
+    json j;
+
+    // version
+    j["version"] = p.version;
+
+    // meta
+    {
+        json m;
+        m["name"] = p.meta.name;
+        m["author"] = p.meta.author;
+        m["units"] = p.meta.units.empty() ? "mm" : p.meta.units;
+        j["meta"] = std::move(m);
+    }
+
+    // viewer (LoadProject liest: bg, grid)
+    {
+        json v;
+        v["bg"] = p.viewer.bg;
+        v["grid"] = p.viewer.grid;
+        j["viewer"] = std::move(v);
+    }
+
+    // workarea
+    if (p.workarea.size.x != 0 || p.workarea.size.y != 0) {
+        json wa;
+        wa["size"] = j_vec2(p.workarea.size);
+        j["workarea"] = std::move(wa);
+    }
+
+    // materials
+    if (!p.materials.empty()) {
+        json mat = json::object();
+        for (const auto& kv : p.materials) {
+            const std::string& key = kv.first;
+            const Material& m = kv.second;
+            json mj;
+            mj["color"] = m.color;
+            mat[key] = std::move(mj);
+        }
+        j["materials"] = std::move(mat);
+    }
+
+    // parts
+    {
+        json arr = json::array();
+        for (const Part& pr : p.parts) {
+            json jp;
+            if (!pr.id.empty()) jp["id"] = pr.id;
+            jp["name"] = pr.name;
+            if (!pr.stl.empty()) jp["stl"] = pr.stl;
+            if (!pr.source.empty()) jp["source"] = pr.source;
+            if (!pr.material.empty()) jp["material"] = pr.material;
+            jp["transform"] = j_transform(pr.transform);
+            arr.push_back(std::move(jp));
+        }
+        j["parts"] = std::move(arr);
+    }
+
+    // animations
+    if (!p.animations.empty()) {
+        json A = json::object();
+        for (const auto& kv : p.animations) {
+            const std::string& key = kv.first;
+            const Animation& a = kv.second;
+            json ja;
+            ja["component"] = a.component;
+            ja["type"] = a.type;
+            ja["from"] = j_vec3(a.from);
+            ja["to"] = j_vec3(a.to);
+            A[key] = std::move(ja);
+        }
+        j["animations"] = std::move(A);
+    }
+
+    std::string result;
+    if (pretty)
+        result = j.dump(2);
+    else
+        result = j.dump();
+
+    std::ofstream f(path, std::ios::binary);
+    if (!f) return false;
+    f.write(result.data(), static_cast<std::streamsize>(result.size()));
+
+    return true;
 }

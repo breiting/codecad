@@ -56,3 +56,6 @@ struct Project {
 
 /// Load a Project JSON file into memory. Throws std::runtime_error on error.
 Project LoadProject(const std::string& path);
+
+/// Save a Project JSON file. Returns true on success
+bool SaveProject(const Project& p, const std::string& path, bool pretty = true);
