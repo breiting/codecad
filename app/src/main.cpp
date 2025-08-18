@@ -5,7 +5,7 @@
 #include "cosma/CosmaViewer.hpp"
 #endif
 
-std::unique_ptr<Viewer> Viewer::create() {
+std::unique_ptr<Viewer> createViewer() {
 #ifdef ENABLE_COSMA
     return std::make_unique<CosmaViewer>();
 #else
@@ -19,7 +19,7 @@ struct Cmd {
 };
 
 static void PrintUsage(const std::string& name) {
-    std::cout << "Usage: " << name << " <command> <project.json\n";
+    std::cout << "Usage: " << name << " <command> project.json\n";
 }
 
 static bool ParseArgs(int argc, char** argv, Cmd& cmd) {
@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
     // coreEngine.load(projectFile);
 
     if (cmd.command == "live") {
-        auto viewer = Viewer::create();
+        auto viewer = createViewer();
         if (viewer) {
             viewer->start(cmd.projectFile);
         } else {

@@ -6,7 +6,9 @@ target_include_directories(codecad PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../core/inc
 )
 
-target_link_libraries(codecad PRIVATE core)
+target_link_libraries(codecad PRIVATE 
+project_settings
+core)
 
 if(ENABLE_COSMA)
     target_link_libraries(codecad PRIVATE cosma)

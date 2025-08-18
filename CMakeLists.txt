@@ -10,16 +10,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-#
-# # Helpful compile flags
-# if (MSVC)
-#   target_compile_options(ccad PRIVATE /W4)
-# else()
-# 	target_compile_options(ccad PRIVATE -Wall -Wextra -Wpedantic -Wno-unknown-warning-option)
-# endif()
+option(ENABLE_COSMA "Build with Cosma 3D viewer support" ON)
 
-
-option(ENABLE_COSMA "Build with Cosma 3D viewer support" OFF)
+# Load compiler settings target
+include(cmake/CompilerSettings.cmake)
 
 add_subdirectory(core)
 

@@ -63,6 +63,7 @@ if(DEFINED OpenCASCADE_INCLUDE_DIR)
 endif()
 
 target_link_libraries(core PRIVATE
+    project_settings
     ${OpenCASCADE_LIBRARIES}
     ${LUA_LIBRARIES}
 )

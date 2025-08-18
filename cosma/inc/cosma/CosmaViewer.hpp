@@ -2,7 +2,8 @@
 
 #include <core/Viewer.hpp>
 
-class CosmaViewer : Viewer {
+class CosmaViewer : public Viewer {
    public:
+    CosmaViewer();
     void start(const std::string& projectFile) override;
 };
