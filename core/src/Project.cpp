@@ -75,13 +75,6 @@ Project LoadProject(const std::string& path) {
         p.meta.units = m.value("units", "mm");
     }
 
-    // viewer
-    if (j.contains("viewer")) {
-        const auto& v = j["viewer"];
-        p.viewer.bg = v.value("bg", "");
-        p.viewer.grid = v.value("grid", true);
-    }
-
     // workarea
     if (j.contains("workarea")) {
         const auto& b = j["workarea"];
@@ -139,14 +132,6 @@ bool SaveProject(const Project& p, const std::string& path, bool pretty) {
         m["author"] = p.meta.author;
         m["units"] = p.meta.units.empty() ? "mm" : p.meta.units;
         j["meta"] = std::move(m);
-    }
-
-    // viewer (LoadProject liest: bg, grid)
-    {
-        json v;
-        v["bg"] = p.viewer.bg;
-        v["grid"] = p.viewer.grid;
-        j["viewer"] = std::move(v);
     }
 
     // workarea

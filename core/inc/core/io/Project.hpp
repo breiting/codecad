@@ -14,11 +14,6 @@ struct WorkArea {
     glm::vec2 size{0, 0};
 };
 
-struct Viewer {
-    std::string bg;  // "#RRGGBB" or ""
-    bool grid{true};
-};
-
 struct Material {
     std::string name;
     std::string color;  // hex color
@@ -47,7 +42,6 @@ struct Project {
         std::string author;
         std::string units{"mm"};
     } meta;
-    Viewer viewer;
     WorkArea workarea;
     std::unordered_map<std::string, Material> materials;
     std::vector<Part> parts;

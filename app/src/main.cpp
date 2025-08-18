@@ -1,6 +1,8 @@
 #include <core/Viewer.hpp>
 #include <iostream>
 
+#include "io/Project.hpp"
+
 #ifdef ENABLE_COSMA
 #include "cosma/CosmaViewer.hpp"
 #endif
@@ -35,6 +37,9 @@ int main(int argc, char** argv) {
         PrintUsage(argv[0]);
         return 1;
     }
+
+    // load project
+    auto project = LoadProject(cmd.projectFile);
 
     // core::Core coreEngine;
     // coreEngine.load(projectFile);
