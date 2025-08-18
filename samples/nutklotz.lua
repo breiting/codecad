@@ -4,6 +4,7 @@
 local B = require("util.box")
 local F = require("util.func")
 local T = require("util.transform")
+local Draw = require("util.drawing")
 
 local width = 30
 local length = 50
@@ -39,5 +40,7 @@ local hole2 = T.move_z(T.move_y(cylinder(hole_d * 2, 3), length / 2), height_tot
 local holes = union(hole1, hole2)
 
 shape = difference(shape, holes)
+
+Draw.top_view_svg(shape, "out/test.svg", { scale = 1.0, margin = 50, dim_overall = true })
 
 emit(shape)

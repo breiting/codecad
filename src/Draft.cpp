@@ -52,27 +52,33 @@ std::vector<Polyline2D> SectionOutline2D(const ShapePtr& s, char axis, double va
 
     Handle(Geom_Plane) plane = MakePlane(axis, value);
 
-    BRepAlgoAPI_Section sec(s->Get(), plane, false);
-    sec.Approximation(true);
-    sec.Build();
-    if (!sec.IsDone()) return out;
+    try {
+        BRepAlgoAPI_Section sec(s->Get(), plane, false);
+        sec.Approximation(true);
+        sec.Build();
+        if (!sec.IsDone()) return out;
 
-    for (TopExp_Explorer ex(sec.Shape(), TopAbs_EDGE); ex.More(); ex.Next()) {
-        const TopoDS_Edge E = TopoDS::Edge(ex.Current());
-        if (E.IsNull()) continue;
+        for (TopExp_Explorer ex(sec.Shape(), TopAbs_EDGE); ex.More(); ex.Next()) {
+            const TopoDS_Edge E = TopoDS::Edge(ex.Current());
+            if (E.IsNull()) continue;
 
-        BRepAdaptor_Curve ac(E);
-        // discretize with uniform deflection (works for lines too)
-        GCPnts_UniformDeflection disc(ac, defl);
-        if (!disc.IsDone() || disc.NbPoints() < 2) continue;
+            BRepAdaptor_Curve ac(E);
+            // discretize with uniform deflection (works for lines too)
+            GCPnts_UniformDeflection disc(ac, defl);
+            if (!disc.IsDone() || disc.NbPoints() < 2) continue;
 
-        Polyline2D pl;
-        pl.reserve(static_cast<size_t>(disc.NbPoints()));
-        for (int i = 1; i <= disc.NbPoints(); ++i) {
-            gp_Pnt p = disc.Value(i);
-            pl.emplace_back(MapTo2D(axis, p));
+            Polyline2D pl;
+            pl.reserve(static_cast<size_t>(disc.NbPoints()));
+            for (int i = 1; i <= disc.NbPoints(); ++i) {
+                gp_Pnt p = disc.Value(i);
+                pl.emplace_back(MapTo2D(axis, p));
+            }
+            out.emplace_back(std::move(pl));
         }
-        out.emplace_back(std::move(pl));
+    } catch (const Standard_Failure& e) {
+        std::cerr << "[SectionOutline2D] OpenCascade error: " << e.GetMessageString() << "\n";
+    } catch (...) {
+        std::cerr << "[SectionOutline2D] unknown error.\n";
     }
     return out;
 }

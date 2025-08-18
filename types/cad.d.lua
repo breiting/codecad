@@ -151,9 +151,10 @@ function chamfer(s, d) end
 
 ---@param s Shape
 ---@param axis string "x", "y", or "z"
+---@param value number where to cut
 ---@param defl number defines the approximation of curves (smaller means finer)
 ---@return table points as a table
-function section_outline(s, axis, defl) end
+function section_outline(s, axis, value, defl) end
 
 -- [[
 -- ========================= SKETCH =========================
