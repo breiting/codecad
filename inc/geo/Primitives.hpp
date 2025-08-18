@@ -21,6 +21,10 @@ ShapePtr MakeSphere(double diameter);
 /// \brief MakeCone — see docs/LUA_API.md for typical usage.
 ShapePtr MakeCone(double diameter1, double diameter2, double height);
 
+// Create a wedge (in mm).
+/// \brief MakeWedge — see docs/LUA_API.md for typical usage.
+ShapePtr MakeWedge(double dx, double dy, double dz, double ltx);
+
 // Hexgonal Prism (e.g. bolt)
 /// \brief MakeHexPrism — see docs/LUA_API.md for typical usage.
 ShapePtr MakeHexPrism(double acrossFlats, double height);

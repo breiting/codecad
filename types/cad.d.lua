@@ -63,6 +63,13 @@ function cylinder(d, h) end
 ---@return Shape
 function cone(d1, d2, h) end
 
+---@param dx number dx
+---@param dy number dy
+---@param dz number dz
+---@param ltx number ltx
+---@return Shape
+function wedge(dx, dy, dz, ltx) end
+
 ---@param d number @diameter
 ---@return Shape
 function sphere(d) end
@@ -137,6 +144,16 @@ function fillet(s, r) end
 ---@param d number @distance
 ---@return Shape
 function chamfer(s, d) end
+
+-- [[
+-- ========================= DRAFT =========================
+-- ]]
+
+---@param s Shape
+---@param axis string "x", "y", or "z"
+---@param defl number defines the approximation of curves (smaller means finer)
+---@return table points as a table
+function section_outline(s, axis, defl) end
 
 -- [[
 -- ========================= SKETCH =========================

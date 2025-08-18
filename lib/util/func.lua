@@ -84,6 +84,28 @@ function F.sample_polar(fr, a0, a1, n)
 	return dedupe_local(pts)
 end
 
+-- Sample points for a given circle segment
+-- R = radius, L = cord, N = Number of points
+function F.sample_arc(R, L, N)
+	local points = {}
+
+	-- half cord
+	local a = L / 2
+
+	local h = math.sqrt(R * R - a * a)
+
+	local theta = 2 * math.asin(a / R)
+
+	for i = 0, N - 1 do
+		local phi = -theta / 2 + i * (theta / (N - 1))
+		local x = R * math.cos(phi) - h
+		local y = R * math.sin(phi)
+		table.insert(points, { x, y })
+	end
+
+	return points
+end
+
 function F.face_xy(points, closed)
 	-- defensiv: lokale Dedupe noch mal laufen lassen
 	return poly_xy(dedupe_local(points), closed ~= false)

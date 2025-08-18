@@ -7,6 +7,7 @@
 #include <BRepPrimAPI_MakeCylinder.hxx>
 #include <BRepPrimAPI_MakePrism.hxx>
 #include <BRepPrimAPI_MakeSphere.hxx>
+#include <BRepPrimAPI_MakeWedge.hxx>
 #include <cmath>
 #include <gp_Pnt.hxx>
 #include <gp_Vec.hxx>
@@ -25,6 +26,11 @@ ShapePtr MakeCylinder(double diameter, double height) {
 
 ShapePtr MakeCone(double diameter1, double diameter2, double height) {
     TopoDS_Shape s = BRepPrimAPI_MakeCone(diameter1 * 0.5, diameter2 * 0.5, height).Shape();
+    return std::make_shared<Shape>(s);
+}
+
+ShapePtr MakeWedge(double dx, double dy, double dz, double ltx) {
+    TopoDS_Shape s = BRepPrimAPI_MakeWedge(dx, dy, dz, ltx).Shape();
     return std::make_shared<Shape>(s);
 }
 

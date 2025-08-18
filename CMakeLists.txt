@@ -40,6 +40,7 @@ add_executable(ccad
   src/lua/BindPrimitives.cpp
   src/lua/BindTransforms.cpp
   src/lua/BindAssembly.cpp
+  src/lua/BindDraft.cpp
   src/lua/BindBooleans.cpp
   src/lua/BindMeasure.cpp
   src/lua/BindFeatures.cpp
@@ -51,6 +52,7 @@ add_executable(ccad
   src/Transform.cpp
   src/Measure.cpp
   src/Boolean.cpp
+  src/Draft.cpp
   src/Extrude.cpp
   src/Gear.cpp
   src/Sketch.cpp

@@ -13,6 +13,9 @@ Here are my thoughts on the next steps for this project.
 - [ ] Think about licensing
 - [ ] Import STEP
 - [ ] Import DXF
+- [ ] Alles als parts modellieren, dann farbe geben und gleich die exploded animation setzten. beim 3. druck quasi jedes teil auf das pad und sonst zusammengebaut.
+- [ ] Texture auf oberflaechen
+- [ ] Stückliste
 
 ## Done
 

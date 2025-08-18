@@ -15,10 +15,11 @@ Text‑based models are easy to diff, review and reuse. CodeCAD embraces that: *
 
 ## Features
 
-- Primitives: `box`, `cylinder`, `hex_prism`
+- Primitives: `box`, `cylinder`, `sphere`, `wedge`, `hex_prism`
 - Booleans: `union`, `difference`
 - Transforms: `translate`, `rotate*`, `scale`
 - Features: `fillet`, `chamfer`
+- Draft: `section_outline`
 - Sketch → Solid: `poly_xy`, `poly_xz`, `extrude`, `revolve`
 - Gears: `gear_involute(z, m, thickness, bore, pressure_deg?)`
 - IO: `emit`, `save_stl`, `save_step`
