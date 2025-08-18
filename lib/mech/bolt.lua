@@ -1,17 +1,14 @@
--- ISO-ähnliche M-Schraube (vereinfachtes Gewinde standardmäßig AUS)
--- d: Nenndurchmesser (mm), L: Gesamtlänge (mm)
+-- ISO-similar M-bolt (simplified)
+-- d: diameter (mm), L: length (mm)
 -- head_sw: Schlüsselweite (mm), head_h: Kopfhöhe (mm)
--- shank_clearance: optional, falls du bewusst kleiner drucken willst
--- thread: false|true (optisches Gewinde später)
 local function bolt_iso(d, L, opts)
 	opts = opts or {}
 	local head_sw = opts.head_sw or (d == 6 and 10 or d * 1.6) -- M6->SW10
-	local head_h = opts.head_h or (d == 6 and 4 or d * 0.7) -- grobe Näherung
+	local head_h = opts.head_h or (d == 6 and 4 or d * 0.7)
 	local shank_d = opts.shank_d or d
-	local tip_ch = opts.tip_ch or math.min(0.5, d * 0.15)   -- Kantenbruch
-	local thread = opts.thread or false
+	local tip_ch = opts.tip_ch or math.min(0.5, d * 0.15)
 
-	-- Kopf: Hex-Prisma + kleiner Kantenbruch (chamfer)
+	-- Head: Hex-Prisma + chamfer
 	local head = hex_prism(head_sw, head_h)
 	head = chamfer(head, tip_ch)
 
@@ -24,9 +21,6 @@ local function bolt_iso(d, L, opts)
 	head = translate(head, 0, 0, shank_len)
 
 	local body = union(shank, head)
-
-	-- (Optional) optisches Gewinde – später via Helix sweep
-	-- if thread then body = union(body, _make_visual_thread(d, pitch, shank_len)) end
 
 	-- Kleiner Kopf-Fillet für hübschere Kante
 	body = fillet(body, math.min(0.3, d * 0.08))

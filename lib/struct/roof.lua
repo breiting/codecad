@@ -1,6 +1,5 @@
 -- lib/struct/roof.lua
 local W = require("struct.wood")
-local util = require("util.place")
 
 local R = {}
 

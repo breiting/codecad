@@ -3,8 +3,11 @@
 #include <BRepBuilderAPI_MakeFace.hxx>
 #include <BRepBuilderAPI_MakePolygon.hxx>
 #include <BRepPrimAPI_MakeBox.hxx>
+#include <BRepPrimAPI_MakeCone.hxx>
 #include <BRepPrimAPI_MakeCylinder.hxx>
 #include <BRepPrimAPI_MakePrism.hxx>
+#include <BRepPrimAPI_MakeSphere.hxx>
+#include <BRepPrimAPI_MakeWedge.hxx>
 #include <cmath>
 #include <gp_Pnt.hxx>
 #include <gp_Vec.hxx>
@@ -17,8 +20,22 @@ ShapePtr MakeBox(double x, double y, double z) {
 }
 
 ShapePtr MakeCylinder(double diameter, double height) {
-    const double r = 0.5 * diameter;
-    TopoDS_Shape s = BRepPrimAPI_MakeCylinder(r, height).Shape();
+    TopoDS_Shape s = BRepPrimAPI_MakeCylinder(0.5 * diameter, height).Shape();
+    return std::make_shared<Shape>(s);
+}
+
+ShapePtr MakeCone(double diameter1, double diameter2, double height) {
+    TopoDS_Shape s = BRepPrimAPI_MakeCone(diameter1 * 0.5, diameter2 * 0.5, height).Shape();
+    return std::make_shared<Shape>(s);
+}
+
+ShapePtr MakeWedge(double dx, double dy, double dz, double ltx) {
+    TopoDS_Shape s = BRepPrimAPI_MakeWedge(dx, dy, dz, ltx).Shape();
+    return std::make_shared<Shape>(s);
+}
+
+ShapePtr MakeSphere(double diameter) {
+    TopoDS_Shape s = BRepPrimAPI_MakeSphere(0.5 * diameter).Shape();
     return std::make_shared<Shape>(s);
 }
 

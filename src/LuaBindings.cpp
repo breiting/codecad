@@ -2,9 +2,11 @@
 
 #include "runtime/BindBooleans.hpp"
 #include "runtime/BindConstruct.hpp"
+#include "runtime/BindDraft.hpp"
 #include "runtime/BindFeatures.hpp"
 #include "runtime/BindGears.hpp"
 #include "runtime/BindIO.hpp"
+#include "runtime/BindMeasure.hpp"
 #include "runtime/BindPrimitives.hpp"
 #include "runtime/BindSketch.hpp"
 #include "runtime/BindTransforms.hpp"
@@ -58,6 +60,8 @@ void LuaBindings::Register(sol::state& lua) {
     RegisterSketch(lua);
     RegisterConstruct(lua);
     RegisterGears(lua);
+    RegisterDraft(lua);
+    RegisterMeasure(lua);
     RegisterIO(lua, this);
 }
 

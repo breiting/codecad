@@ -16,6 +16,8 @@ Numbers and booleans are converted from strings automatically.
 
 - `box(x, y, z) -> Shape` — axis-aligned box with size on X/Y/Z.
 - `cylinder(d, h) -> Shape` — cylinder of diameter `d` and height `h`.
+- `sphere(d) -> Shape` — sphere with diameter `d`.
+- `wedge(dx, dy, dz, ltx) -> Shape` — a wedge.
 - `hex_prism(across_flats, h) -> Shape` — regular hexagonal prism.
 
 ## Booleans
@@ -30,6 +32,10 @@ Numbers and booleans are converted from strings automatically.
 - `rotate_y(s, deg) -> Shape`
 - `rotate_z(s, deg) -> Shape`
 - `scale(s, factor) -> Shape`
+
+## Draft
+
+- `section_outline(s, axis, defl) -> table` — calculates a section/draft of a 3D model
 
 ## Features
 
