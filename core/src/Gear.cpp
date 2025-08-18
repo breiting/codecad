@@ -1,4 +1,4 @@
-#include "geo/Gear.hpp"
+#include "geometry/Gear.hpp"
 
 #include <BRepAlgoAPI_Cut.hxx>
 #include <BRepAlgoAPI_Fuse.hxx>
@@ -105,7 +105,7 @@ static Handle(Geom_BSplineCurve) splineFrom(const std::vector<gp_Pnt>& pts) {
 
 }  // namespace
 
-namespace geo {
+namespace geometry {
 
 ShapePtr MakeInvoluteGear(int z, double m, double th, double bore, double pressureDeg) {
     if (z < 6) z = 6;
@@ -193,4 +193,4 @@ ShapePtr MakeInvoluteGear(int z, double m, double th, double bore, double pressu
     return std::make_shared<Shape>(gear);
 }
 
-}  // namespace geo
+}  // namespace geometry

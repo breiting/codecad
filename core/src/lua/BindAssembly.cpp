@@ -19,7 +19,7 @@ void RegisterAssembly(sol::state& lua) {
     auto part_t = lua.new_usertype<Part>("Part");
 
     part_t.set_function("set_name", [](Part& p, const std::string& n) { p.name = n; });
-    part_t.set_function("set_shape", [](Part& p, const geo::ShapePtr& s) { p.shape = s; });
+    part_t.set_function("set_shape", [](Part& p, const geometry::ShapePtr& s) { p.shape = s; });
     part_t.set_function("set_explosion_vector", [](Part& p, double x, double y, double z) {
         p.ex = x;
         p.ey = y;
@@ -32,7 +32,7 @@ void RegisterAssembly(sol::state& lua) {
         return a;
     });
     lua.set_function(
-        "part", [](const std::string& name, const geo::ShapePtr& s, sol::object ex, sol::object ey, sol::object ez) {
+        "part", [](const std::string& name, const geometry::ShapePtr& s, sol::object ex, sol::object ey, sol::object ez) {
             Part p;
             p.name = name;
             p.shape = s;

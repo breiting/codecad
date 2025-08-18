@@ -1,9 +1,9 @@
 /// \file
 /// Geometry API for solid modeling (OCCT wrappers).
 #pragma once
-#include "geo/Shape.hpp"
+#include "geometry/Shape.hpp"
 
-namespace geo {
+namespace geometry {
 
 // Spur Gear
 // z = number of teeth, m = Module (mm), th = Width (Z), bore = hole (mm)
@@ -11,4 +11,4 @@ namespace geo {
 /// \brief MakeInvoluteGear — see docs/LUA_API.md for typical usage.
 ShapePtr MakeInvoluteGear(int z, double m, double th, double bore, double pressureDeg = 20.0);
 
-}  // namespace geo
+}  // namespace geometry

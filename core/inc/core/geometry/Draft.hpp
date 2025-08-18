@@ -2,9 +2,9 @@
 #include <utility>
 #include <vector>
 
-#include "geo/Shape.hpp"
+#include "geometry/Shape.hpp"
 
-namespace geo {
+namespace geometry {
 
 using Polyline2D = std::vector<std::pair<double, double>>;
 
@@ -19,4 +19,4 @@ using Polyline2D = std::vector<std::pair<double, double>>;
 /// @param defl  Max deflection for curve discretization (mm)
 std::vector<Polyline2D> SectionOutline2D(const ShapePtr& s, char axis, double value, double defl = 0.2);
 
-}  // namespace geo
+}  // namespace geometry

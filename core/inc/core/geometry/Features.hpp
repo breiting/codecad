@@ -1,9 +1,9 @@
 /// \file
 /// Geometry API for solid modeling (OCCT wrappers).
 #pragma once
-#include "geo/Shape.hpp"
+#include "geometry/Shape.hpp"
 
-namespace geo {
+namespace geometry {
 
 // Round-off edges with constant radius (mm)
 /// \brief FilletAll — see docs/LUA_API.md for typical usage.
@@ -13,4 +13,4 @@ ShapePtr FilletAll(const ShapePtr& s, double radiusMm);
 /// \brief ChamferAll — see docs/LUA_API.md for typical usage.
 ShapePtr ChamferAll(const ShapePtr& s, double distanceMm);
 
-}  // namespace geo
+}  // namespace geometry

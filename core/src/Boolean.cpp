@@ -1,10 +1,10 @@
-#include "geo/Boolean.hpp"
+#include "geometry/Boolean.hpp"
 
 #include <BRepAlgoAPI_Common.hxx>
 #include <BRepAlgoAPI_Cut.hxx>
 #include <BRepAlgoAPI_Fuse.hxx>
 
-namespace geo {
+namespace geometry {
 
 ShapePtr MakeUnion(const std::vector<ShapePtr>& shapes) {
     if (shapes.size() < 2) return nullptr;
@@ -27,4 +27,4 @@ ShapePtr MakeIntersect(const ShapePtr& a, const ShapePtr& b) {
     return std::make_shared<Shape>(r);
 }
 
-}  // namespace geo
+}  // namespace geometry

@@ -1,4 +1,4 @@
-#include "geo/Sketch.hpp"
+#include "geometry/Sketch.hpp"
 
 #include <BRepBuilderAPI_MakeEdge.hxx>
 #include <BRepBuilderAPI_MakeFace.hxx>
@@ -45,7 +45,7 @@ static TopoDS_Wire MakeWireFromXZ(const std::vector<std::pair<double, double>>& 
 
 }  // namespace
 
-namespace geo {
+namespace geometry {
 
 ShapePtr PolylineXY_Face(const std::vector<std::pair<double, double>>& pts, bool closed) {
     TopoDS_Wire w = MakeWireFromXY(pts, closed);
@@ -70,4 +70,4 @@ ShapePtr PolylineXZ_Face(const std::vector<std::pair<double, double>>& rz, bool 
     return std::make_shared<Shape>(f);
 }
 
-}  // namespace geo
+}  // namespace geometry

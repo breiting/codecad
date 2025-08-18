@@ -9,9 +9,9 @@
 #include <cmath>
 #include <gp_Trsf.hxx>
 
-#include "geo/Triangulate.hpp"
+#include "geometry/Triangulate.hpp"
 
-namespace geo {
+namespace geometry {
 
 TriMesh TriangulateShape(const TopoDS_Shape& shape, double defl, double angDeg, bool parallel) {
     TriMesh out;
@@ -67,4 +67,4 @@ TriMesh TriangulateShape(const TopoDS_Shape& shape, double defl, double angDeg, 
     return out;
 }
 
-}  // namespace geo
+}  // namespace geometry

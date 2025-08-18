@@ -3,20 +3,20 @@
 #include <Standard_Failure.hxx>
 #include <stdexcept>
 
-#include "geo/Features.hpp"
+#include "geometry/Features.hpp"
 
 namespace runtime {
 void RegisterFeatures(sol::state& lua) {
-    lua.set_function("fillet", [](const geo::ShapePtr& s, double r) -> geo::ShapePtr {
+    lua.set_function("fillet", [](const geometry::ShapePtr& s, double r) -> geometry::ShapePtr {
         try {
-            return geo::FilletAll(s, r);
+            return geometry::FilletAll(s, r);
         } catch (const Standard_Failure& e) {
             throw std::runtime_error(std::string("fillet failed: ") + e.GetMessageString());
         }
     });
-    lua.set_function("chamfer", [](const geo::ShapePtr& s, double d) -> geo::ShapePtr {
+    lua.set_function("chamfer", [](const geometry::ShapePtr& s, double d) -> geometry::ShapePtr {
         try {
-            return geo::ChamferAll(s, d);
+            return geometry::ChamferAll(s, d);
         } catch (const Standard_Failure& e) {
             throw std::runtime_error(std::string("chamfer failed: ") + e.GetMessageString());
         }

@@ -4,7 +4,7 @@
 #include <TopoDS_Shape.hxx>
 #include <memory>
 
-namespace geo {
+namespace geometry {
 
 class Shape {
    public:
@@ -20,4 +20,4 @@ class Shape {
 
 using ShapePtr = std::shared_ptr<Shape>;
 
-}  // namespace geo
+}  // namespace geometry

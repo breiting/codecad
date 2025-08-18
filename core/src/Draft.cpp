@@ -1,4 +1,4 @@
-#include "geo/Draft.hpp"
+#include "geometry/Draft.hpp"
 
 #include <BRepAdaptor_Curve.hxx>
 #include <BRepAlgoAPI_Section.hxx>
@@ -11,7 +11,7 @@
 #include <gp_Pln.hxx>
 #include <stdexcept>
 
-namespace geo {
+namespace geometry {
 
 static inline Handle(Geom_Plane) MakePlane(char axis, double v) {
     switch (axis) {
@@ -83,4 +83,4 @@ std::vector<Polyline2D> SectionOutline2D(const ShapePtr& s, char axis, double va
     return out;
 }
 
-}  // namespace geo
+}  // namespace geometry

@@ -1,9 +1,9 @@
 /// \file
 /// Geometry API for solid modeling (OCCT wrappers).
 #pragma once
-#include "geo/Shape.hpp"
+#include "geometry/Shape.hpp"
 
-namespace geo {
+namespace geometry {
 
 /// \brief Translate — see docs/LUA_API.md for typical usage.
 ShapePtr Translate(const ShapePtr& s, double dx, double dy, double dz);
@@ -16,4 +16,4 @@ ShapePtr RotateZ(const ShapePtr& s, double degrees);
 /// \brief Scale — see docs/LUA_API.md for typical usage.
 ShapePtr ScaleUniform(const ShapePtr& s, double factor);
 
-}  // namespace geo
+}  // namespace geometry

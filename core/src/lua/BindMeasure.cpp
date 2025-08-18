@@ -1,11 +1,11 @@
 #include "runtime/BindMeasure.hpp"
 
-#include "geo/Measure.hpp"
-#include "geo/Transform.hpp"
+#include "geometry/Measure.hpp"
+#include "geometry/Transform.hpp"
 
 namespace runtime {
 
-static sol::table BBoxToTable(sol::state& lua, const geo::BBox& b) {
+static sol::table BBoxToTable(sol::state& lua, const geometry::BBox& b) {
     sol::table t = lua.create_table();
     t["valid"] = b.isValid;
     sol::table min = lua.create_table();
@@ -32,41 +32,41 @@ static sol::table BBoxToTable(sol::state& lua, const geo::BBox& b) {
 }
 
 void RegisterMeasure(sol::state& lua) {
-    lua.set_function("bbox", [&lua](const geo::ShapePtr& s, sol::optional<bool> useTri) {
-        auto b = geo::ComputeBBox(s, useTri.value_or(true));
+    lua.set_function("bbox", [&lua](const geometry::ShapePtr& s, sol::optional<bool> useTri) {
+        auto b = geometry::ComputeBBox(s, useTri.value_or(true));
         return BBoxToTable(lua, b);
     });
 
     // Center helpers
-    lua.set_function("center_x", [](const geo::ShapePtr& s) {
-        auto b = geo::ComputeBBox(s, true);
+    lua.set_function("center_x", [](const geometry::ShapePtr& s) {
+        auto b = geometry::ComputeBBox(s, true);
         if (!b.isValid) return s;
-        return geo::Translate(s, -b.Cx(), 0, 0);
+        return geometry::Translate(s, -b.Cx(), 0, 0);
     });
-    lua.set_function("center_y", [](const geo::ShapePtr& s) {
-        auto b = geo::ComputeBBox(s, true);
+    lua.set_function("center_y", [](const geometry::ShapePtr& s) {
+        auto b = geometry::ComputeBBox(s, true);
         if (!b.isValid) return s;
-        return geo::Translate(s, 0, -b.Cy(), 0);
+        return geometry::Translate(s, 0, -b.Cy(), 0);
     });
-    lua.set_function("center_z", [](const geo::ShapePtr& s) {
-        auto b = geo::ComputeBBox(s, true);
+    lua.set_function("center_z", [](const geometry::ShapePtr& s) {
+        auto b = geometry::ComputeBBox(s, true);
         if (!b.isValid) return s;
-        return geo::Translate(s, 0, 0, -b.Cz());
+        return geometry::Translate(s, 0, 0, -b.Cz());
     });
-    lua.set_function("center_xy", [](const geo::ShapePtr& s) {
-        auto b = geo::ComputeBBox(s, true);
+    lua.set_function("center_xy", [](const geometry::ShapePtr& s) {
+        auto b = geometry::ComputeBBox(s, true);
         if (!b.isValid) return s;
-        return geo::Translate(s, -b.Cx(), -b.Cy(), 0);
+        return geometry::Translate(s, -b.Cx(), -b.Cy(), 0);
     });
-    lua.set_function("center_xyz", [](const geo::ShapePtr& s) {
-        auto b = geo::ComputeBBox(s, true);
+    lua.set_function("center_xyz", [](const geometry::ShapePtr& s) {
+        auto b = geometry::ComputeBBox(s, true);
         if (!b.isValid) return s;
-        return geo::Translate(s, -b.Cx(), -b.Cy(), -b.Cz());
+        return geometry::Translate(s, -b.Cx(), -b.Cy(), -b.Cz());
     });
-    lua.set_function("center_to", [](const geo::ShapePtr& s, double cx, double cy, double cz) {
-        auto b = geo::ComputeBBox(s, true);
+    lua.set_function("center_to", [](const geometry::ShapePtr& s, double cx, double cy, double cz) {
+        auto b = geometry::ComputeBBox(s, true);
         if (!b.isValid) return s;
-        return geo::Translate(s, cx - b.Cx(), cy - b.Cy(), cz - b.Cz());
+        return geometry::Translate(s, cx - b.Cx(), cy - b.Cy(), cz - b.Cz());
     });
 }
 

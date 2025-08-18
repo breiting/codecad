@@ -1,4 +1,4 @@
-#include "geo/Features.hpp"
+#include "geometry/Features.hpp"
 
 #include <BRepCheck_Analyzer.hxx>
 #include <BRepFilletAPI_MakeChamfer.hxx>
@@ -13,7 +13,7 @@
 #include <TopoDS_Face.hxx>
 #include <iostream>
 
-namespace geo {
+namespace geometry {
 
 static bool IsValid(const TopoDS_Shape& s) {
     BRepCheck_Analyzer ana(s);
@@ -120,4 +120,4 @@ ShapePtr ChamferAll(const ShapePtr& s, double d) {
     }
 }
 
-}  // namespace geo
+}  // namespace geometry

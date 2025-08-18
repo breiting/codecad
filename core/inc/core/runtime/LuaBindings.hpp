@@ -1,7 +1,7 @@
 #pragma once
 #include <runtime/SolConfig.hpp>
 
-#include "geo/Shape.hpp"
+#include "geometry/Shape.hpp"
 
 namespace runtime {
 
@@ -22,7 +22,7 @@ class LuaBindings {
      * This method stores the given shape as the emitted shape.
      * @param s The shape to set as emitted.
      */
-    void SetEmitted(const geo::ShapePtr& s) {
+    void SetEmitted(const geometry::ShapePtr& s) {
         m_Emitted = s;
     }
     /**
@@ -31,12 +31,12 @@ class LuaBindings {
      * This method returns the shape that was previously set as emitted.
      * @return A pointer to the emitted shape.
      */
-    geo::ShapePtr GetEmitted() const {
+    geometry::ShapePtr GetEmitted() const {
         return m_Emitted;
     }
 
    private:
-    geo::ShapePtr m_Emitted;
+    geometry::ShapePtr m_Emitted;
 };
 
 }  // namespace runtime

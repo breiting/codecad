@@ -3,7 +3,7 @@
 #include <glm/vec3.hpp>
 #include <vector>
 
-namespace geo {
+namespace geometry {
 
 struct TriMesh {
     std::vector<glm::vec3> positions;

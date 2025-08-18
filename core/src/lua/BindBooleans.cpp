@@ -1,7 +1,7 @@
 #include "runtime/BindBooleans.hpp"
 
-#include "geo/Boolean.hpp"
-using geo::ShapePtr;
+#include "geometry/Boolean.hpp"
+using geometry::ShapePtr;
 
 namespace runtime {
 
@@ -19,15 +19,15 @@ void RegisterBooleans(sol::state& lua) {
         if (shapes.size() < 2) {
             throw std::runtime_error("union(...) expects at least 2 shapes");
         }
-        return geo::MakeUnion(shapes);
+        return geometry::MakeUnion(shapes);
     });
 
-    lua.set_function("difference", [](const geo::ShapePtr& a, const geo::ShapePtr& b) -> geo::ShapePtr {
-        return geo::MakeDifference(a, b);
+    lua.set_function("difference", [](const geometry::ShapePtr& a, const geometry::ShapePtr& b) -> geometry::ShapePtr {
+        return geometry::MakeDifference(a, b);
     });
 
-    lua.set_function("intersection", [](const geo::ShapePtr& a, const geo::ShapePtr& b) -> geo::ShapePtr {
-        return geo::MakeIntersect(a, b);
+    lua.set_function("intersection", [](const geometry::ShapePtr& a, const geometry::ShapePtr& b) -> geometry::ShapePtr {
+        return geometry::MakeIntersect(a, b);
     });
 }
 

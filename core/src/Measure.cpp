@@ -1,10 +1,10 @@
-#include "geo/Measure.hpp"
+#include "geometry/Measure.hpp"
 
 #include <BRepBndLib.hxx>
 #include <Bnd_Box.hxx>
 #include <TopoDS_Shape.hxx>
 
-namespace geo {
+namespace geometry {
 
 BBox ComputeBBox(const ShapePtr& s, bool useTriangulation) {
     BBox out;
@@ -28,4 +28,4 @@ BBox ComputeBBox(const ShapePtr& s, bool useTriangulation) {
     return out;
 }
 
-}  // namespace geo
+}  // namespace geometry

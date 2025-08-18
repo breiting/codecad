@@ -3,9 +3,9 @@
 #pragma once
 #include <vector>
 
-#include "geo/Shape.hpp"
+#include "geometry/Shape.hpp"
 
-namespace geo {
+namespace geometry {
 
 // Boolean union (fuse) of multiple shapes. Expects at least 2 shapes.
 /// \brief MakeUnion — see docs/LUA_API.md for typical usage.
@@ -19,4 +19,4 @@ ShapePtr MakeDifference(const ShapePtr& a, const ShapePtr& b);
 /// \brief MakeIntersect — see docs/LUA_API.md for typical usage.
 ShapePtr MakeIntersect(const ShapePtr& a, const ShapePtr& b);
 
-}  // namespace geo
+}  // namespace geometry

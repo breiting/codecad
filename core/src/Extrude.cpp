@@ -1,4 +1,4 @@
-#include "geo/Extrude.hpp"
+#include "geometry/Extrude.hpp"
 
 #include <BRepPrimAPI_MakePrism.hxx>
 #include <BRepPrimAPI_MakeRevol.hxx>
@@ -10,7 +10,7 @@
 #include <gp_Pnt.hxx>
 #include <gp_Vec.hxx>
 
-namespace geo {
+namespace geometry {
 
 ShapePtr ExtrudeZ(const ShapePtr& face, double height) {
     if (!face || height == 0.0) return face;
@@ -37,4 +37,4 @@ ShapePtr RevolveZ(const ShapePtr& shp, double angle_deg) {
     return std::make_shared<Shape>(out);
 }
 
-}  // namespace geo
+}  // namespace geometry

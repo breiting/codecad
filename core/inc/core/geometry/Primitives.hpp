@@ -1,9 +1,9 @@
 /// \file
 /// Geometry API for solid modeling (OCCT wrappers).
 #pragma once
-#include "geo/Shape.hpp"
+#include "geometry/Shape.hpp"
 
-namespace geo {
+namespace geometry {
 
 // Create an axis-aligned box with given dimensions (in mm).
 /// \brief MakeBox — see docs/LUA_API.md for typical usage.
@@ -29,4 +29,4 @@ ShapePtr MakeWedge(double dx, double dy, double dz, double ltx);
 /// \brief MakeHexPrism — see docs/LUA_API.md for typical usage.
 ShapePtr MakeHexPrism(double acrossFlats, double height);
 
-}  // namespace geo
+}  // namespace geometry

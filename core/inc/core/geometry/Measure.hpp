@@ -1,7 +1,7 @@
 #pragma once
-#include "geo/Shape.hpp"
+#include "geometry/Shape.hpp"
 
-namespace geo {
+namespace geometry {
 
 /// @brief Axis-aligned bounding box of a shape.
 /// Units: mm; Empty box yields all zeros with isValid=false.
@@ -35,4 +35,4 @@ struct BBox {
 /// @return BBox with isValid=true on success.
 BBox ComputeBBox(const ShapePtr& s, bool useTriangulation = true);
 
-}  // namespace geo
+}  // namespace geometry

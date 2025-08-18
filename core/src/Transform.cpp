@@ -1,11 +1,11 @@
-#include "geo/Transform.hpp"
+#include "geometry/Transform.hpp"
 
 #include <BRepBuilderAPI_Transform.hxx>
 #include <gp_Ax1.hxx>
 #include <gp_Pnt.hxx>
 #include <gp_Trsf.hxx>
 
-namespace geo {
+namespace geometry {
 
 static double DegToRad(double d) {
     return d * M_PI / 180.0;
@@ -51,4 +51,4 @@ ShapePtr ScaleUniform(const ShapePtr& s, double factor) {
     return std::make_shared<Shape>(out);
 }
 
-}  // namespace geo
+}  // namespace geometry

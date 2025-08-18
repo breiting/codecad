@@ -4,9 +4,9 @@
 #include <utility>
 #include <vector>
 
-#include "geo/Shape.hpp"
+#include "geometry/Shape.hpp"
 
-namespace geo {
+namespace geometry {
 
 // Polyline (filled face) on XY plane: points(x,y), z=0. If closed=true, the polyline will get closed automatically
 /// \brief PolylineXY_Face — see docs/LUA_API.md for typical usage.
@@ -16,4 +16,4 @@ ShapePtr PolylineXY_Face(const std::vector<std::pair<double, double>>& pts, bool
 /// \brief PolylineXZ_Face — see docs/LUA_API.md for typical usage.
 ShapePtr PolylineXZ_Face(const std::vector<std::pair<double, double>>& rz, bool closed, bool closeToAxis);
 
-}  // namespace geo
+}  // namespace geometry

@@ -8,7 +8,7 @@
 
 namespace io {
 
-bool SaveSTL(const geo::ShapePtr& shape, const std::string& path, double deflection) {
+bool SaveSTL(const geometry::ShapePtr& shape, const std::string& path, double deflection) {
     if (!shape) return false;
     // Tessellate
     BRepMesh_IncrementalMesh mesher(shape->Get(), deflection);
@@ -22,7 +22,7 @@ bool SaveSTL(const geo::ShapePtr& shape, const std::string& path, double deflect
     return false;
 }
 
-bool SaveSTEP(const geo::ShapePtr& shape, const std::string& path) {
+bool SaveSTEP(const geometry::ShapePtr& shape, const std::string& path) {
     if (!shape) return false;
     STEPControl_Writer stepWriter;
     IFSelect_ReturnStatus status = stepWriter.Transfer(shape->Get(), STEPControl_AsIs);

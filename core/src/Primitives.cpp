@@ -1,4 +1,4 @@
-#include "geo/Primitives.hpp"
+#include "geometry/Primitives.hpp"
 
 #include <BRepBuilderAPI_MakeFace.hxx>
 #include <BRepBuilderAPI_MakePolygon.hxx>
@@ -12,7 +12,7 @@
 #include <gp_Pnt.hxx>
 #include <gp_Vec.hxx>
 
-namespace geo {
+namespace geometry {
 
 ShapePtr MakeBox(double x, double y, double z) {
     TopoDS_Shape s = BRepPrimAPI_MakeBox(x, y, z).Shape();
@@ -58,4 +58,4 @@ ShapePtr MakeHexPrism(double across_flats, double height) {
     return std::make_shared<Shape>(s);
 }
 
-}  // namespace geo
+}  // namespace geometry

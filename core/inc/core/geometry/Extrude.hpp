@@ -1,9 +1,9 @@
 /// \file
 /// Geometry API for solid modeling (OCCT wrappers).
 #pragma once
-#include "geo/Shape.hpp"
+#include "geometry/Shape.hpp"
 
-namespace geo {
+namespace geometry {
 
 // Extrudes a face along +Z with the given height (mm)
 /// \brief ExtrudeZ — see docs/LUA_API.md for typical usage.
@@ -13,4 +13,4 @@ ShapePtr ExtrudeZ(const ShapePtr& face, double height);
 /// \brief RevolveZ — see docs/LUA_API.md for typical usage.
 ShapePtr RevolveZ(const ShapePtr& face_or_wire, double angleDeg);
 
-}  // namespace geo
+}  // namespace geometry
