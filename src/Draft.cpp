@@ -8,7 +8,6 @@
 #include <TopExp_Explorer.hxx>
 #include <TopoDS.hxx>
 #include <TopoDS_Edge.hxx>
-#include <cmath>
 #include <gp_Pln.hxx>
 #include <stdexcept>
 
