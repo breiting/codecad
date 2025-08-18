@@ -5,5 +5,5 @@
 class CosmaViewer : public Viewer {
    public:
     CosmaViewer();
-    void start(const Project &project) override;
+    void start(const std::string& projectFile) override;
 };

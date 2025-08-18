@@ -40,12 +40,12 @@ int main(int argc, char** argv) {
     }
 
     // load project
-    Project project;
-    try {
-        project = LoadProject(cmd.projectFile);
-    } catch (std::exception e) {
-        std::cerr << e.what() << std::endl;
-    }
+    // Project project;
+    // try {
+    //     project = LoadProject(cmd.projectFile);
+    // } catch (std::exception e) {
+    //     std::cerr << e.what() << std::endl;
+    // }
 
     // core::Core coreEngine;
     // coreEngine.load(projectFile);
@@ -53,10 +53,11 @@ int main(int argc, char** argv) {
     if (cmd.command == "live") {
         auto viewer = createViewer();
         if (viewer) {
-            viewer->start(project);
+            viewer->start(cmd.projectFile);
         } else {
             std::cout << "Viewer support is not available in this build.\n";
         }
+    } else if (cmd.command == "build") {
     }
 
     return 0;

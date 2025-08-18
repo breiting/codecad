@@ -1,8 +1,19 @@
 # TODO
 
+## 19.08
+
+- CoreEngine mit den ganzen bindings sol2 und dann die Engine dem Viewer uebergeben zum arbeiten (interface, abstraktion?)
+- Viewer soll Project laden und nutzen
+- FileWatcher auf project file und parts files (.lua)
+- triangulieren von den parts wenn sich das lua file aendert
+- Camera zoom fixen
+- ein und ausblenden von infinity grid mit taste
+- core engine build geometrie implementieren
+- loeschen von der alten main
+- $LOCAL/config file
+
 Here are my thoughts on the next steps for this project.
 
-- [ ] Somehow integrate cosma viewer
 - [ ] Fix gears
 - [ ] Chamfer specific edges and round off corners
 - [ ] Simple "extend" lengths (Sparren sollen in alle beiden Richtungen verlaengert werden)

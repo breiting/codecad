@@ -37,7 +37,7 @@ class CosmaController : public Application {
     void OnMouseButtonPressed(int button, int mods) override;
     void OnMouseButtonReleased(int button, int mods) override;
 
-    void LoadProject(const Project& project) override;
+    void LoadProject(const std::string& projectFileName) override;
 
    protected:
     void DrawGui();

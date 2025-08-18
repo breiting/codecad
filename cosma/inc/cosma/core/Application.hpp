@@ -15,7 +15,7 @@ class Application : public InputHandler {
     virtual void Render() = 0;
     virtual void Shutdown() = 0;
 
-    virtual void LoadProject(const Project& project) = 0;
+    virtual void LoadProject(const std::string& projectFileName) = 0;
 
     // InputHandler
     virtual void OnFramebufferSize(int width, int height) = 0;

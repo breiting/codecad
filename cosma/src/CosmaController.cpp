@@ -57,7 +57,7 @@ void CosmaController::Init(Window* window) {
     m_Gui->Init(window);
 }
 
-void CosmaController::LoadProject(const Project& project) {
+void CosmaController::LoadProject(const std::string& projectFileName) {
     // m_FileWatcher = std::make_unique<FileWatcher>(fileName, std::chrono::milliseconds(300));
     // SetStatusMessage(fileName + " (manifest) loaded");
 }

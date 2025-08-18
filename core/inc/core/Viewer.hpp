@@ -1,9 +1,8 @@
 #pragma once
 
-#include "io/Project.hpp"
-
+#include <string>
 class Viewer {
    public:
     virtual ~Viewer() = default;
-    virtual void start(const Project &project) = 0;
+    virtual void start(const std::string& projectFile) = 0;
 };

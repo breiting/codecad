@@ -7,14 +7,14 @@
 CosmaViewer::CosmaViewer() {
 }
 
-void CosmaViewer::start(const Project &project) {
+void CosmaViewer::start(const std::string &projectFile) {
     auto app = std::make_unique<CosmaController>();
     Engine engine(std::move(app));
     if (!engine.Init(1200, 800, "CodeCAD Viewer")) {
         std::cerr << "Cannot initialize viewer" << std::endl;
     }
 
-    engine.GetApp()->LoadProject(project);
+    engine.GetApp()->LoadProject(projectFile);
 
     engine.Run();
 }
