@@ -4,6 +4,6 @@
 CosmaViewer::CosmaViewer() {
 }
 
-void CosmaViewer::start(const std::string& projectFile) {
-    std::cout << "[CosmaViewer] Opening project: " << projectFile << std::endl;
+void CosmaViewer::start(const Project &project) {
+    std::cout << "[CosmaViewer] Opening project: " << project.meta.name << std::endl;
 }

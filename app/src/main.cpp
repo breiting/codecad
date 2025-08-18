@@ -46,7 +46,6 @@ int main(int argc, char** argv) {
     } catch (std::exception e) {
         std::cerr << e.what() << std::endl;
     }
-    PrintProject(project);
 
     // core::Core coreEngine;
     // coreEngine.load(projectFile);
@@ -54,7 +53,7 @@ int main(int argc, char** argv) {
     if (cmd.command == "live") {
         auto viewer = createViewer();
         if (viewer) {
-            viewer->start(cmd.projectFile);
+            viewer->start(project);
         } else {
             std::cout << "Viewer support is not available in this build.\n";
         }
