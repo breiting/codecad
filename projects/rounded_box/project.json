@@ -8,7 +8,7 @@
   "workarea": { "size": [220, 220] },
   "materials": {
     "yellow": { "color": "#ffff40" },
-    "blue": { "color": "#00f0ff" }
+    "blue": { "color": "#0000ff" }
   },
   "parts": [
     {
