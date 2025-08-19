@@ -16,11 +16,11 @@ target_include_directories(codecad PUBLIC
 
 target_link_libraries(codecad PRIVATE 
 	project_settings
-	glm::glm
-	core
 )
 
 if(ENABLE_COSMA)
     target_link_libraries(codecad PRIVATE cosma)
 	target_compile_definitions(codecad PRIVATE ENABLE_COSMA)
+ELSE()
+    target_link_libraries(codecad PRIVATE core)
 endif()

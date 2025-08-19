@@ -8,7 +8,6 @@ set (CMAKE_EXPORT_COMPILE_COMMANDS 1)
 # Working on C++17 standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-# set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 option(ENABLE_COSMA "Build with Cosma 3D viewer support" ON)
 

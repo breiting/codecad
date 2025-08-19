@@ -124,10 +124,12 @@ target_link_libraries(cosma
     PUBLIC
         project_settings 
         ${OpenCASCADE_LIBRARIES}
-        core
-        glm::glm
         glfw
         nlohmann_json::nlohmann_json
         cosma_deps
+    PRIVATE 
+        core
+        glm::glm
+
 )
 
