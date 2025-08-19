@@ -16,7 +16,7 @@ struct WorkArea {
     glm::vec2 size{0, 0};
 };
 
-struct ProjectMaterial {
+struct Material {
     std::string name;
     std::string color;  // hex color
 };
@@ -24,8 +24,9 @@ struct ProjectMaterial {
 struct Part {
     std::string id;
     std::string name;
-    std::string source;    // lua file path (optional)
-    std::string material;  // material key (optional)
+    std::string source;    // lua file path
+    std::string material;  // material key
+    bool visible;
     Transform transform;
 };
 
@@ -44,7 +45,7 @@ struct Project {
         std::string units{"mm"};
     } meta;
     WorkArea workarea;
-    std::unordered_map<std::string, ProjectMaterial> materials;
+    std::unordered_map<std::string, Material> materials;
     std::vector<Part> parts;
     std::unordered_map<std::string, Animation> animations;
 };

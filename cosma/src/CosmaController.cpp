@@ -209,8 +209,7 @@ void CosmaController::LoadProject(const std::string& projectFileName) {
             m_SourceToPart[rec.absoluteSourcePath.string()] = jp.name;
         }
 
-        // Sofort initial bauen (sichtbare Parts – optional)
-        if (jp.source.size() && (true /* hier jp.visible prüfen, wenn vorhanden */)) {
+        if (jp.source.size() && (jp.visible)) {
             try {
                 BuildOrRebuildPart(rec);
             } catch (const std::exception& e) {

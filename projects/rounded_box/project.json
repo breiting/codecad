@@ -15,6 +15,7 @@
       "name": "box_base",
       "source": "parts/box_left.lua",
       "material": "yellow",
+      "visible": true,
       "transform": {
         "translate": [30, 0, 0],
         "rotate": [0, 0, 0],
@@ -25,6 +26,7 @@
       "name": "box_lid",
       "source": "parts/box_right.lua",
       "material": "blue",
+      "visible": true,
       "transform": {
         "translate": [0, 0, 0],
         "rotate": [0, 0, 0],

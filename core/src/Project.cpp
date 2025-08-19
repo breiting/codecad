@@ -84,7 +84,7 @@ Project LoadProject(const std::string& path) {
     // materials
     if (j.contains("materials") && j["materials"].is_object()) {
         for (auto it = j["materials"].begin(); it != j["materials"].end(); ++it) {
-            ProjectMaterial m{};
+            Material m{};
             m.color = it.value().value("color", "");
             p.materials[it.key()] = m;
         }
@@ -99,6 +99,7 @@ Project LoadProject(const std::string& path) {
             pr.source = jp.value("source", "");
             pr.material = jp.value("material", "");
             pr.transform = getTransform(jp.value("transform", json::object()));
+            pr.visible = jp.value("visible", true);
             p.parts.emplace_back(std::move(pr));
         }
     }
@@ -145,7 +146,7 @@ bool SaveProject(const Project& p, const std::string& path, bool pretty) {
         json mat = json::object();
         for (const auto& kv : p.materials) {
             const std::string& key = kv.first;
-            const ProjectMaterial& m = kv.second;
+            const Material& m = kv.second;
             json mj;
             mj["color"] = m.color;
             mat[key] = std::move(mj);
@@ -163,6 +164,7 @@ bool SaveProject(const Project& p, const std::string& path, bool pretty) {
             if (!pr.source.empty()) jp["source"] = pr.source;
             if (!pr.material.empty()) jp["material"] = pr.material;
             jp["transform"] = j_transform(pr.transform);
+            jp["visible"] = std::string(pr.visible ? "true" : "false");
             arr.push_back(std::move(jp));
         }
         j["parts"] = std::move(arr);
@@ -222,12 +224,13 @@ void PrintProject(const Project& p) {
             oss << "    Part: " << pr.name << " (id=" << pr.id << ")\n";
             oss << "      source  : " << pr.source << "\n";
             oss << "      material: " << pr.material << "\n";
+            oss << "      visible: " << pr.visible << "\n";
             oss << "      transform:\n";
             oss << "        translate = (" << pr.transform.translate.x << ", " << pr.transform.translate.y << ", "
                 << pr.transform.translate.z << ")\n";
             oss << "        rotate    = (" << pr.transform.rotate.x << ", " << pr.transform.rotate.y << ", "
                 << pr.transform.rotate.z << ")\n";
-            oss << "        scale     =" << pr.transform.scale << "\n";
+            oss << "        scale     = " << pr.transform.scale << "\n";
         }
     }
 
