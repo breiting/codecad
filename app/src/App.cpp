@@ -7,7 +7,7 @@
 #endif
 #include "core/LuaEngine.hpp"
 
-App::App() : m_GeneratedSubDir("generated") {
+App::App() : m_ProjectName("project.json"), m_GeneratedSubDir("generated") {
     m_Engine = std::make_shared<LuaEngine>();
 
     // TODO: needs to be removed later!
@@ -56,6 +56,11 @@ reusable components, and integration with 3D printing workflows.
     cmdLive->add_option("name", m_ProjectName, "Project file name");
     cmdLive->callback([this]() { handleLive(); });
 
+    // build [<name>]
+    auto* cmdBuild = app.add_subcommand("build", "Generate STL files");
+    cmdBuild->add_option("name", m_ProjectName, "Project file name");
+    cmdBuild->callback([this]() { handleBuild(); });
+
     // ---------- parse & dispatch ----------
     try {
         app.require_subcommand(1);  // force one subcommand
@@ -66,8 +71,6 @@ reusable components, and integration with 3D printing workflows.
     } catch (const CLI::ParseError& e) {
         std::exit(app.exit(e));
     }
-
-    std::string projectFile = "project.json";
 }
 
 // ---------------- handlers (stubs) ----------------
