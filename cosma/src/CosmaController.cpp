@@ -40,7 +40,7 @@ CosmaController::CosmaController(std::unique_ptr<CoreEngine> coreEngine)
 
 void CosmaController::Init(Window* window) {
     // Setup camera
-    m_Camera = std::make_unique<CameraOrbit>(10.0);
+    m_Camera = std::make_unique<CameraOrbit>(400.0);
     m_Camera->SetAspectRatio(static_cast<float>(window->GetWidth()) / static_cast<float>(window->GetHeight()));
 
     // Create new scene
@@ -124,7 +124,8 @@ std::shared_ptr<MeshNode> CosmaController::BuildMeshNodeFromShape(const TopoDS_S
 
     auto node = std::make_shared<MeshNode>(std::move(mesh));
     auto mat = std::make_shared<FlatShadedMaterial>();
-    mat->SetMaterialColor(ParseHexColor(colorHex));
+    mat->SetMaterialColor(PastelColors::SoftYellow);
+    // mat->SetMaterialColor(ParseHexColor(colorHex));
     node->SetMaterial(mat);
     return node;
 }

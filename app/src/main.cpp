@@ -31,6 +31,16 @@ static bool ParseArgs(int argc, char** argv, Cmd& cmd) {
     if (argc < 3) return false;
     cmd.command = argv[1];
     cmd.projectFile = argv[2];
+    // for (int i = 3; i < argc; ++i) {
+    //     std::string a = argv[i];
+    //     if ((a == "-o" || a == "--out") && i + 1 < argc) {
+    //         cmd.outdir = argv[++i];
+    //     } else {
+    //         std::cerr << "Unknown arg: " << a << "\n";
+    //         return false;
+    //     }
+    // }
+
     return cmd.command == "build" || cmd.command == "live";
 }
 

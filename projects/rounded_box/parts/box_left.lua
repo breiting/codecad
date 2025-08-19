@@ -2,12 +2,12 @@
 local B = require("util.box")
 local T = require("util.transform")
 
-local sz = 6
+local sz = 60
 local shell = B.centered(sz, sz, sz)
 
-local hole = cylinder(2, sz)
+local hole = cylinder(20, sz)
 
 shell = difference(shell, hole)
-shell = T.move_x(shell, 10)
+shell = T.move_x(shell, 100)
 
 emit(shell)
