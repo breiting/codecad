@@ -1,11 +1,11 @@
 #pragma once
 #include <filesystem>
-#include <runtime/SolConfig.hpp>
 #include <string>
 #include <vector>
 
 #include "geometry/Shape.hpp"
 #include "geometry/Triangulate.hpp"
+#include "runtime/SolConfig.hpp"
 
 /**
  * @brief Thin wrapper around a sol2 Lua state + CodeCAD bindings.

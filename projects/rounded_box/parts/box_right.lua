@@ -2,7 +2,7 @@
 local B = require("util.box")
 
 -- --- Parameters ---
-local sz = param("size", 40)
+local sz = param("size", 4)
 
 local shell = B.centered(sz, sz, sz)
 

@@ -31,19 +31,11 @@ using namespace std;
 const glm::vec3 SUN_LIGHT = {1.0f, 0.95f, 0.9f};
 const int STATUSBAR_TIMEOUT_MS = 3000;
 
-CosmaController::CosmaController(const std::filesystem::path& outDir)
-    : m_Outdir(outDir), m_LeftMouseButtonPressed(false), m_RightMouseButtonPressed(false), m_ShiftPressed(false) {
-    m_Engine.SetLibraryPaths({
-        "./lib/?.lua",
-        "./lib/?/init.lua",
-        "./vendor/?.lua",
-        "./vendor/?/init.lua",
-    });
-    m_Engine.SetOutputDir(outDir);
-    std::string err;
-    if (!m_Engine.Initialize(&err)) {
-        throw std::runtime_error(std::string("CoreEngine init failed: ") + err);
-    }
+CosmaController::CosmaController(std::unique_ptr<CoreEngine> coreEngine)
+    : m_Engine(std::move(coreEngine)),
+      m_LeftMouseButtonPressed(false),
+      m_RightMouseButtonPressed(false),
+      m_ShiftPressed(false) {
 }
 
 void CosmaController::Init(Window* window) {
@@ -123,14 +115,12 @@ static glm::vec3 ParseHexColor(const std::string& hex, glm::vec3 fallback = {0.7
 std::shared_ptr<MeshNode> CosmaController::BuildMeshNodeFromShape(const TopoDS_Shape& s, const std::string& colorHex) {
     geometry::TriMesh tri = geometry::TriangulateShape(s, /*defl*/ 0.3, /*ang*/ 25.0, /*parallel*/ true);
 
-    // TODO:
-
     auto mesh = std::make_unique<Mesh>();
-    // Du brauchst AddVertex in Mesh; falls nicht vorhanden, füge es hinzu.
-    for (const auto& p : tri.positions) mesh->AddVertex(p);  // implementiert von dir
+
+    for (const auto& p : tri.positions) mesh->AddVertex(p);
     for (unsigned idx : tri.indices) mesh->AddIndex(idx);
     mesh->RecalculateNormals();
-    mesh->Upload();
+    // mesh->Upload();
 
     auto node = std::make_shared<MeshNode>(std::move(mesh));
     auto mat = std::make_shared<FlatShadedMaterial>();
@@ -140,16 +130,17 @@ std::shared_ptr<MeshNode> CosmaController::BuildMeshNodeFromShape(const TopoDS_S
 }
 
 void CosmaController::BuildOrRebuildPart(PartRecord& rec) {
-    m_Engine.Reset();
-    m_Engine.SetOutputDir(m_Outdir);
+    m_Engine->Reset();
 
     std::string err;
-    if (!m_Engine.RunFile(rec.absoluteSourcePath.string(), &err)) {
-        SetStatusMessage(std::string("Lua error in ") + rec.meta.name + ": " + err);
+    if (!m_Engine->RunFile(rec.absoluteSourcePath.string(), &err)) {
+        auto errStr = std::string("Lua error in ") + rec.meta.name + ": " + err;
+        cerr << errStr << endl;
+        SetStatusMessage(errStr);
         return;
     }
 
-    auto emitted = m_Engine.GetEmitted();
+    auto emitted = m_Engine->GetEmitted();
     if (!emitted) {
         SetStatusMessage(std::string("No emit() in ") + rec.meta.name);
         return;
@@ -164,7 +155,7 @@ void CosmaController::BuildOrRebuildPart(PartRecord& rec) {
 
     if (rec.node) {
         // ersetze Geometrie im existierenden Node (falls deine API das kann)
-        // TODO: rec.node->SetMesh(newNode->GetMesh());  // oder swap/assign; sonst Node ersetzen:
+        // rec.node->SetMesh(newNode->GetMesh());  // oder swap/assign; sonst Node ersetzen:
         rec.node = newNode;
     } else {
         rec.node = newNode;
@@ -216,7 +207,7 @@ void CosmaController::LoadProject(const std::string& projectFileName) {
         }
 
         // Sofort initial bauen (sichtbare Parts – optional)
-        if (jp.source.size() && (true /* du kannst hier jp.visible prüfen, wenn vorhanden */)) {
+        if (jp.source.size() && (true /* hier jp.visible prüfen, wenn vorhanden */)) {
             try {
                 BuildOrRebuildPart(rec);
             } catch (const std::exception& e) {

@@ -1,6 +1,8 @@
 #include <core/Viewer.hpp>
 #include <iostream>
 
+#include "core/CoreEngine.hpp"
+
 #ifdef ENABLE_COSMA
 #include "cosma/CosmaViewer.hpp"
 #endif
@@ -39,25 +41,25 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    // TODO: should be a parameter
-    cmd.outDir = "out";
+    cmd.outDir = "out";  // as parameter?
     fs::create_directory(cmd.outDir);
 
-    // load project
-    // Project project;
-    // try {
-    //     project = LoadProject(cmd.projectFile);
-    // } catch (std::exception e) {
-    //     std::cerr << e.what() << std::endl;
-    // }
+    std::string libRoot = "/Users/breiting/workspace/codecad/lib";
+    std::string path = libRoot + "/?.lua;" + libRoot + "/?/init.lua;";
 
-    // core::Core coreEngine;
-    // coreEngine.load(projectFile);
+    auto engine = std::make_unique<CoreEngine>();
+    engine->SetLibraryPaths({"./lib/?.lua", "./lib/?/init.lua", "./vendor/?.lua", "./vendor/?/init.lua", path});
+
+    engine->SetOutputDir(cmd.outDir);
+    std::string err;
+    if (!engine->Initialize(&err)) {
+        throw std::runtime_error(std::string("CoreEngine init failed: ") + err);
+    }
 
     if (cmd.command == "live") {
         auto viewer = createViewer();
         if (viewer) {
-            viewer->start(cmd.projectFile, cmd.outDir);
+            viewer->start(cmd.projectFile, std::move(engine));
         } else {
             std::cout << "Viewer support is not available in this build.\n";
         }

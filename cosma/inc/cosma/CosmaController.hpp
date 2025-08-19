@@ -24,7 +24,7 @@ struct NodeRef {
 
 class CosmaController : public Application {
    public:
-    CosmaController(const std::filesystem::path& outDir);
+    CosmaController(std::unique_ptr<CoreEngine> coreEngine);
     void Init(Window* window) override;
     void Update(float deltaTime) override;
     void Render() override;
@@ -64,7 +64,7 @@ class CosmaController : public Application {
    private:
     static constexpr const char* PROJECT_KEY = "__project__";
 
-    CoreEngine m_Engine;
+    std::unique_ptr<CoreEngine> m_Engine;
     io::Project m_Project;
 
     std::unordered_map<std::string, PartRecord> m_PartsByName;    // name -> record
