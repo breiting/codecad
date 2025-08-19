@@ -308,7 +308,7 @@ void CosmaController::OnMouseMove(double xpos, double ypos) {
     }
 }
 
-void CosmaController::OnScroll(double xoffset, double yoffset) {
+void CosmaController::OnScroll(double /*xoffset*/, double yoffset) {
     m_Camera->OnMouseScroll(yoffset);
 }
 
@@ -326,11 +326,11 @@ void CosmaController::OnKeyPressed(int key, int mods) {
     m_ShiftPressed = (mods & GLFW_MOD_SHIFT) != 0;
 }
 
-void CosmaController::OnKeyReleased(int key, int mods) {
+void CosmaController::OnKeyReleased(int /*key*/, int mods) {
     m_ShiftPressed = (mods & GLFW_MOD_SHIFT) != 0;
 }
 
-void CosmaController::OnMouseButtonPressed(int button, int mods) {
+void CosmaController::OnMouseButtonPressed(int button, int /*mods*/) {
     if (button == GLFW_MOUSE_BUTTON_LEFT) {
         m_LeftMouseButtonPressed = true;
     } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
@@ -339,7 +339,7 @@ void CosmaController::OnMouseButtonPressed(int button, int mods) {
     m_Camera->OnMouseStart();
 }
 
-void CosmaController::OnMouseButtonReleased(int button, int mods) {
+void CosmaController::OnMouseButtonReleased(int button, int /*mods*/) {
     if (button == GLFW_MOUSE_BUTTON_LEFT) {
         m_LeftMouseButtonPressed = false;
     }

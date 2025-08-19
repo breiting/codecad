@@ -4,7 +4,7 @@
 #include <geometry/PointCloud.hpp>
 #include <glm/gtc/constants.hpp>
 
-PointCloud::PointCloud() : m_Vao(0), m_Vbo(0), BaseGeometry() {
+PointCloud::PointCloud() : BaseGeometry(), m_Vao(0), m_Vbo(0) {
 }
 
 PointCloud::~PointCloud() {

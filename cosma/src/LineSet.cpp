@@ -4,7 +4,7 @@
 #include <geometry/LineSet.hpp>
 #include <glm/gtc/constants.hpp>
 
-LineSet::LineSet() : m_Vao(0), m_Vbo(0), BaseGeometry() {
+LineSet::LineSet() : BaseGeometry(), m_Vao(0), m_Vbo(0) {
 }
 
 LineSet::~LineSet() {

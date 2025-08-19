@@ -6,7 +6,7 @@
 
 #include "geometry/BaseGeometry.hpp"
 
-Mesh::Mesh() : m_Vao(0), m_Vbo(0), m_Ebo(0), BaseGeometry() {
+Mesh::Mesh() : BaseGeometry(), m_Vao(0), m_Vbo(0), m_Ebo(0) {
 }
 
 Mesh::~Mesh() {

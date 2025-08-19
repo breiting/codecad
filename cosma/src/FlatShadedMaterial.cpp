@@ -7,7 +7,7 @@
 #include "assets/flat_vert.h"  // flat_vert_glsl
 
 FlatShadedMaterial::FlatShadedMaterial(glm::vec3 materialColor)
-    : m_MaterialColor(materialColor), m_LightColor(0.3f, 0.3f, 0.3f), m_LightDirection(10.0, 10.0, 10.0) {
+    : m_MaterialColor(materialColor), m_LightDirection(10.0, 10.0, 10.0), m_LightColor(0.3f, 0.3f, 0.3f) {
     m_Shader = std::make_shared<Shader>(flat_vert_glsl, flat_frag_glsl);
 }
 

@@ -1,35 +1,3 @@
-include(FetchContent)
-
-# -------------------------
-# GLM (header-only)
-# -------------------------
-FetchContent_Declare(
-  glm
-  GIT_REPOSITORY https://github.com/g-truc/glm.git
-  GIT_TAG 1.0.1
-)
-FetchContent_MakeAvailable(glm)
-
-# -------------------------
-# JSON (header-only)
-# -------------------------
-FetchContent_Declare(
-  json
-  GIT_REPOSITORY https://github.com/nlohmann/json.git
-  GIT_TAG v3.11.3
-)
-FetchContent_MakeAvailable(json)
-
-# -------------------------
-# GLFW
-# -------------------------
-FetchContent_Declare(
-  glfw
-  GIT_REPOSITORY https://github.com/glfw/glfw.git
-  GIT_TAG 3.4   # oder aktuelles Release
-)
-FetchContent_MakeAvailable(glfw)
-
 # -------------------------
 # IMGUI sources
 # -------------------------
@@ -37,11 +5,6 @@ file(GLOB IMGUI
     external/imgui/*.cpp
     external/imgui/backends/*.cpp
 )
-
-# Find OpenCascade
-find_package(OpenCASCADE REQUIRED)
-message(STATUS "Found OpenCASCADE: ${OpenCASCADE_VERSION}")
-
 
 # -------------------------
 # Cosma library
@@ -127,9 +90,7 @@ target_link_libraries(cosma
         glfw
         nlohmann_json::nlohmann_json
         cosma_deps
+        glm::glm
     PRIVATE 
         core
-        glm::glm
-
 )
-

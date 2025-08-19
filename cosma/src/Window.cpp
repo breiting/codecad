@@ -9,11 +9,11 @@
 #include <stdexcept>
 
 static InputHandler* s_InputHandler = nullptr;
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+void framebuffer_size_callback(GLFWwindow* /*window*/, int width, int height) {
     if (s_InputHandler) s_InputHandler->OnFramebufferSize(width, height);
 }
 
-void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+void mouse_callback(GLFWwindow* /*window*/, double xpos, double ypos) {
     if (s_InputHandler) s_InputHandler->OnMouseMove(xpos, ypos);
 }
 

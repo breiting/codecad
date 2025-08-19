@@ -15,7 +15,7 @@ InfinityGridMaterial::InfinityGridMaterial() {
 }
 
 void InfinityGridMaterial::Apply(const glm::mat4& model, const glm::mat4& view, const glm::mat4& projection,
-                                 std::shared_ptr<Light> light) {
+                                 std::shared_ptr<Light> /*light*/) {
     m_Shader->Bind();
     glBindVertexArray(m_Vao);
     glDrawArrays(GL_TRIANGLES, 0, 6);
