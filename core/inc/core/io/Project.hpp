@@ -4,10 +4,12 @@
 #include <unordered_map>
 #include <vector>
 
-struct ProjectTransform {
+namespace io {
+
+struct Transform {
     glm::vec3 translate{0, 0, 0};
     glm::vec3 rotate{0, 0, 0};  // degrees
-    glm::vec3 scale{1, 1, 1};
+    double scale;
 };
 
 struct WorkArea {
@@ -22,10 +24,9 @@ struct ProjectMaterial {
 struct Part {
     std::string id;
     std::string name;
-    std::string stl;       // path (optional)
     std::string source;    // lua file path (optional)
     std::string material;  // material key (optional)
-    ProjectTransform transform;
+    Transform transform;
 };
 
 struct Animation {
@@ -56,3 +57,5 @@ bool SaveProject(const Project& p, const std::string& path, bool pretty = true);
 
 /// Prints the project to stdout
 void PrintProject(const Project& p);
+
+}  // namespace io

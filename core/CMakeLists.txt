@@ -42,18 +42,18 @@ message(STATUS "Found OpenCASCADE: ${OpenCASCADE_VERSION}")
 
 add_library(core STATIC
    src/Boolean.cpp
+   src/CoreEngine.cpp
    src/Draft.cpp
    src/Export.cpp
    src/Extrude.cpp
    src/Features.cpp
    src/Gear.cpp
-   src/LuaBindings.cpp
-   src/Manifest.cpp
    src/Measure.cpp
    src/Primitives.cpp
    src/Project.cpp
    src/Sketch.cpp
    src/Transform.cpp
+   src/Triangulate.cpp
    src/lua/BindAssembly.cpp
    src/lua/BindBooleans.cpp
    src/lua/BindConstruct.cpp

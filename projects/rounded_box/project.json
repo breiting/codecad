@@ -12,24 +12,22 @@
   "parts": [
     {
       "name": "box_base",
-      "source": "parts/box_base.lua",
-      "stl": "out/box_base.stl",
+      "source": "parts/box_left.lua",
       "material": "pla_black",
       "transform": {
         "translate": [0, 0, 0],
         "rotate": [0, 0, 0],
-        "scale": [1, 1, 1]
+        "scale": 1
       }
     },
     {
       "name": "box_lid",
-      "source": "parts/box_lid.lua",
-      "stl": "out/box_lid.stl",
+      "source": "parts/box_right.lua",
       "material": "pla_black",
       "transform": {
         "translate": [0, 0, 0],
         "rotate": [0, 0, 0],
-        "scale": [1, 1, 1]
+        "scale": 1
       }
     }
   ]

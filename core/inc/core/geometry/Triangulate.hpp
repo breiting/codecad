@@ -14,3 +14,5 @@ struct TriMesh {
 /// @param defl  linear deflection in model units (mm) – kleiner = feiner
 /// @param angDeg angular deflection in degrees – kleiner = feiner
 TriMesh TriangulateShape(const TopoDS_Shape& shape, double defl = 0.2, double angDeg = 20.0, bool parallel = true);
+
+}  // namespace geometry

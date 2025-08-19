@@ -4,12 +4,16 @@
 // clang-format on
 //
 
+#include <BRepBuilderAPI_Transform.hxx>
 #include <CosmaController.hpp>
 #include <core/Camera.hpp>
 #include <core/CameraOrbit.hpp>
 #include <core/DirectionalLight.hpp>
 #include <core/Renderer.hpp>
 #include <core/Window.hpp>
+#include <gp_Ax1.hxx>
+#include <gp_Quaternion.hxx>
+#include <gp_Trsf.hxx>
 #include <material/Color.hpp>
 #include <material/FlatShadedMaterial.hpp>
 #include <material/Material.hpp>
@@ -18,18 +22,33 @@
 #include <scene/InfinityGridNode.hpp>
 #include <scene/Scene.hpp>
 
+#include "core/FileWatcher.hpp"
+#include "geometry/Mesh.hpp"
+#include "io/Project.hpp"
+
 using namespace std;
 
 const glm::vec3 SUN_LIGHT = {1.0f, 0.95f, 0.9f};
 const int STATUSBAR_TIMEOUT_MS = 3000;
 
-CosmaController::CosmaController()
-    : m_LeftMouseButtonPressed(false), m_RightMouseButtonPressed(false), m_ShiftPressed(false) {
+CosmaController::CosmaController(const std::filesystem::path& outDir)
+    : m_Outdir(outDir), m_LeftMouseButtonPressed(false), m_RightMouseButtonPressed(false), m_ShiftPressed(false) {
+    m_Engine.SetLibraryPaths({
+        "./lib/?.lua",
+        "./lib/?/init.lua",
+        "./vendor/?.lua",
+        "./vendor/?/init.lua",
+    });
+    m_Engine.SetOutputDir(outDir);
+    std::string err;
+    if (!m_Engine.Initialize(&err)) {
+        throw std::runtime_error(std::string("CoreEngine init failed: ") + err);
+    }
 }
 
 void CosmaController::Init(Window* window) {
     // Setup camera
-    m_Camera = std::make_unique<CameraOrbit>(50.0);
+    m_Camera = std::make_unique<CameraOrbit>(10.0);
     m_Camera->SetAspectRatio(static_cast<float>(window->GetWidth()) / static_cast<float>(window->GetHeight()));
 
     // Create new scene
@@ -57,17 +76,175 @@ void CosmaController::Init(Window* window) {
     m_Gui->Init(window);
 }
 
+geometry::ShapePtr CosmaController::ApplyTransform(const geometry::ShapePtr& s, const io::Transform& tr) {
+    if (!s || s->Get().IsNull()) return s;
+
+    gp_Trsf t;
+
+    // Scale
+    t.SetScale(gp_Pnt(0, 0, 0), tr.scale);
+
+    // Rotation (deg) – ZYX Reihenfolge (konventionell)
+    auto deg2rad = [](double d) { return d * M_PI / 180.0; };
+    gp_Trsf rx, ry, rz;
+    if (tr.rotate.x != 0) {
+        rx.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(1, 0, 0)), deg2rad(tr.rotate.x));
+        t = rx * t;
+    }
+    if (tr.rotate.y != 0) {
+        ry.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(0, 1, 0)), deg2rad(tr.rotate.y));
+        t = ry * t;
+    }
+    if (tr.rotate.z != 0) {
+        rz.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)), deg2rad(tr.rotate.z));
+        t = rz * t;
+    }
+
+    // Translation
+    if (tr.translate.x != 0 || tr.translate.y != 0 || tr.translate.z != 0) {
+        gp_Trsf tt;
+        tt.SetTranslation(gp_Vec(tr.translate.x, tr.translate.y, tr.translate.z));
+        t = tt * t;
+    }
+
+    TopoDS_Shape res = BRepBuilderAPI_Transform(s->Get(), t, /*copy*/ true).Shape();
+    return std::make_shared<geometry::Shape>(res);
+}
+
+static glm::vec3 ParseHexColor(const std::string& hex, glm::vec3 fallback = {0.7f, 0.7f, 0.7f}) {
+    if (hex.size() != 7 || hex[0] != '#') return fallback;
+    auto to01 = [](int v) { return static_cast<float>(v) / 255.0f; };
+    int r = std::stoi(hex.substr(1, 2), nullptr, 16);
+    int g = std::stoi(hex.substr(3, 2), nullptr, 16);
+    int b = std::stoi(hex.substr(5, 2), nullptr, 16);
+    return {to01(r), to01(g), to01(b)};
+}
+
+std::shared_ptr<MeshNode> CosmaController::BuildMeshNodeFromShape(const TopoDS_Shape& s, const std::string& colorHex) {
+    geometry::TriMesh tri = geometry::TriangulateShape(s, /*defl*/ 0.3, /*ang*/ 25.0, /*parallel*/ true);
+
+    // TODO:
+
+    auto mesh = std::make_unique<Mesh>();
+    // Du brauchst AddVertex in Mesh; falls nicht vorhanden, füge es hinzu.
+    for (const auto& p : tri.positions) mesh->AddVertex(p);  // implementiert von dir
+    for (unsigned idx : tri.indices) mesh->AddIndex(idx);
+    mesh->RecalculateNormals();
+    mesh->Upload();
+
+    auto node = std::make_shared<MeshNode>(std::move(mesh));
+    auto mat = std::make_shared<FlatShadedMaterial>();
+    mat->SetMaterialColor(ParseHexColor(colorHex));
+    node->SetMaterial(mat);
+    return node;
+}
+
+void CosmaController::BuildOrRebuildPart(PartRecord& rec) {
+    m_Engine.Reset();
+    m_Engine.SetOutputDir(m_Outdir);
+
+    std::string err;
+    if (!m_Engine.RunFile(rec.absoluteSourcePath.string(), &err)) {
+        SetStatusMessage(std::string("Lua error in ") + rec.meta.name + ": " + err);
+        return;
+    }
+
+    auto emitted = m_Engine.GetEmitted();
+    if (!emitted) {
+        SetStatusMessage(std::string("No emit() in ") + rec.meta.name);
+        return;
+    }
+
+    // Apply transform from project.json
+    auto shaped = ApplyTransform(*emitted, rec.meta.transform);
+
+    // MeshNode generation
+    auto color = m_Project.materials[rec.meta.material].color;
+    auto newNode = BuildMeshNodeFromShape(shaped->Get(), color.empty() ? "#cccccc" : color);
+
+    if (rec.node) {
+        // ersetze Geometrie im existierenden Node (falls deine API das kann)
+        // TODO: rec.node->SetMesh(newNode->GetMesh());  // oder swap/assign; sonst Node ersetzen:
+        rec.node = newNode;
+    } else {
+        rec.node = newNode;
+        m_Scene->AddNode(rec.node);
+    }
+
+    rec.shape = shaped;  // optional behalten
+}
+
+void CosmaController::LoadLuaPartByPath(const std::string& path) {
+    auto itName = m_SourceToPart.find(path);
+    if (itName == m_SourceToPart.end()) return;
+
+    auto itRec = m_PartsByName.find(itName->second);
+    if (itRec == m_PartsByName.end()) return;
+
+    try {
+        BuildOrRebuildPart(itRec->second);
+        SetStatusMessage("Rebuilt part: " + itRec->second.meta.name);
+    } catch (const std::exception& e) {
+        SetStatusMessage(std::string("Rebuild failed: ") + itRec->second.meta.name + " : " + e.what());
+    }
+}
+
 void CosmaController::LoadProject(const std::string& projectFileName) {
-    // m_FileWatcher = std::make_unique<FileWatcher>(fileName, std::chrono::milliseconds(300));
-    // SetStatusMessage(fileName + " (manifest) loaded");
+    // Project
+    m_Project = io::LoadProject(projectFileName);
+    io::PrintProject(m_Project);
+
+    m_ProjectRoot = std::filesystem::absolute(std::filesystem::path(projectFileName)).parent_path();
+
+    m_FileWatcher[PROJECT_KEY] = FileWatcher(projectFileName);
+
+    m_PartsByName.clear();
+    m_SourceToPart.clear();
+
+    for (const auto& jp : m_Project.parts) {
+        PartRecord rec;
+        rec.meta = jp;
+
+        // Normalize source path
+        std::filesystem::path src = jp.source.empty() ? "" : (m_ProjectRoot / jp.source);
+        rec.absoluteSourcePath = std::filesystem::weakly_canonical(src);
+
+        // Watcher je Lua
+        if (!rec.absoluteSourcePath.empty()) {
+            m_FileWatcher[rec.absoluteSourcePath.string()] = FileWatcher(rec.absoluteSourcePath.string());
+            m_SourceToPart[rec.absoluteSourcePath.string()] = jp.name;
+        }
+
+        // Sofort initial bauen (sichtbare Parts – optional)
+        if (jp.source.size() && (true /* du kannst hier jp.visible prüfen, wenn vorhanden */)) {
+            try {
+                BuildOrRebuildPart(rec);
+            } catch (const std::exception& e) {
+                SetStatusMessage(std::string("Build part failed: ") + jp.name + " : " + e.what());
+            }
+        }
+
+        m_PartsByName[jp.name] = std::move(rec);
+    }
+
+    SetStatusMessage(projectFileName + " loaded");
 }
 
 void CosmaController::Update(float deltaTime) {
     m_Camera->Update(deltaTime);
 
-    // Single-STL Live-Reload
-    if (m_FileWatcher) {
-        m_FileWatcher->Poll([&](const std::string& fileName) { SetStatusMessage("File changed!"); });
+    for (auto& kv : m_FileWatcher) {
+        const std::string& key = kv.first;
+        auto& watcher = kv.second;
+
+        watcher.Poll([this, key](const std::string& changedPath) {
+            if (key == PROJECT_KEY) {
+                SetStatusMessage("Project changed, reloading ...");
+                this->LoadProject(changedPath);
+                return;
+            }
+            this->LoadLuaPartByPath(key);
+        });
     }
 
     // update headlight to camera position

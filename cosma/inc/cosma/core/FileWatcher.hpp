@@ -9,6 +9,7 @@ class FileWatcher {
    public:
     using Clock = std::chrono::steady_clock;
 
+    FileWatcher() = default;
     FileWatcher(const std::string& path, std::chrono::milliseconds interval = std::chrono::milliseconds(300))
         : m_Path(path), m_Interval(interval) {
         Touch();

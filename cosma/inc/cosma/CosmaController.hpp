@@ -7,7 +7,9 @@
 #include <scene/Scene.hpp>
 #include <ui/GuiLayer.hpp>
 
+#include "CoreEngine.hpp"
 #include "core/FileWatcher.hpp"
+#include "io/Project.hpp"
 #include "scene/MeshNode.hpp"
 
 class Camera;
@@ -22,7 +24,7 @@ struct NodeRef {
 
 class CosmaController : public Application {
    public:
-    CosmaController();
+    CosmaController(const std::filesystem::path& outDir);
     void Init(Window* window) override;
     void Update(float deltaTime) override;
     void Render() override;
@@ -38,25 +40,46 @@ class CosmaController : public Application {
     void OnMouseButtonReleased(int button, int mods) override;
 
     void LoadProject(const std::string& projectFileName) override;
+    void LoadLuaPartByPath(const std::string& path);
 
    protected:
     void DrawGui();
     void SetStatusMessage(const std::string& msg);
-    void LoadManifest(const std::string& fileName);
     std::shared_ptr<MeshNode> LoadStl(const std::string& fileName, bool watch = false);
 
    private:
+    struct PartRecord {
+        io::Part meta;
+        geometry::ShapePtr shape;
+        std::shared_ptr<MeshNode> node;
+        std::filesystem::path absoluteSourcePath;
+    };
+    // Helpers
+    std::shared_ptr<MeshNode> BuildMeshNodeFromShape(const TopoDS_Shape& s, const std::string& colorHex);
+    geometry::ShapePtr ApplyTransform(const geometry::ShapePtr& shape, const io::Transform& tr);
+
+    void BuildOrRebuildPart(PartRecord& rec);  // Run Lua → shape → transform → mesh
+    void RebuildAllParts();                    // für PROJECT_KEY
+
+   private:
+    static constexpr const char* PROJECT_KEY = "__project__";
+
+    CoreEngine m_Engine;
+    io::Project m_Project;
+
+    std::unordered_map<std::string, PartRecord> m_PartsByName;    // name -> record
+    std::unordered_map<std::string, std::string> m_SourceToPart;  // abs source path -> part name
+
+    std::filesystem::path m_ProjectRoot;
+    std::filesystem::path m_Outdir;
+
     std::unique_ptr<Renderer> m_Renderer;
     std::unique_ptr<Camera> m_Camera;
     std::unique_ptr<Scene> m_Scene;
-    std::shared_ptr<MeshNode> m_MeshNode;
     Window* m_Window;
 
-    std::unique_ptr<FileWatcher> m_FileWatcher;
+    std::unordered_map<std::string, FileWatcher> m_FileWatcher;
 
-    // Manifest Mode
-    std::vector<NodeRef> m_NodeRefs;
-    bool m_IsManifestMode = false;
     float m_TargetT = 0.0f;
 
     // GUI

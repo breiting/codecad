@@ -8,6 +8,6 @@ local shell = B.centered(sz, sz, sz)
 local hole = cylinder(8, sz)
 
 shell = difference(shell, hole)
+shell = T.move_x(shell, 100)
 
 emit(shell)
-save_stl(shell, "out/box_left.stl")

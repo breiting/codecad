@@ -38,6 +38,11 @@ file(GLOB IMGUI
     external/imgui/backends/*.cpp
 )
 
+# Find OpenCascade
+find_package(OpenCASCADE REQUIRED)
+message(STATUS "Found OpenCASCADE: ${OpenCASCADE_VERSION}")
+
+
 # -------------------------
 # Cosma library
 # -------------------------
@@ -107,12 +112,18 @@ target_include_directories(cosma
         external/imgui/backends
 )
 
+# On some systems, OpenCascade doesn't propagate include dirs well
+if(DEFINED OpenCASCADE_INCLUDE_DIR)
+  target_include_directories(core PRIVATE ${OpenCASCADE_INCLUDE_DIR})
+endif()
+
 # -------------------------
 # Linking
 # -------------------------
 target_link_libraries(cosma
     PUBLIC
         project_settings 
+        ${OpenCASCADE_LIBRARIES}
         core
         glm::glm
         glfw

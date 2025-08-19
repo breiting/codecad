@@ -1,7 +1,6 @@
 #pragma once
 #include <core/InputHandler.hpp>
-
-#include "io/Project.hpp"
+#include <string>
 
 class Renderer;
 class Window;

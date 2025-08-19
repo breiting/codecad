@@ -8,6 +8,8 @@
 
 using json = nlohmann::json;
 
+namespace io {
+
 static std::string readFile(const std::string& p) {
     std::ifstream f(p);
     if (!f) throw std::runtime_error("LoadProject: cannot open file: " + p);
@@ -41,23 +43,20 @@ static json j_vec3(const glm::vec3& v) {
     return json::array({v.x, v.y, v.z});
 }
 
-static json j_transform(const ProjectTransform& t) {
+static json j_transform(const Transform& t) {
     json jt;
     jt["translate"] = j_vec3(t.translate);
     jt["rotate"] = j_vec3(t.rotate);
-    jt["scale"] = j_vec3(t.scale);
+    jt["scale"] = t.scale;
     return jt;
 }
 
-static ProjectTransform getTransform(const json& jt) {
-    ProjectTransform t{};
+static Transform getTransform(const json& jt) {
+    Transform t{};
     if (jt.is_null()) return t;
     t.translate = getVec3(jt, "translate");
     t.rotate = getVec3(jt, "rotate");
-    t.scale = getVec3(jt, "scale");
-    if (t.scale.x == 0) t.scale.x = 1;
-    if (t.scale.y == 0) t.scale.y = 1;
-    if (t.scale.z == 0) t.scale.z = 1;
+    t.scale = jt["scale"].get<double>();
     return t;
 }
 
@@ -97,7 +96,6 @@ Project LoadProject(const std::string& path) {
             Part pr{};
             pr.id = jp.value("id", "");
             pr.name = jp.value("name", "");
-            pr.stl = jp.value("stl", "");
             pr.source = jp.value("source", "");
             pr.material = jp.value("material", "");
             pr.transform = getTransform(jp.value("transform", json::object()));
@@ -162,7 +160,6 @@ bool SaveProject(const Project& p, const std::string& path, bool pretty) {
             json jp;
             if (!pr.id.empty()) jp["id"] = pr.id;
             jp["name"] = pr.name;
-            if (!pr.stl.empty()) jp["stl"] = pr.stl;
             if (!pr.source.empty()) jp["source"] = pr.source;
             if (!pr.material.empty()) jp["material"] = pr.material;
             jp["transform"] = j_transform(pr.transform);
@@ -223,7 +220,6 @@ void PrintProject(const Project& p) {
         oss << "  Parts:\n";
         for (const auto& pr : p.parts) {
             oss << "    Part: " << pr.name << " (id=" << pr.id << ")\n";
-            oss << "      stl     : " << pr.stl << "\n";
             oss << "      source  : " << pr.source << "\n";
             oss << "      material: " << pr.material << "\n";
             oss << "      transform:\n";
@@ -231,8 +227,7 @@ void PrintProject(const Project& p) {
                 << pr.transform.translate.z << ")\n";
             oss << "        rotate    = (" << pr.transform.rotate.x << ", " << pr.transform.rotate.y << ", "
                 << pr.transform.rotate.z << ")\n";
-            oss << "        scale     = (" << pr.transform.scale.x << ", " << pr.transform.scale.y << ", "
-                << pr.transform.scale.z << ")\n";
+            oss << "        scale     =" << pr.transform.scale << "\n";
         }
     }
 
@@ -250,3 +245,5 @@ void PrintProject(const Project& p) {
 
     std::cout << oss.str() << std::endl;
 }
+
+}  // namespace io

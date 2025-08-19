@@ -1,8 +1,5 @@
 #include <core/Viewer.hpp>
-#include <exception>
 #include <iostream>
-
-#include "io/Project.hpp"
 
 #ifdef ENABLE_COSMA
 #include "cosma/CosmaViewer.hpp"
@@ -16,9 +13,12 @@ std::unique_ptr<Viewer> createViewer() {
 #endif
 }
 
+namespace fs = std::filesystem;
+
 struct Cmd {
     std::string command;
     std::string projectFile;
+    fs::path outDir;
 };
 
 static void PrintUsage(const std::string& name) {
@@ -39,6 +39,10 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    // TODO: should be a parameter
+    cmd.outDir = "out";
+    fs::create_directory(cmd.outDir);
+
     // load project
     // Project project;
     // try {
@@ -53,7 +57,7 @@ int main(int argc, char** argv) {
     if (cmd.command == "live") {
         auto viewer = createViewer();
         if (viewer) {
-            viewer->start(cmd.projectFile);
+            viewer->start(cmd.projectFile, cmd.outDir);
         } else {
             std::cout << "Viewer support is not available in this build.\n";
         }
