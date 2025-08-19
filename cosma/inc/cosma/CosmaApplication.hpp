@@ -7,7 +7,7 @@
 #include <scene/Scene.hpp>
 #include <ui/GuiLayer.hpp>
 
-#include "CoreEngine.hpp"
+#include "LuaEngine.hpp"
 #include "core/FileWatcher.hpp"
 #include "io/Project.hpp"
 #include "scene/MeshNode.hpp"
@@ -16,15 +16,9 @@ class Camera;
 class Light;
 class MeshNode;
 
-struct NodeRef {
-    std::string name;
-    std::shared_ptr<MeshNode> node;
-    glm::vec3 basePos{0.0f};  // assembled base
-};
-
-class CosmaController : public Application {
+class CosmaApplication : public Application {
    public:
-    CosmaController(std::unique_ptr<CoreEngine> coreEngine);
+    CosmaApplication(std::shared_ptr<LuaEngine> coreEngine);
     void Init(Window* window) override;
     void Update(float deltaTime) override;
     void Render() override;
@@ -64,7 +58,7 @@ class CosmaController : public Application {
    private:
     static constexpr const char* PROJECT_KEY = "__project__";
 
-    std::unique_ptr<CoreEngine> m_Engine;
+    std::shared_ptr<LuaEngine> m_Engine;
     io::Project m_Project;
 
     std::unordered_map<std::string, PartRecord> m_PartsByName;    // name -> record

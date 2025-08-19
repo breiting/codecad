@@ -10,16 +10,15 @@ file(GLOB IMGUI
 # Cosma library
 # -------------------------
 add_library(cosma STATIC
-    src/CosmaViewer.cpp
     src/ArrowNode.cpp
     src/AxesNode.cpp
     src/BaseGeometry.cpp
     src/CameraOrbit.cpp
     src/CameraPath.cpp
-	src/CosmaController.cpp
-    src/CosmaViewer.cpp
+	src/CosmaApplication.cpp
+	src/CosmaMain.cpp
     src/DirectionalLight.cpp
-    src/Engine.cpp
+	src/RenderEngine.cpp
     src/FlatShadedMaterial.cpp
     src/GuiLayer.cpp
     src/ImageNode.cpp

@@ -1,9 +1,11 @@
 add_executable(codecad
+	src/App.cpp
     src/main.cpp
 )
 
 target_include_directories(codecad PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../core/inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/inc
     ${LUA_INCLUDE_DIR}
     ${sol2_SOURCE_DIR}/include
 )

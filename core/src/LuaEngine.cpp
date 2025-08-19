@@ -1,8 +1,7 @@
-#include "CoreEngine.hpp"
-
 #include <iostream>
 #include <sstream>
 
+#include "LuaEngine.hpp"
 #include "runtime/BindBooleans.hpp"
 #include "runtime/BindConstruct.hpp"
 #include "runtime/BindDraft.hpp"
@@ -14,16 +13,16 @@
 #include "runtime/BindSketch.hpp"
 #include "runtime/BindTransforms.hpp"
 
-CoreEngine::CoreEngine() : m_Emitted(nullptr) {
+LuaEngine::LuaEngine() : m_Emitted(nullptr) {
 }
 
-CoreEngine::~CoreEngine() = default;
+LuaEngine::~LuaEngine() = default;
 
-void CoreEngine::SetLibraryPaths(const std::vector<std::string>& paths) {
+void LuaEngine::SetLibraryPaths(const std::vector<std::string>& paths) {
     m_LibraryPaths = paths;
 }
 
-void CoreEngine::SetOutputDir(const std::filesystem::path& outdir) {
+void LuaEngine::SetOutputDir(const std::filesystem::path& outdir) {
     m_Outdir = outdir;
     if (m_Initialized) {
         // reflect immediately into Lua if already initialized
@@ -31,7 +30,7 @@ void CoreEngine::SetOutputDir(const std::filesystem::path& outdir) {
     }
 }
 
-std::string CoreEngine::BuildPackagePathPrefix() const {
+std::string LuaEngine::BuildPackagePathPrefix() const {
     // Join entries with ';'
     std::ostringstream oss;
     for (size_t i = 0; i < m_LibraryPaths.size(); ++i) {
@@ -43,7 +42,7 @@ std::string CoreEngine::BuildPackagePathPrefix() const {
     return oss.str();
 }
 
-bool CoreEngine::Initialize(std::string* errorMsg) {
+bool LuaEngine::Initialize(std::string* errorMsg) {
     if (m_Initialized) return true;
 
     try {
@@ -116,7 +115,7 @@ bool CoreEngine::Initialize(std::string* errorMsg) {
     }
 }
 
-bool CoreEngine::RunFile(const std::string& scriptPath, std::string* errorMsg) {
+bool LuaEngine::RunFile(const std::string& scriptPath, std::string* errorMsg) {
     if (!m_Initialized) {
         if (errorMsg) *errorMsg = "CoreEngine not initialized";
         return false;
@@ -138,7 +137,7 @@ bool CoreEngine::RunFile(const std::string& scriptPath, std::string* errorMsg) {
     return true;
 }
 
-void CoreEngine::Reset() {
+void LuaEngine::Reset() {
     // Recreate state & bindings
     m_Lua = sol::state{};
     m_Initialized = false;
@@ -154,21 +153,21 @@ void CoreEngine::Reset() {
     }
 }
 
-std::optional<geometry::ShapePtr> CoreEngine::GetEmitted() const {
+std::optional<geometry::ShapePtr> LuaEngine::GetEmitted() const {
     return m_Emitted;
 }
 
-void CoreEngine::SetEmitted(const geometry::ShapePtr& s) {
+void LuaEngine::SetEmitted(const geometry::ShapePtr& s) {
     m_Emitted = s;
 }
 
-geometry::TriMesh CoreEngine::TriangulateEmitted(double defl, double angDeg, bool parallel) const {
+geometry::TriMesh LuaEngine::TriangulateEmitted(double defl, double angDeg, bool parallel) const {
     if (!m_Emitted) {
         throw std::runtime_error("TriangulateEmitted: no shape has been emitted");
     }
     return geometry::TriangulateShape(m_Emitted->Get(), defl, angDeg, parallel);
 }
 
-sol::state& CoreEngine::Lua() {
+sol::state& LuaEngine::Lua() {
     return m_Lua;
 }

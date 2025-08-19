@@ -1,9 +1,9 @@
 
-#include "CoreEngine.hpp"
+#include "LuaEngine.hpp"
 #include "io/Export.hpp"
 
 namespace runtime {
-void RegisterIO(sol::state& lua, CoreEngine* owner) {
+void RegisterIO(sol::state& lua, LuaEngine* owner) {
     // emit
     lua.set_function("emit", [owner](const geometry::ShapePtr& s) {
         owner->SetEmitted(s);

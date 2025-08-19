@@ -1,10 +1,10 @@
 #pragma once
 #include <runtime/SolConfig.hpp>
-class CoreEngine;
+class LuaEngine;
 
 namespace runtime {
 
 /// \brief RegisterIO
-void RegisterIO(sol::state& lua, CoreEngine* owner);
+void RegisterIO(sol::state& lua, LuaEngine* owner);
 
 }  // namespace runtime

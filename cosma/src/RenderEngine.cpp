@@ -2,7 +2,7 @@
 #include <glad.h>
 #include <GLFW/glfw3.h>
 // clang-format on
-#include <core/Engine.hpp>
+#include <core/RenderEngine.hpp>
 #include <iostream>
 
 GLuint g_DefaultTexture = 0;
@@ -21,10 +21,10 @@ void CreateDefaultTexture() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 }
 
-Engine::Engine(std::unique_ptr<Application> app) : m_Application(std::move(app)) {
+RenderEngine::RenderEngine(std::unique_ptr<Application> app) : m_Application(std::move(app)) {
 }
 
-bool Engine::Init(int width, int height, const std::string& title) {
+bool RenderEngine::Init(int width, int height, const std::string& title) {
     m_Window = std::make_unique<Window>(width, height, title);
 
     if (!gladLoadGL((GLADloadfunc)glfwGetProcAddress)) {
@@ -42,7 +42,7 @@ bool Engine::Init(int width, int height, const std::string& title) {
     return true;
 }
 
-void Engine::Run() {
+void RenderEngine::Run() {
     while (!m_Window->ShouldClose()) {
         float currentTime = static_cast<float>(glfwGetTime());
         float deltaTime = currentTime - lastTime;

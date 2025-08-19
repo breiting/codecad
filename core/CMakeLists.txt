@@ -1,11 +1,11 @@
 add_library(core STATIC
    src/Boolean.cpp
-   src/CoreEngine.cpp
    src/Draft.cpp
    src/Export.cpp
    src/Extrude.cpp
    src/Features.cpp
    src/Gear.cpp
+   src/LuaEngine.cpp
    src/Measure.cpp
    src/Primitives.cpp
    src/Project.cpp

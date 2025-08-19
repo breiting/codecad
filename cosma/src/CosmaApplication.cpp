@@ -5,7 +5,7 @@
 //
 
 #include <BRepBuilderAPI_Transform.hxx>
-#include <CosmaController.hpp>
+#include <CosmaApplication.hpp>
 #include <core/Camera.hpp>
 #include <core/CameraOrbit.hpp>
 #include <core/DirectionalLight.hpp>
@@ -31,14 +31,11 @@ using namespace std;
 const glm::vec3 SUN_LIGHT = {1.0f, 0.95f, 0.9f};
 const int STATUSBAR_TIMEOUT_MS = 3000;
 
-CosmaController::CosmaController(std::unique_ptr<CoreEngine> coreEngine)
-    : m_Engine(std::move(coreEngine)),
-      m_LeftMouseButtonPressed(false),
-      m_RightMouseButtonPressed(false),
-      m_ShiftPressed(false) {
+CosmaApplication::CosmaApplication(std::shared_ptr<LuaEngine> coreEngine)
+    : m_Engine(coreEngine), m_LeftMouseButtonPressed(false), m_RightMouseButtonPressed(false), m_ShiftPressed(false) {
 }
 
-void CosmaController::Init(Window* window) {
+void CosmaApplication::Init(Window* window) {
     // Setup camera
     m_Camera = std::make_unique<CameraOrbit>(400.0);
     m_Camera->SetAspectRatio(static_cast<float>(window->GetWidth()) / static_cast<float>(window->GetHeight()));
@@ -68,7 +65,7 @@ void CosmaController::Init(Window* window) {
     m_Gui->Init(window);
 }
 
-geometry::ShapePtr CosmaController::ApplyTransform(const geometry::ShapePtr& s, const io::Transform& tr) {
+geometry::ShapePtr CosmaApplication::ApplyTransform(const geometry::ShapePtr& s, const io::Transform& tr) {
     if (!s || s->Get().IsNull()) return s;
 
     gp_Trsf t;
@@ -112,7 +109,7 @@ static glm::vec3 ParseHexColor(const std::string& hex, glm::vec3 fallback = {0.7
     return {to01(r), to01(g), to01(b)};
 }
 
-std::shared_ptr<MeshNode> CosmaController::BuildMeshNodeFromShape(const TopoDS_Shape& s, const std::string& colorHex) {
+std::shared_ptr<MeshNode> CosmaApplication::BuildMeshNodeFromShape(const TopoDS_Shape& s, const std::string& colorHex) {
     geometry::TriMesh tri = geometry::TriangulateShape(s, /*defl*/ 0.3, /*ang*/ 25.0, /*parallel*/ true);
 
     auto mesh = std::make_unique<Mesh>();
@@ -128,7 +125,7 @@ std::shared_ptr<MeshNode> CosmaController::BuildMeshNodeFromShape(const TopoDS_S
     return node;
 }
 
-void CosmaController::BuildOrRebuildPart(PartRecord& rec) {
+void CosmaApplication::BuildOrRebuildPart(PartRecord& rec) {
     m_Engine->Reset();
 
     std::string err;
@@ -164,7 +161,7 @@ void CosmaController::BuildOrRebuildPart(PartRecord& rec) {
     rec.shape = shaped;  // optional behalten
 }
 
-void CosmaController::LoadLuaPartByPath(const std::string& path) {
+void CosmaApplication::LoadLuaPartByPath(const std::string& path) {
     auto itName = m_SourceToPart.find(path);
     if (itName == m_SourceToPart.end()) return;
 
@@ -179,7 +176,7 @@ void CosmaController::LoadLuaPartByPath(const std::string& path) {
     }
 }
 
-void CosmaController::LoadProject(const std::string& projectFileName) {
+void CosmaApplication::LoadProject(const std::string& projectFileName) {
     // Project
     m_Project = io::LoadProject(projectFileName);
     io::PrintProject(m_Project);
@@ -223,7 +220,7 @@ void CosmaController::LoadProject(const std::string& projectFileName) {
     SetStatusMessage(projectFileName + " loaded");
 }
 
-void CosmaController::Update(float deltaTime) {
+void CosmaApplication::Update(float deltaTime) {
     m_Camera->Update(deltaTime);
 
     for (auto& kv : m_FileWatcher) {
@@ -245,18 +242,18 @@ void CosmaController::Update(float deltaTime) {
     m_Scene->Update(deltaTime);
 }
 
-void CosmaController::Render() {
+void CosmaApplication::Render() {
     m_Renderer->Render(m_Camera.get(), m_Scene.get(), m_Gui.get());
     DrawGui();
     m_Gui->End();
 }
 
-void CosmaController::SetStatusMessage(const std::string& msg) {
+void CosmaApplication::SetStatusMessage(const std::string& msg) {
     m_StatusMessage = msg;
     m_StatusTimestamp = std::chrono::steady_clock::now();
 }
 
-void CosmaController::DrawGui() {
+void CosmaApplication::DrawGui() {
     ImGuiIO& io = ImGui::GetIO();
     ImGuiViewport* viewport = ImGui::GetMainViewport();
 
@@ -290,17 +287,17 @@ void CosmaController::DrawGui() {
     ImGui::End();
 }
 
-void CosmaController::Shutdown() {
+void CosmaApplication::Shutdown() {
     m_Gui->Shutdown();
 }
 
-void CosmaController::OnFramebufferSize(int width, int height) {
+void CosmaApplication::OnFramebufferSize(int width, int height) {
     m_Renderer->Resize(width, height);
     float aspect = static_cast<float>(width) / static_cast<float>(height);
     m_Camera->SetAspectRatio(aspect);
 }
 
-void CosmaController::OnMouseMove(double xpos, double ypos) {
+void CosmaApplication::OnMouseMove(double xpos, double ypos) {
     if (m_LeftMouseButtonPressed) {
         m_Camera->OnMouseRotation(xpos, ypos);
     } else if (m_RightMouseButtonPressed) {
@@ -308,11 +305,11 @@ void CosmaController::OnMouseMove(double xpos, double ypos) {
     }
 }
 
-void CosmaController::OnScroll(double /*xoffset*/, double yoffset) {
+void CosmaApplication::OnScroll(double /*xoffset*/, double yoffset) {
     m_Camera->OnMouseScroll(yoffset);
 }
 
-void CosmaController::OnKeyPressed(int key, int mods) {
+void CosmaApplication::OnKeyPressed(int key, int mods) {
     if (key == GLFW_KEY_ESCAPE) {
         m_Window->Close();
     } else if (key == GLFW_KEY_W) {
@@ -326,11 +323,11 @@ void CosmaController::OnKeyPressed(int key, int mods) {
     m_ShiftPressed = (mods & GLFW_MOD_SHIFT) != 0;
 }
 
-void CosmaController::OnKeyReleased(int /*key*/, int mods) {
+void CosmaApplication::OnKeyReleased(int /*key*/, int mods) {
     m_ShiftPressed = (mods & GLFW_MOD_SHIFT) != 0;
 }
 
-void CosmaController::OnMouseButtonPressed(int button, int /*mods*/) {
+void CosmaApplication::OnMouseButtonPressed(int button, int /*mods*/) {
     if (button == GLFW_MOUSE_BUTTON_LEFT) {
         m_LeftMouseButtonPressed = true;
     } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
@@ -339,7 +336,7 @@ void CosmaController::OnMouseButtonPressed(int button, int /*mods*/) {
     m_Camera->OnMouseStart();
 }
 
-void CosmaController::OnMouseButtonReleased(int button, int /*mods*/) {
+void CosmaApplication::OnMouseButtonReleased(int button, int /*mods*/) {
     if (button == GLFW_MOUSE_BUTTON_LEFT) {
         m_LeftMouseButtonPressed = false;
     }

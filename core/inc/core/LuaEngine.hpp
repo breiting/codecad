@@ -17,10 +17,10 @@
  * - Execute a Lua file (protected), capture errors
  * - Expose emitted shape (from bindings) and optional triangulation helper
  */
-class CoreEngine {
+class LuaEngine {
    public:
-    CoreEngine();
-    ~CoreEngine();
+    LuaEngine();
+    ~LuaEngine();
 
     /// Configure library search paths to prepend to package.path.
     /// Example entries: "./lib/?.lua", "./lib/?/init.lua", "./vendor/?.lua"

@@ -8,7 +8,7 @@
   "workarea": { "size": [220, 220] },
   "materials": {
     "yellow": { "color": "#ffff40" },
-    "blue": { "color": "#0000ff" }
+    "blue": { "color": "#00f0ff" }
   },
   "parts": [
     {
@@ -17,7 +17,7 @@
       "material": "yellow",
       "visible": true,
       "transform": {
-        "translate": [30, 0, 0],
+        "translate": [30, 10, 0],
         "rotate": [0, 0, 0],
         "scale": 1
       }
