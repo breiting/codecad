@@ -90,7 +90,5 @@ target_link_libraries(cosma
         glfw
         nlohmann_json::nlohmann_json
         cosma_deps
-        glm::glm
-    PRIVATE 
         core
 )

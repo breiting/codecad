@@ -41,7 +41,7 @@ endif()
 target_link_libraries(core PRIVATE
     project_settings
     ${OpenCASCADE_LIBRARIES}
-    glm::glm
     nlohmann_json::nlohmann_json
     ${LUA_LIBRARIES}
+	PUBLIC glm::glm
 )
