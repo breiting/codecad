@@ -120,12 +120,10 @@ std::shared_ptr<MeshNode> CosmaController::BuildMeshNodeFromShape(const TopoDS_S
     for (const auto& p : tri.positions) mesh->AddVertex(p);
     for (unsigned idx : tri.indices) mesh->AddIndex(idx);
     mesh->RecalculateNormals();
-    // mesh->Upload();
 
     auto node = std::make_shared<MeshNode>(std::move(mesh));
     auto mat = std::make_shared<FlatShadedMaterial>();
-    mat->SetMaterialColor(PastelColors::SoftYellow);
-    // mat->SetMaterialColor(ParseHexColor(colorHex));
+    mat->SetMaterialColor(ParseHexColor(colorHex));
     node->SetMaterial(mat);
     return node;
 }
@@ -155,9 +153,9 @@ void CosmaController::BuildOrRebuildPart(PartRecord& rec) {
     auto newNode = BuildMeshNodeFromShape(shaped->Get(), color.empty() ? "#cccccc" : color);
 
     if (rec.node) {
-        // ersetze Geometrie im existierenden Node (falls deine API das kann)
-        // rec.node->SetMesh(newNode->GetMesh());  // oder swap/assign; sonst Node ersetzen:
+        m_Scene->RemoveNode(rec.node);
         rec.node = newNode;
+        m_Scene->AddNode(rec.node);
     } else {
         rec.node = newNode;
         m_Scene->AddNode(rec.node);
@@ -189,6 +187,10 @@ void CosmaController::LoadProject(const std::string& projectFileName) {
     m_ProjectRoot = std::filesystem::absolute(std::filesystem::path(projectFileName)).parent_path();
 
     m_FileWatcher[PROJECT_KEY] = FileWatcher(projectFileName);
+
+    for (auto it = m_PartsByName.begin(); it != m_PartsByName.end(); ++it) {
+        m_Scene->RemoveNode(it->second.node);
+    }
 
     m_PartsByName.clear();
     m_SourceToPart.clear();

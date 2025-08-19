@@ -7,15 +7,16 @@
   },
   "workarea": { "size": [220, 220] },
   "materials": {
-    "pla_black": { "color": "#222222" }
+    "yellow": { "color": "#ffff40" },
+    "blue": { "color": "#0000ff" }
   },
   "parts": [
     {
       "name": "box_base",
       "source": "parts/box_left.lua",
-      "material": "pla_black",
+      "material": "yellow",
       "transform": {
-        "translate": [0, 0, 0],
+        "translate": [30, 0, 0],
         "rotate": [0, 0, 0],
         "scale": 1
       }
@@ -23,7 +24,7 @@
     {
       "name": "box_lid",
       "source": "parts/box_right.lua",
-      "material": "pla_black",
+      "material": "blue",
       "transform": {
         "translate": [0, 0, 0],
         "rotate": [0, 0, 0],

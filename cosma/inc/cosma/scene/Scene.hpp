@@ -8,6 +8,8 @@
 class Scene {
    public:
     void AddNode(std::shared_ptr<SceneNode> node);
+    void RemoveNode(std::shared_ptr<SceneNode> node);
+
     void SetLightDirectionalLight(std::shared_ptr<DirectionalLight> light);
 
     void Update(float deltaTime);

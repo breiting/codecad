@@ -15,6 +15,14 @@ void Scene::AddNode(std::shared_ptr<SceneNode> node) {
     m_Nodes.push_back(std::move(node));
 }
 
+void Scene::RemoveNode(std::shared_ptr<SceneNode> node) {
+    if (!node) return;
+    SceneNode* ptr = node.get();
+    auto it = std::remove_if(m_Nodes.begin(), m_Nodes.end(),
+                             [ptr](const std::shared_ptr<SceneNode>& n) { return n.get() == ptr; });
+    m_Nodes.erase(it, m_Nodes.end());
+}
+
 void Scene::SetLightDirectionalLight(std::shared_ptr<DirectionalLight> light) {
     m_DirectionalLight = light;
 }
