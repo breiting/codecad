@@ -2,10 +2,15 @@
 
 #include <CLI/CLI.hpp>
 
+#include "io/Export.hpp"
+#include "io/Project.hpp"
+
 #ifdef ENABLE_COSMA
 #include "CosmaMain.hpp"
 #endif
 #include "core/LuaEngine.hpp"
+
+namespace fs = std::filesystem;
 
 App::App() : m_ProjectName("project.json"), m_GeneratedSubDir("generated") {
     m_Engine = std::make_shared<LuaEngine>();
@@ -86,16 +91,38 @@ void App::handlePartsAdd() {
 }
 
 void App::handleBuild() {
-    std::cout << "Build project: " << m_ProjectName << "\n";
-    // call your builder here
+    auto project = io::LoadProject(m_ProjectName);
+    io::PrintProject(project);
+    auto projectRoot = std::filesystem::absolute(std::filesystem::path(m_ProjectName)).parent_path();
+
+    auto outDir = projectRoot / m_GeneratedSubDir;
+    fs::create_directory(outDir);
+
+    for (const auto& jp : project.parts) {
+        std::filesystem::path src = projectRoot / jp.source;
+        auto luaFile = std::filesystem::weakly_canonical(src);
+
+        std::string err;
+        if (!m_Engine->RunFile(luaFile, &err)) {
+            auto errStr = std::string("Lua error in ") + luaFile.string() + ": " + err;
+            std::cerr << errStr << std::endl;
+            return;
+        }
+
+        auto emitted = m_Engine->GetEmitted();
+        if (!emitted) {
+            std::cerr << "Canot get shape from " << luaFile << std::endl;
+            return;
+        }
+        const auto stem = fs::path(luaFile).stem().string();
+        const fs::path stlFile = outDir / (stem + ".stl");
+        io::SaveSTL(emitted.value(), stlFile.string(), 0.1);
+    }
 }
 
 void App::handleLive() {
-    std::string proj = m_ProjectName.empty() ? "project.json" : m_ProjectName;
-    std::cout << "Live view: " << proj << "\n";
-
 #ifdef ENABLE_COSMA
-    CosmaMain::StartApp(m_Engine, proj);
+    CosmaMain::StartApp(m_Engine, m_ProjectName);
 #else
     std::cerr << "This build does not support COSMA live viewer" << std::endl;
 #endif
