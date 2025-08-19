@@ -12,6 +12,7 @@ target_include_directories(codecad PUBLIC
 
 target_link_libraries(codecad PRIVATE 
 	project_settings
+	CLI11::CLI11
 	sol2
 )
 

@@ -52,6 +52,15 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(glfw)
 
+# CLI11
+FetchContent_Declare(
+  CLI11
+  GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
+  GIT_TAG v2.4.2   # stable version
+)
+FetchContent_MakeAvailable(CLI11)
+
+
 # LUA dependency
 find_package(Lua 5.4 QUIET)
 if(NOT Lua_FOUND)
