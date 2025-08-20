@@ -71,6 +71,11 @@ Live rebuild on file changes:
 
 Each file contains comments describing the parameters.
 
+## Good to know
+
+If you are specifying a luapath, then do not forget to add a `?.lua` to the end.
+E.g. if your lua path is `/home/user/luapath`, then the luapath for CodeCAD is `/home/user/luapath/?.lua`.
+
 ## Editor Support
 
 - Lua LSP stubs in `types/cad.d.lua` for diagnostics and completion.

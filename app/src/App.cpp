@@ -38,19 +38,7 @@ static std::string Slugify(const std::string& name) {
     return s;
 }
 
-App::App() {
-    m_Engine = std::make_shared<LuaEngine>();
-
-    // TODO: needs to be removed later!
-    std::string libRoot = "/Users/breiting/workspace/codecad/lib";
-    std::string path = libRoot + "/?.lua;" + libRoot + "/?/init.lua;";
-
-    m_Engine->SetLibraryPaths({"./lib/?.lua", "./lib/?/init.lua", "./vendor/?.lua", "./vendor/?/init.lua", path});
-    std::string err;
-    if (!m_Engine->Initialize(&err)) {
-        throw std::runtime_error(std::string("CoreEngine init failed: ") + err);
-    }
-}
+App::App() = default;
 
 void App::start(int argc, char** argv) {
     CLI::App app{};
@@ -66,7 +54,7 @@ reusable components, and integration with 3D printing workflows.
     app.footer("https://github.com/breiting/codecad");
 
     // ---------- global options ----------
-    app.add_option("--luapath", luaPaths, "Additional Lua search paths (repeatable)")->take_all();
+    app.add_option("--luapath", m_LuaPaths, "Additional Lua search paths")->take_all();
 
     // ---------- subcommands ----------
 
@@ -80,25 +68,22 @@ reusable components, and integration with 3D printing workflows.
     cmdNew->add_option("--units", units, "Units: mm, cm, m")->capture_default_str();
     cmdNew->add_option("--wa-w", workAreaWidth, "Workarea width [mm]")->capture_default_str();
     cmdNew->add_option("--wa-d", workAreaDepth, "Workarea depth [mm]")->capture_default_str();
-    cmdNew->callback([&, this]() { handleNew(projectName, units, workAreaWidth, workAreaDepth); });
 
     // parts add "<Part Name>"
     std::string partName = "Part 1";
     auto* cmdParts = app.add_subcommand("parts", "Manage parts");
     auto* cmdAdd = cmdParts->add_subcommand("add", "Add a new part to the project");
     cmdAdd->add_option("--name", partName, "Part name (e.g. \"Bracket A\")")->required();
-    cmdAdd->callback([&, this]() { handlePartsAdd(partName); });
 
     // live [<rootDir>]
-    std::string rootDir = ".";
+    std::string liveRoot = ".";
     auto* cmdLive = app.add_subcommand("live", "Start live viewer");
-    cmdLive->add_option("--root", rootDir, "Project directory");
-    cmdLive->callback([&, this]() { handleLive(rootDir); });
+    cmdLive->add_option("--root", liveRoot, "Project directory");
 
     // build [<rootDir>]
+    std::string buildRoot = ".";
     auto* cmdBuild = app.add_subcommand("build", "Generate STL files");
-    cmdBuild->add_option("--root", rootDir, "Project directory");
-    cmdBuild->callback([&, this]() { handleBuild(rootDir); });
+    cmdBuild->add_option("--root", buildRoot, "Project directory");
 
     // ---------- parse & dispatch ----------
     try {
@@ -109,6 +94,60 @@ reusable components, and integration with 3D printing workflows.
         return;
     } catch (const CLI::ParseError& e) {
         std::exit(app.exit(e));
+    }
+
+    // setup the lua engine
+    setupEngine();
+
+    // Dispatch manually
+    if (*cmdLive) {
+        handleLive(liveRoot);
+        return;
+    }
+    if (*cmdBuild) {
+        handleBuild(buildRoot);
+        return;
+    }
+    if (*cmdParts && *cmdAdd) {
+        handlePartsAdd(partName);
+        return;
+    }
+    if (*cmdNew) {
+        handleNew(projectName, units, workAreaWidth, workAreaDepth);
+        return;
+    }
+
+    // Show help if nothing was executed
+    std::cout << app.help() << "\n";
+}
+
+void App::setupEngine() {
+    m_Engine = std::make_shared<LuaEngine>();
+
+    // Standard search paths
+    std::vector<std::string> paths = {"./lib/?.lua", "./lib/?/init.lua", "./vendor/?.lua", "./vendor/?/init.lua"};
+
+    // Environment-Variable LUA_PATH (optional)
+    if (const char* env = std::getenv("LUA_PATH")) {
+        std::stringstream ss(env);
+        std::string token;
+        while (std::getline(ss, token, ';')) {
+            if (!token.empty()) paths.push_back(token);
+        }
+    }
+
+    // CLI options
+    paths.insert(paths.end(), m_LuaPaths.begin(), m_LuaPaths.end());
+
+    for (auto p : paths) {
+        cout << "LUA PATHS: " << p << endl;
+    }
+
+    m_Engine->SetLibraryPaths(paths);
+
+    std::string err;
+    if (!m_Engine->Initialize(&err)) {
+        throw std::runtime_error(std::string("CoreEngine init failed: ") + err);
     }
 }
 
