@@ -1,16 +1,34 @@
 cmake_minimum_required(VERSION 3.16)
 
+project(codecad LANGUAGES CXX)
+
 # Produce json file for neovim clangd completion
 set (CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
-project(ccad LANGUAGES CXX)
-
+# Working on C++17 standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# sol2 via FetchContent (header-only)
+option(ENABLE_COSMA "Build with Cosma 3D viewer support" ON)
+
+# Load compiler settings target
+include(cmake/CompilerSettings.cmake)
+
+# Load embed text functionality
+include(cmake/EmbedText.cmake)
+
 include(FetchContent)
+
+# -------- Dependencies (fetch once, available everywhere) --------
+# GLM
+FetchContent_Declare(
+  glm
+  GIT_REPOSITORY https://github.com/g-truc/glm.git
+  GIT_TAG 1.0.1
+)
+FetchContent_MakeAvailable(glm)
+
+# sol2
 FetchContent_Declare(
   sol2
   GIT_REPOSITORY https://github.com/ThePhD/sol2.git
@@ -18,7 +36,32 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(sol2)
 
-# Find Lua (prefer 5.4)
+# nlohmann/json
+FetchContent_Declare(
+  json
+  GIT_REPOSITORY https://github.com/nlohmann/json.git
+  GIT_TAG v3.11.3
+)
+FetchContent_MakeAvailable(json)
+
+# GLFW
+FetchContent_Declare(
+  glfw
+  GIT_REPOSITORY https://github.com/glfw/glfw.git
+  GIT_TAG 3.4
+)
+FetchContent_MakeAvailable(glfw)
+
+# CLI11
+FetchContent_Declare(
+  CLI11
+  GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
+  GIT_TAG v2.4.2   # stable version
+)
+FetchContent_MakeAvailable(CLI11)
+
+
+# LUA dependency
 find_package(Lua 5.4 QUIET)
 if(NOT Lua_FOUND)
   find_package(Lua 5.3 QUIET)
@@ -29,68 +72,18 @@ endif()
 message(STATUS "Lua include: ${LUA_INCLUDE_DIR}")
 message(STATUS "Lua libs: ${LUA_LIBRARIES}")
 
-# Find OpenCascade
+
+# OpenCascade
 find_package(OpenCASCADE REQUIRED)
-message(STATUS "Found OpenCASCADE: ${OpenCASCADE_VERSION}")
+message(STATUS "OpenCASCADE: ${OpenCASCADE_VERSION}")
 
-add_executable(ccad
-  src/main.cpp
-  src/LuaBindings.cpp
-  src/lua/BindingUtils.cpp
-  src/lua/BindPrimitives.cpp
-  src/lua/BindTransforms.cpp
-  src/lua/BindAssembly.cpp
-  src/lua/BindDraft.cpp
-  src/lua/BindBooleans.cpp
-  src/lua/BindMeasure.cpp
-  src/lua/BindFeatures.cpp
-  src/lua/BindSketch.cpp
-  src/lua/BindConstruct.cpp
-  src/lua/BindGears.cpp
-  src/lua/BindIO.cpp
-  src/Primitives.cpp
-  src/Transform.cpp
-  src/Measure.cpp
-  src/Boolean.cpp
-  src/Draft.cpp
-  src/Extrude.cpp
-  src/Gear.cpp
-  src/Sketch.cpp
-  src/Features.cpp
-  src/Export.cpp
-  src/Manifest.cpp
-)
+# ---------------------------------------------------------------
 
-target_include_directories(ccad PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/inc
-  ${LUA_INCLUDE_DIR}
-  ${sol2_SOURCE_DIR}/include
-)
+add_subdirectory(core)
 
-target_link_libraries(ccad PRIVATE
-  ${OpenCASCADE_LIBRARIES}
-  ${LUA_LIBRARIES}
-)
-
-# On some systems, OpenCascade doesn't propagate include dirs well
-if(DEFINED OpenCASCADE_INCLUDE_DIR)
-  target_include_directories(ccad PRIVATE ${OpenCASCADE_INCLUDE_DIR})
+if(ENABLE_COSMA)
+	include(cmake/ConfigCosma.cmake)
+	add_subdirectory(cosma)
 endif()
 
-# Helpful compile flags
-if (MSVC)
-  target_compile_options(ccad PRIVATE /W4)
-else()
-	target_compile_options(ccad PRIVATE -Wall -Wextra -Wpedantic -Wno-unknown-warning-option)
-endif()
-
-# Installation
-install(TARGETS ccad RUNTIME DESTINATION bin)
-
-# Examples
-add_custom_target(run_example
-  COMMAND ccad build ${CMAKE_CURRENT_SOURCE_DIR}/examples/simple.lua -o ${CMAKE_CURRENT_BINARY_DIR}/out
-  DEPENDS ccad
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-  COMMENT "Running simple.lua to generate STL"
-)
+add_subdirectory(app)
