@@ -179,7 +179,7 @@ bool SaveProject(const Project& p, const std::string& path, bool pretty) {
             if (!pr.source.empty()) jp["source"] = pr.source;
             if (!pr.material.empty()) jp["material"] = pr.material;
             jp["transform"] = j_transform(pr.transform);
-            jp["visible"] = std::string(pr.visible ? "true" : "false");
+            jp["visible"] = pr.visible;
             arr.push_back(std::move(jp));
         }
         j["parts"] = std::move(arr);

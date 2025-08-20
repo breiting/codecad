@@ -1,7 +1,8 @@
+#include "LuaEngine.hpp"
+
 #include <iostream>
 #include <sstream>
 
-#include "LuaEngine.hpp"
 #include "runtime/BindBooleans.hpp"
 #include "runtime/BindConstruct.hpp"
 #include "runtime/BindDraft.hpp"
@@ -20,14 +21,6 @@ LuaEngine::~LuaEngine() = default;
 
 void LuaEngine::SetLibraryPaths(const std::vector<std::string>& paths) {
     m_LibraryPaths = paths;
-}
-
-void LuaEngine::SetOutputDir(const std::filesystem::path& outdir) {
-    m_Outdir = outdir;
-    if (m_Initialized) {
-        // reflect immediately into Lua if already initialized
-        m_Lua["__OUTDIR"] = m_Outdir.string();
-    }
 }
 
 std::string LuaEngine::BuildPackagePathPrefix() const {
@@ -101,9 +94,6 @@ bool LuaEngine::Initialize(std::string* errorMsg) {
         runtime::RegisterMeasure(m_Lua);
         runtime::RegisterIO(m_Lua, this);  // dein IO-Binding, das save_text etc. anbietet
 
-        // 5) OUTDIR exposen
-        m_Lua["__OUTDIR"] = m_Outdir.string();
-
         m_Initialized = true;
         return true;
     } catch (const std::exception& e) {
@@ -146,10 +136,6 @@ void LuaEngine::Reset() {
     if (!Initialize(&err)) {
         // If initialization fails here, leave it to caller to handle on next call.
         std::cerr << "CoreEngine::Reset() init failed: " << err << "\n";
-    }
-    // Restore outdir
-    if (!m_Outdir.empty()) {
-        m_Lua["__OUTDIR"] = m_Outdir.string();
     }
 }
 

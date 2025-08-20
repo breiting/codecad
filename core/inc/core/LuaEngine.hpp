@@ -13,7 +13,6 @@
  * Responsibilities:
  * - Open Lua libs, prepend library paths to package.path
  * - Register CodeCAD Lua bindings once
- * - Provide __OUTDIR to Lua
  * - Execute a Lua file (protected), capture errors
  * - Expose emitted shape (from bindings) and optional triangulation helper
  */
@@ -25,9 +24,6 @@ class LuaEngine {
     /// Configure library search paths to prepend to package.path.
     /// Example entries: "./lib/?.lua", "./lib/?/init.lua", "./vendor/?.lua"
     void SetLibraryPaths(const std::vector<std::string>& paths);
-
-    /// Configure output directory; exposed to Lua as global __OUTDIR.
-    void SetOutputDir(const std::filesystem::path& outdir);
 
     /// Initialize Lua VM and register bindings. Idempotent.
     /// Returns false on failure and fills errorMsg.
@@ -59,7 +55,6 @@ class LuaEngine {
    private:
     sol::state m_Lua;
     std::vector<std::string> m_LibraryPaths;
-    std::filesystem::path m_Outdir;
     geometry::ShapePtr m_Emitted;
 
     bool m_Initialized{false};

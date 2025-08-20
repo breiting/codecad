@@ -46,7 +46,6 @@ App::App() {
     std::string path = libRoot + "/?.lua;" + libRoot + "/?/init.lua;";
 
     m_Engine->SetLibraryPaths({"./lib/?.lua", "./lib/?/init.lua", "./vendor/?.lua", "./vendor/?/init.lua", path});
-    m_Engine->SetOutputDir("gen");
     std::string err;
     if (!m_Engine->Initialize(&err)) {
         throw std::runtime_error(std::string("CoreEngine init failed: ") + err);
