@@ -12,15 +12,10 @@ class App {
     // global options (populated by CLI)
     std::vector<std::string> luaPaths;
 
-    // subcommand options
-    std::string m_ProjectName;
-    std::string m_PartName;
-    std::string m_GeneratedSubDir;
-
-    void handleNew();
-    void handlePartsAdd();
-    void handleBuild();
-    void handleLive();
+    void handleNew(const std::string& name, const std::string& unit, int workAreaWidth, int workAreaDepth);
+    void handlePartsAdd(const std::string& partName);
+    void handleBuild(const std::string& rootDir);
+    void handleLive(const std::string& rootDir);
 
    private:
     std::shared_ptr<LuaEngine> m_Engine;

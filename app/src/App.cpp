@@ -1,6 +1,7 @@
 #include "App.hpp"
 
 #include <CLI/CLI.hpp>
+#include <filesystem>
 
 #include "io/Export.hpp"
 #include "io/Project.hpp"
@@ -10,9 +11,14 @@
 #endif
 #include "core/LuaEngine.hpp"
 
-namespace fs = std::filesystem;
+const std::string PROJECT_FILENAME = "project.json";
+const std::string PROJECT_OUTDIR = "generated";
+const std::string PARTS_DIR = "parts";
 
-App::App() : m_ProjectName("project.json"), m_GeneratedSubDir("generated") {
+namespace fs = std::filesystem;
+using namespace std;
+
+App::App() {
     m_Engine = std::make_shared<LuaEngine>();
 
     // TODO: needs to be removed later!
@@ -46,25 +52,34 @@ reusable components, and integration with 3D printing workflows.
     // ---------- subcommands ----------
 
     // new
-    auto* cmdNew = app.add_subcommand("new", "Create a new project in the current folder");
-    cmdNew->add_option("name", m_ProjectName, "Name of the project folder with the given name");
-    cmdNew->callback([this]() { handleNew(); });
+    std::string projectName = "My CodeCAD Project";
+    std::string units = "mm";
+    int workAreaWidth = 200;
+    int workAreaDepth = 200;
+    auto* cmdNew = app.add_subcommand("new", "Creates a new project structure in the current directory");
+    cmdNew->add_option("name", projectName, "Name of the project");
+    cmdNew->add_option("units", units, "Units: mm, cm, m")->capture_default_str();
+    cmdNew->add_option("wa-w", workAreaWidth, "Workarea width [mm]")->capture_default_str();
+    cmdNew->add_option("wa-d", workAreaDepth, "Workarea depth [mm]")->capture_default_str();
+    cmdNew->callback([&, this]() { handleNew(projectName, units, workAreaWidth, workAreaDepth); });
 
     // parts add "<Part Name>"
-    auto* cmd_parts = app.add_subcommand("parts", "Manage parts");
-    auto* cmd_add = cmd_parts->add_subcommand("add", "Add a new part to the current project (in CWD)");
-    cmd_add->add_option("name", m_PartName, "Part name (e.g. \"Bracket A\")")->required();
-    cmd_add->callback([this]() { handlePartsAdd(); });
+    std::string partName = "Part 1";
+    auto* cmdParts = app.add_subcommand("parts", "Manage parts");
+    auto* cmdAdd = cmdParts->add_subcommand("add", "Add a new part to the project");
+    cmdAdd->add_option("name", partName, "Part name (e.g. \"Bracket A\")")->required();
+    cmdAdd->callback([&, this]() { handlePartsAdd(partName); });
 
-    // live [<name>]
+    // live [<rootDir>]
+    std::string rootDir = ".";
     auto* cmdLive = app.add_subcommand("live", "Start live viewer");
-    cmdLive->add_option("name", m_ProjectName, "Project file name");
-    cmdLive->callback([this]() { handleLive(); });
+    cmdLive->add_option("--root", rootDir, "Project directory");
+    cmdLive->callback([&, this]() { handleLive(rootDir); });
 
-    // build [<name>]
+    // build [<rootDir>]
     auto* cmdBuild = app.add_subcommand("build", "Generate STL files");
-    cmdBuild->add_option("name", m_ProjectName, "Project file name");
-    cmdBuild->callback([this]() { handleBuild(); });
+    cmdBuild->add_option("--root", rootDir, "Project directory");
+    cmdBuild->callback([&, this]() { handleBuild(rootDir); });
 
     // ---------- parse & dispatch ----------
     try {
@@ -78,24 +93,83 @@ reusable components, and integration with 3D printing workflows.
     }
 }
 
+static bool EnsureDirs(const fs::path& root) {
+    std::error_code ec;
+    fs::create_directories(root / PARTS_DIR, ec);
+    fs::create_directories(root / PROJECT_OUTDIR, ec);
+    return !ec;
+}
+
 // ---------------- handlers (stubs) ----------------
 
-void App::handleNew() {
-    // implement scaffold here
-    std::cout << "Scaffold project at: " << m_ProjectName << "\n";
+void App::handleNew(const std::string& projectName, const std::string& unit, int workAreaWidth, int workAreaDepth) {
+    auto rootDir = fs::current_path();
+
+    if (!EnsureDirs(rootDir)) {
+        std::cerr << "Error: Could not create directories under " << rootDir << "\n";
+        return;
+    }
+
+    io::Project p;
+    p.version = 1;
+    p.meta.name = projectName;
+    p.meta.author = "";
+    p.meta.units = unit;
+    p.workarea.size = {workAreaWidth, workAreaDepth};
+
+    const fs::path pj = rootDir / PROJECT_FILENAME;
+    if (!io::SaveProject(p, pj.string(), /*pretty*/ true)) {
+        std::cerr << "Error: failed to write " << pj << "\n";
+        return;
+    }
+
+    const std::string readme = "# " + projectName + R"(
+
+This is a CodeCAD project. Start live mode:"
+
+```bash
+codecad live
+```
+
+Add a part:
+
+```bash
+codecad parts add "My Part"
+```
+
+Build STL files:
+
+```bash
+codecad build
+```)";
+
+    std::ofstream(rootDir / "README.md") << readme;
+
+    std::ofstream(rootDir / ".gitignore") << PROJECT_OUTDIR << "/\n";
+
+    std::cout << "Project scaffold created:\n"
+              << "  " << fs::absolute(rootDir) << "\n"
+              << "  - project.json\n"
+              << "  - parts/\n"
+              << "  - " << PROJECT_OUTDIR << "/\n\n"
+              << "Next steps:\n"
+              << "  1) codecad parts add \"Part 1\"\n"
+              << "  2) codecad live\n"
+              << "  3) codecad build\n";
 }
 
-void App::handlePartsAdd() {
+void App::handlePartsAdd(const std::string& partName) {
     // implement parts add here
-    std::cout << "Add part: " << m_PartName << "\n";
+    std::cout << "Add part: " << partName << "\n";
 }
 
-void App::handleBuild() {
-    auto project = io::LoadProject(m_ProjectName);
+void App::handleBuild(const std::string& rootDir) {
+    auto projectFile = fs::path(rootDir) / PROJECT_FILENAME;
+    auto project = io::LoadProject(projectFile);
     io::PrintProject(project);
-    auto projectRoot = std::filesystem::absolute(std::filesystem::path(m_ProjectName)).parent_path();
+    auto projectRoot = std::filesystem::absolute(std::filesystem::path(projectFile)).parent_path();
 
-    auto outDir = projectRoot / m_GeneratedSubDir;
+    auto outDir = projectRoot / PROJECT_OUTDIR;
     fs::create_directory(outDir);
 
     for (const auto& jp : project.parts) {
@@ -120,55 +194,12 @@ void App::handleBuild() {
     }
 }
 
-void App::handleLive() {
+/// Start COSMA viewer, if supported
+void App::handleLive(const std::string& rootDir) {
+    fs::path projectFile = fs::path(rootDir) / PROJECT_FILENAME;
 #ifdef ENABLE_COSMA
-    CosmaMain::StartApp(m_Engine, m_ProjectName);
+    CosmaMain::StartApp(m_Engine, projectFile);
 #else
     std::cerr << "This build does not support COSMA live viewer" << std::endl;
 #endif
 }
-
-// // parts add <name>
-// cmdParts = m_App.add_subcommand("parts", "Project part organization");
-// cmdPartsAdd = cmdParts->add_subcommand("add", "Add a new part");
-// cmdPartsAdd->add_option("name", m_PartName, "Name of the part")->required();
-//
-// // build [<name>]
-// cmdBuild = m_App.add_subcommand("build", "Build the project");
-// cmdBuild->add_option("name", m_ProjectName, "Project file name");
-// cmdBuild->add_option("subdir", m_GeneratedSubDir, "Subdir for generated files, (default=generated)");
-//
-// // live [<name>]
-// cmdLive = m_App.add_subcommand("live", "Start live viewer");
-// cmdLive->add_option("name", m_ProjectName, "Project file name");
-// }
-//
-// void App::start(int argc, char** argv) {
-//     try {
-//         m_App.parse(argc, argv);
-//     } catch (const CLI::ParseError& e) {
-//         std::exit(m_App.exit(e));
-//     }
-//
-// void App::handleNew() {
-//     if (m_ProjectName.empty()) {
-//         // current directory
-//         std::ofstream("project.json") << "{ \"name\": \"default\" }\n";
-//         std::cout << "Projekt im aktuellen Verzeichnis erstellt.\n";
-//     } else {
-//         fs::create_directories(m_ProjectName);
-//         std::ofstream(fs::path(m_ProjectName) / "project.json") << "{ \"name\": \"" << m_ProjectName << "\" }\n";
-//         std::cout << "Projekt '" << m_ProjectName << "' erstellt.\n";
-//     }
-// }
-//
-// void App::handlePartsAdd() {
-//     fs::create_directories("parts");
-//     std::ofstream("project.json", std::ios::app) << "// Added part: " << m_PartName << "\n";
-//     std::ofstream(fs::path("parts") / (m_PartName + ".lua")) << "-- Lua script for part " << m_PartName << "\n";
-//     std::cout << "Part '" << m_PartName << "' hinzugefügt.\n";
-// }
-//
-// void App::handleBuild() {
-//     std::string name = m_ProjectName.empty() ? "current" : m_ProjectName;
-// }

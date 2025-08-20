@@ -192,6 +192,7 @@ bool SaveProject(const Project& p, const std::string& path, bool pretty) {
     else
         result = j.dump();
 
+    // TODO: check if the file already exists
     std::ofstream f(path, std::ios::binary);
     if (!f) return false;
     f.write(result.data(), static_cast<std::streamsize>(result.size()));

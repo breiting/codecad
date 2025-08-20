@@ -5,7 +5,7 @@
 
 namespace CosmaMain {
 
-void StartApp(std::shared_ptr<LuaEngine> coreEngine, std::string& projectFile) {
+void StartApp(std::shared_ptr<LuaEngine> coreEngine, const std::string& projectFile) {
     std::cout << "COSMA-MAIN" << std::endl;
 
     auto app = std::make_unique<CosmaApplication>(coreEngine);
