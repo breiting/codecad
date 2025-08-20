@@ -1,91 +1,144 @@
-# CodeCAD — Code‑First Parametric CAD
+# CodeCAD — Parametric CAD in Code
 
-**CodeCAD** is a tiny but robust, scriptable CAD engine. You write **Lua**, it builds **solids** using OpenCascade (OCCT).
-It targets 3D printing, CNC and general design automation with a puristic, math‑friendly API.
+**CodeCAD** is a lightweight, code-first parametric CAD tool.
+You write **Lua scripts**, CodeCAD builds **solids** using the robust [OpenCascade](https://www.opencascade.com/) kernel — with live preview, reusable parts, and a workflow that feels as natural as editing code in your favorite editor.
 
-- ⚙️ **C++17 core** with OCCT for solid modeling
-- 🧩 **Lua scripting** via sol2
-- 🧪 **Deterministic**: files in, meshes out (STL/STEP)
-- 🧠 **LLM‑friendly**: small API surface, consistent naming
+- ⚡ **Live**: code in your editor, geometry updates instantly in an integrated viewer
+- 🧩 **Composable**: split designs into parts and reuse them
+- 📐 **Parametric**: adjust dimensions by changing a single parameter
+- 🛠 **For makers**: designed with 3D printing and woodworking in mind
+- 🌱 **Open**: built on C++17, Lua, and OpenCascade
 
-## Why?
+## ✨ Why CodeCAD?
 
-Most GUI CAD tools are great for interactive work but bad at **parameters, automation and versioning**.
-Text‑based models are easy to diff, review and reuse. CodeCAD embraces that: **code → geometry**.
+Most GUI-based CAD tools are powerful, but:
 
-## Features
+- 🌀 Steep learning curves
+- 💸 Expensive licenses
+- 🔒 Hard to automate, version, and share
 
-- Primitives: `box`, `cylinder`, `sphere`, `wedge`, `hex_prism`
-- Booleans: `union`, `difference`
-- Transforms: `translate`, `rotate*`, `scale`
-- Features: `fillet`, `chamfer`
-- Draft: `section_outline`
-- Sketch → Solid: `poly_xy`, `poly_xz`, `extrude`, `revolve`
-- Gears: `gear_involute(z, m, thickness, bore, pressure_deg?)`
-- IO: `emit`, `save_stl`, `save_step`
-- Live-processing for hot-reloading
+With CodeCAD you:
 
-See **docs/LUA_API.md** for the complete reference.
+- Model in **pure code** (with Lua)
+- Get **live preview** in the integrated viewer
+- Keep your models **small, diff-able, and version-controlled** in Git
+- Parametrically adapt designs: change `M6` → `M8` and your screw updates
 
-## Build
+👉 If you love code, the command line, and reproducible workflows — CodeCAD is for you.
 
-Requirements:
+## 🏛 Architecture
+
+```text
+┌────────────┐      ┌────────────┐      ┌───────────────┐
+│   core     │─────▶│   cosma    │─────▶│     main      │
+│ LuaEngine  │      │ Viewer     │      │ CLI frontend  │
+│ OCCT, STL  │      │ SDL2+ImGui │      │ ccad commands │
+└────────────┘      └────────────┘      └───────────────┘
+
+	•	core — C++ engine with Lua bindings, geometry, triangulation & STL export
+	•	cosma — OpenGL viewer & scene graph, real-time updates, ImGui controls
+	•	main — CLI: ccad new, ccad parts add, ccad live, ccad build
+```
+
+## 🚀 Getting Started
+
+### Requirements
 
 - CMake ≥ 3.16
 - C++17 compiler
-- OpenCascade (OCCT) installed and discoverable (`find_package(OpenCASCADE)`)
-- Lua 5.4 (headers + lib)
+- OpenCascade (OCCT) installed (find_package(OpenCASCADE))
+- Lua 5.4 (headers + libs)
+
+### Build
 
 ```bash
-git clone https://github.com/breiting/codecad && cd codecad
+git clone https://github.com/breiting/codecad
+cd codecad
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j
 ```
 
-## Usage
-
-Build a script and write outputs to `out/`:
+### Scaffold a new project
 
 ```bash
-./build/ccad build examples/simple.lua -o build/out
+# create new project
+mkdir myproject && cd myproject
+codecad new
+
+# add a first part
+
+codecad parts add "box"
+
+# run live viewer
+codecad live
 ```
 
-Override parameters:
+This opens a viewer: edit parts/box.lua in your editor and see geometry update live.
 
-```bash
-./build/ccad build examples/gear_involute.lua -o build/out   -D z=32 -D m=2 -D th=10 -D bore=5
+## 📦 Project Structure
+
+```text
+myproject/
+├── project.json # project metadata (name, units, workarea, parts…)
+├── parts/ # Lua scripts for parts
+│ └── box.lua # each part is self-contained
+└── generated/ # generated meshes (STL, STEP…)
 ```
 
-Live rebuild on file changes:
+Parts are written in Lua, e.g.:
 
-```bash
-./build/ccad live examples/simple.lua -o build/out
+```lua
+-- parts/box.lua
+local c = box(10, 20, 5)
+emit(c)
 ```
 
-## Examples
+## 🖼 Example
 
-- `examples/gear_involute.lua` — parametric spur gear (true involute)
-- `examples/hose_adapter.lua` — revolve a profile to create a hose adapter
-- `examples/m6_set.lua` — bolt + nut + washer
-- `examples/terasse.lua` — wooden deck layout
+Parametric nut block:
 
-Each file contains comments describing the parameters.
+```lua
+local size = param("size", 20)
+local hole = param("hole", 6)
+
+local b = box(size, size, size/2)
+local cut = cylinder(hole, size)
+emit(difference(b, cut))
+```
+
+Change hole from 6 → 8 and regenerate — instantly updated.
+
+## 🌱 Roadmap
+
+- 📚 Tutorials & docs (GitHub Pages + YouTube demos)
+- 🪵 Library extensions: codecad-wood, codecad-print, codecad-struct for domain-specific libraries
+- 🔩 Threading functions (inner & outer threads)
+- 🌍 Community support via Patreon
+
+## 📖 Editor Support
+
+- Lua LSP stubs in types/cad.d.lua for completion & diagnostics
+- For Neovim: include ./types and ./lib in your Lua.workspace.library
+
+## 🤝 Contributing
+
+You are welcome to contribute to this project. I am developing under MacOS and Linux. However, I cannot test with Windows. So volunteers are welcome to support all three platforms.
+
+Any feature requests should be filed directly in Github.
+
+## 📜 License
+
+MIT
+
+## 🔗 Links
+
+- GitHub: github.com/breiting/codecad
+- OpenCascade: dev.opencascade.org
 
 ## Good to know
 
 If you are specifying a luapath, then do not forget to add a `?.lua` to the end.
 E.g. if your lua path is `/home/user/luapath`, then the luapath for CodeCAD is `/home/user/luapath/?.lua`.
-
-## Editor Support
-
-- Lua LSP stubs in `types/cad.d.lua` for diagnostics and completion.
-- Neovim users: make sure `Lua.workspace.library` includes `./types` and `./lib`.
-
-## Contributing
-
-- Read **docs/DEV.md** first.
-- Keep Lua API changes reflected in **docs/LUA_API.md** and `types/cad.d.lua`.
-- Prefer small, focused PRs with examples.
 
 ## License
 
