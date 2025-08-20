@@ -3,6 +3,8 @@
 **CodeCAD** is a lightweight, code-first parametric CAD tool.
 You write **Lua scripts**, CodeCAD builds **solids** using the robust [OpenCascade](https://www.opencascade.com/) kernel — with live preview, reusable parts, and a workflow that feels as natural as editing code in your favorite editor.
 
+[![CodeCAD Demo](https://img.youtube.com/vi/xyIz4Y3gc14/hqdefault.jpg)](https://www.youtube.com/watch?v=xyIz4Y3gc14)
+
 - ⚡ **Live**: code in your editor, geometry updates instantly in an integrated viewer
 - 🧩 **Composable**: split designs into parts and reuse them
 - 📐 **Parametric**: adjust dimensions by changing a single parameter
