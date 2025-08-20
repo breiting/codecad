@@ -200,6 +200,7 @@ void App::handlePartsAdd(const std::string& partName) {
         pr.transform.translate = {0, 0, 0};
         pr.transform.rotate = {0, 0, 0};
         pr.transform.scale = 1;
+        pr.visible = true;
         p.parts.push_back(std::move(pr));
 
         // Save project

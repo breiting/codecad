@@ -51,6 +51,21 @@ static json j_transform(const Transform& t) {
     return jt;
 }
 
+static bool getBoolSafe(const nlohmann::json& j, const std::string& key, bool def = false) {
+    if (!j.contains(key)) return def;
+    try {
+        if (j[key].is_boolean()) return j[key].get<bool>();
+        if (j[key].is_number_integer()) return j[key].get<int>() != 0;
+        if (j[key].is_string()) {
+            std::string s = j[key].get<std::string>();
+            std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+            return (s == "true" || s == "1" || s == "yes" || s == "on");
+        }
+    } catch (...) {
+    }
+    return def;
+}
+
 static Transform getTransform(const json& jt) {
     Transform t{};
     if (jt.is_null()) return t;
@@ -99,7 +114,7 @@ Project LoadProject(const std::string& path) {
             pr.source = jp.value("source", "");
             pr.material = jp.value("material", "");
             pr.transform = getTransform(jp.value("transform", json::object()));
-            pr.visible = jp.value("visible", true);
+            pr.visible = getBoolSafe(jp, "visible", true);
             p.parts.emplace_back(std::move(pr));
         }
     }
