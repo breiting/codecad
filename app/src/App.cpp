@@ -138,11 +138,6 @@ void App::setupEngine() {
 
     // CLI options
     paths.insert(paths.end(), m_LuaPaths.begin(), m_LuaPaths.end());
-
-    for (auto p : paths) {
-        cout << "LUA PATHS: " << p << endl;
-    }
-
     m_Engine->SetLibraryPaths(paths);
 
     std::string err;
