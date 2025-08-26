@@ -1,5 +1,3 @@
-
-
 add_library(core STATIC
    src/Boolean.cpp
    src/Draft.cpp
@@ -36,14 +34,13 @@ set(OCCT_WANTED
   TKGeomBase TKGeomAlgo
   TKBRep TKTopAlgo TKPrim TKBO TKShHealing
   TKMesh TKXMesh TKService
+  TKSTL
+  TKXDESTEP
 )
-
-# Optional: STL and STEP support
-set(OCCT_OPTIONAL TKSTL TKXDESTEP)
 
 set(OCCT_LIBS "")
 
-foreach(name IN LISTS OCCT_WANTED OCCT_OPTIONAL)
+foreach(name IN LISTS OCCT_WANTED)
   if(TARGET OpenCASCADE::${name})
     list(APPEND OCCT_LIBS OpenCASCADE::${name})
   endif()
@@ -54,7 +51,7 @@ if(OCCT_LIBS STREQUAL "")
   set(OCCT_LIBS ${OpenCASCADE_LIBRARIES})
 
 	# Do not use DRAW/Test/Tcl/Tk
-  list(FILTER OCCT_LIBS EXCLUDE REGEX "Draw|XSDRAW|TopTest|ViewerTest|QADraw|TObjDRAW|XDEDRAW|TKTObj")
+	list(FILTER OCCT_LIBS EXCLUDE REGEX "Draw|DCAF|XSDRAW|TopTest|ViewerTest|QADraw|TObjDRAW|XDEDRAW|TKTObj")
 endif()
 
 message(STATUS "OpenCASCADE: ${OpenCASCADE_VERSION}")
