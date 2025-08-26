@@ -10,11 +10,27 @@ env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
 
+  # ccache
+  CCACHE_DIR: ~/.cache/ccache
+  CCACHE_COMPRESS: "1"
+  CCACHE_MAXSIZE: "2G"
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      # ---------- Cache APT metadata (optional, best-effort) ----------
+      - name: Cache APT packages metadata
+        uses: actions/cache@v4
+        with:
+          path: |
+            /var/cache/apt
+            /var/lib/apt/lists
+          key: apt-${{ runner.os }}-${{ hashFiles('.github/workflows/**', 'CMakeLists.txt', '**/*.cmake') }}
+          restore-keys: |
+            apt-${{ runner.os }}-
 
       - name: Install deps
         run: |
@@ -23,15 +39,41 @@ jobs:
             build-essential cmake ninja-build pkg-config \
             liblua5.4-dev \
             xorg-dev libgl1-mesa-dev libglu1-mesa-dev \
+            libsdl2-dev \
             libocct-data-exchange-dev libocct-foundation-dev libocct-modeling-algorithms-dev libocct-modeling-data-dev \
             libocct-visualization-dev
+
+      # ---------- Cache ccache ----------
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ccache-${{ runner.os }}-${{ hashFiles('**/*.cpp', '**/*.c', '**/*.hpp', '**/*.h', 'CMakeLists.txt', '**/*.cmake') }}
+          restore-keys: |
+            ccache-${{ runner.os }}-
+
+      # ---------- Cache CMake FetchContent (_deps) ----------
+      - name: Cache CMake _deps
+        uses: actions/cache@v4
+        with:
+          path: build/_deps
+          key: cmake-deps-${{ runner.os }}-${{ hashFiles('CMakeLists.txt', '**/*.cmake') }}
+          restore-keys: |
+            cmake-deps-${{ runner.os }}-
 
       - name: Configure
         run: |
           cmake -S . -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DGLFW_BUILD_WAYLAND=OFF \
             -DGLFW_BUILD_X11=ON
 
       - name: Build
         run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+      # ---------- Run a quick smoke test ----------
+      - name: Smoke test CLI
+        run: |
+          ./build/codecad --help || true
