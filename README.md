@@ -65,14 +65,14 @@ cmake --build build -j
 ```bash
 # initialize new project
 mkdir myproject && cd myproject
-codecad init
+ccad init
 
 # add a first part
 
-codecad parts add --name "box"
+ccad parts add --name "box"
 
 # run live viewer
-codecad live
+ccad live
 ```
 
 This opens a viewer: edit parts/box.lua in your editor and see geometry update live.

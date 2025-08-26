@@ -11,7 +11,14 @@
 #ifdef ENABLE_COSMA
 #include "CosmaMain.hpp"
 #endif
+#include <filesystem>
+
 #include "core/LuaEngine.hpp"
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+#elif __linux__
+#include <unistd.h>
+#endif
 
 const std::string PROJECT_FILENAME = "project.json";
 const std::string PROJECT_OUTDIR = "generated";
@@ -19,6 +26,39 @@ const std::string PARTS_DIR = "parts";
 
 namespace fs = std::filesystem;
 using namespace std;
+
+static std::filesystem::path ExecutablePath() {
+    char buf[4096];
+#ifdef __APPLE__
+    uint32_t size = sizeof(buf);
+    _NSGetExecutablePath(buf, &size);
+    return std::filesystem::canonical(std::filesystem::path(buf));
+#elif __linux__
+    ssize_t len = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
+    if (len > 0) {
+        buf[len] = '\0';
+        return std::filesystem::canonical(std::filesystem::path(buf));
+    }
+    return {};
+#else
+    return {};
+#endif
+}
+
+static std::vector<std::string> DefaultInstallLuaPathsFromExe() {
+    namespace fs = std::filesystem;
+    fs::path exe = ExecutablePath();
+    fs::path prefix = exe.parent_path().parent_path();  // .../bin -> prefix
+    fs::path share = prefix / "share" / "codecad";
+    std::vector<std::string> out;
+    auto add = [&](const fs::path& p) {
+        out.push_back((p / "?.lua").string());
+        out.push_back((p / "?/init.lua").string());
+    };
+    add(share / "lib");
+    add(share / "types");
+    return out;
+}
 
 static std::string Slugify(const std::string& name) {
     std::string s;
@@ -127,6 +167,10 @@ void App::setupEngine() {
 
     // Standard search paths
     std::vector<std::string> paths = {"./lib/?.lua", "./lib/?/init.lua", "./vendor/?.lua", "./vendor/?/init.lua"};
+
+    // installed standard paths
+    auto installPaths = DefaultInstallLuaPathsFromExe();
+    paths.insert(paths.end(), installPaths.begin(), installPaths.end());
 
     // Environment-Variable LUA_PATH (optional)
     if (const char* env = std::getenv("LUA_PATH")) {
