@@ -31,12 +31,8 @@ target_include_directories(core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc/core
     ${LUA_INCLUDE_DIR}
     ${sol2_SOURCE_DIR}/include
+    ${OpenCASCADE_INCLUDE_DIR}
 )
-
-# On some systems, OpenCascade doesn't propagate include dirs well
-if(DEFINED OpenCASCADE_INCLUDE_DIR)
-  target_include_directories(core PRIVATE ${OpenCASCADE_INCLUDE_DIR})
-endif()
 
 target_link_libraries(core PRIVATE
     project_settings

@@ -15,10 +15,10 @@ add_library(cosma STATIC
     src/BaseGeometry.cpp
     src/CameraOrbit.cpp
     src/CameraPath.cpp
-	src/CosmaApplication.cpp
-	src/CosmaMain.cpp
+    src/CosmaApplication.cpp
+    src/CosmaMain.cpp
     src/DirectionalLight.cpp
-	src/RenderEngine.cpp
+    src/RenderEngine.cpp
     src/FlatShadedMaterial.cpp
     src/GuiLayer.cpp
     src/ImageNode.cpp
@@ -72,12 +72,8 @@ target_include_directories(cosma
         external/stb
         external/imgui
         external/imgui/backends
+	${OpenCASCADE_INCLUDE_DIR}
 )
-
-# On some systems, OpenCascade doesn't propagate include dirs well
-if(DEFINED OpenCASCADE_INCLUDE_DIR)
-  target_include_directories(core PRIVATE ${OpenCASCADE_INCLUDE_DIR})
-endif()
 
 # -------------------------
 # Linking

@@ -2,6 +2,7 @@
 #include <memory>
 #include <scene/Scene.hpp>
 #include <vector>
+#include <algorithm>
 
 /**
  * Make sure to convert all geometry into our coordinate system where +z is the height. Therefore we just flip Y and Z
