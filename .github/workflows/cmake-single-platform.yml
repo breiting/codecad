@@ -42,7 +42,6 @@ jobs:
             libsdl2-dev \
             libocct-data-exchange-dev libocct-foundation-dev \
             libocct-modeling-algorithms-dev libocct-modeling-data-dev \
-            libocct-visualization-dev libocct-draw-dev \
             libtbb-dev libtbb12
 
       # ---------- Cache ccache ----------
