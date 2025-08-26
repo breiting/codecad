@@ -72,11 +72,6 @@ endif()
 message(STATUS "Lua include: ${LUA_INCLUDE_DIR}")
 message(STATUS "Lua libs: ${LUA_LIBRARIES}")
 
-
-# OpenCascade
-find_package(OpenCASCADE REQUIRED)
-message(STATUS "OpenCASCADE: ${OpenCASCADE_VERSION}")
-
 # ---------------------------------------------------------------
 
 add_subdirectory(core)

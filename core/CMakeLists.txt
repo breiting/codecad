@@ -1,3 +1,5 @@
+
+
 add_library(core STATIC
    src/Boolean.cpp
    src/Draft.cpp
@@ -26,6 +28,48 @@ add_library(core STATIC
    src/lua/BindingUtils.cpp
 )
 
+# --- OpenCascade handling for different plattforms
+find_package(OpenCASCADE REQUIRED)
+
+set(OCCT_WANTED
+  TKernel TKMath TKG2d TKG3d
+  TKGeomBase TKGeomAlgo
+  TKBRep TKTopAlgo TKPrim TKBO TKShHealing
+  TKMesh TKXMesh TKService
+)
+
+# Optional: STL and STEP support
+set(OCCT_OPTIONAL TKSTL TKXDESTEP)
+
+set(OCCT_LIBS "")
+
+foreach(name IN LISTS OCCT_WANTED OCCT_OPTIONAL)
+  if(TARGET OpenCASCADE::${name})
+    list(APPEND OCCT_LIBS OpenCASCADE::${name})
+  endif()
+endforeach()
+
+# Fallback (for MacOS)
+if(OCCT_LIBS STREQUAL "")
+  set(OCCT_LIBS ${OpenCASCADE_LIBRARIES})
+
+	# Do not use DRAW/Test/Tcl/Tk
+  list(FILTER OCCT_LIBS EXCLUDE REGEX "Draw|XSDRAW|TopTest|ViewerTest|QADraw|TObjDRAW|XDEDRAW|TKTObj")
+endif()
+
+message(STATUS "OpenCASCADE: ${OpenCASCADE_VERSION}")
+
+
+# 4) Linken
+target_link_libraries(core PRIVATE ${OCCT_LIBS})
+
+if(TARGET OpenCASCADE::TKSTL)
+  target_link_libraries(core PRIVATE OpenCASCADE::TKSTL)
+endif()
+if(TARGET OpenCASCADE::TKXDESTEP)
+  target_link_libraries(core PRIVATE OpenCASCADE::TKXDESTEP)
+endif()
+
 # --- now configure the target ---
 target_include_directories(core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc/core
@@ -36,7 +80,6 @@ target_include_directories(core PUBLIC
 
 target_link_libraries(core PRIVATE
     project_settings
-    ${OpenCASCADE_LIBRARIES}
     nlohmann_json::nlohmann_json
     ${LUA_LIBRARIES}
 	PUBLIC glm::glm
