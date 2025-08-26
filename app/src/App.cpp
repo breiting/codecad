@@ -61,13 +61,14 @@ reusable components, and integration with 3D printing workflows.
     // new
     std::string projectName = "My CodeCAD Project";
     std::string units = "mm";
-    int workAreaWidth = 200;
-    int workAreaDepth = 200;
-    auto* cmdNew = app.add_subcommand("new", "Creates a new project structure in the current directory");
-    cmdNew->add_option("--name", projectName, "Name of the project");
-    cmdNew->add_option("--units", units, "Units: mm, cm, m")->capture_default_str();
-    cmdNew->add_option("--wa-w", workAreaWidth, "Workarea width [mm]")->capture_default_str();
-    cmdNew->add_option("--wa-d", workAreaDepth, "Workarea depth [mm]")->capture_default_str();
+    // Prusa Core One Bed
+    int workAreaWidth = 220;
+    int workAreaDepth = 250;
+    auto* cmdInit = app.add_subcommand("init", "Initializes a new project structure in the current directory");
+    cmdInit->add_option("--name", projectName, "Name of the project");
+    cmdInit->add_option("--units", units, "Units: mm, cm, m")->capture_default_str();
+    cmdInit->add_option("--wa-w", workAreaWidth, "Workarea width [mm]")->capture_default_str();
+    cmdInit->add_option("--wa-d", workAreaDepth, "Workarea depth [mm]")->capture_default_str();
 
     // parts add "<Part Name>"
     std::string partName = "Part 1";
@@ -112,7 +113,7 @@ reusable components, and integration with 3D printing workflows.
         handlePartsAdd(partName);
         return;
     }
-    if (*cmdNew) {
+    if (*cmdInit) {
         handleNew(projectName, units, workAreaWidth, workAreaDepth);
         return;
     }
@@ -187,7 +188,7 @@ void App::handleNew(const std::string& projectName, const std::string& unit, int
               << "  - parts/\n"
               << "  - " << PROJECT_OUTDIR << "/\n\n"
               << "Next steps:\n"
-              << "  1) codecad parts add \"Part 1\"\n"
+              << "  1) codecad parts add --name \"Part 1\"\n"
               << "  2) codecad live\n"
               << "  3) codecad build\n";
 }
@@ -197,7 +198,7 @@ void App::handlePartsAdd(const std::string& partName) {
         const fs::path pj = fs::current_path() / PROJECT_FILENAME;
         if (!fs::exists(pj)) {
             std::cerr << "Error: project.json not found in current directory. "
-                         "Run `new` command first or cd into a project.\n";
+                         "Run `init` command first or cd into a project.\n";
             return;
         }
 

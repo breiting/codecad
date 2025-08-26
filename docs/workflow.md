@@ -4,7 +4,7 @@
 
 ```
 > mkdir my_project && cd my_project
-> ccad new <project_name>
+> ccad init
 ```
 
 This creates the initial project file:
@@ -16,7 +16,7 @@ This creates the initial project file:
 The next step is to create a new part which contains shape information.
 
 ```
-> ccad parts add <part name>
+> ccad parts add --name <part name>
 ```
 
 This creates a new part file with a dummy shape in `parts/part_name.lua` and adds the part to the `project.json` file.
