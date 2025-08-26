@@ -72,7 +72,6 @@ target_include_directories(cosma
         external/stb
         external/imgui
         external/imgui/backends
-        ${OpenCASCADE_INCLUDE_DIR}
 )
 
 # -------------------------
@@ -81,7 +80,6 @@ target_include_directories(cosma
 target_link_libraries(cosma
     PUBLIC
         project_settings 
-        # ${OpenCASCADE_LIBRARIES}
         glfw
         nlohmann_json::nlohmann_json
         cosma_deps

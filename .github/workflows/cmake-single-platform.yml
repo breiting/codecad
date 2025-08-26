@@ -77,4 +77,4 @@ jobs:
       # ---------- Run a quick smoke test ----------
       - name: Smoke test CLI
         run: |
-          ./build/codecad --help || true
+          ./app/codecad --help || true
