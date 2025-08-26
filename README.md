@@ -144,4 +144,4 @@ E.g. if your lua path is `/home/user/luapath`, then the luapath for CodeCAD is `
 
 ## License
 
-MIT
+[MIT License](LICENSE)
