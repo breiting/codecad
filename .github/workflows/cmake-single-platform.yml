@@ -23,7 +23,8 @@ jobs:
             build-essential cmake ninja-build pkg-config \
             liblua5.4-dev \
             xorg-dev libgl1-mesa-dev libglu1-mesa-dev \
-            libocct-dev libocct-data-exchange-dev libocct-modeling-dev libocct-visualization-dev
+            libocct-data-exchange-dev libocct-foundation-dev libocct-modeling-algorithms-dev libocct-modeling-data-dev \
+            libocct-visualization-dev
 
       - name: Configure
         run: |
