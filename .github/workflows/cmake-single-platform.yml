@@ -40,8 +40,10 @@ jobs:
             liblua5.4-dev \
             xorg-dev libgl1-mesa-dev libglu1-mesa-dev \
             libsdl2-dev \
-            libocct-data-exchange-dev libocct-foundation-dev libocct-modeling-algorithms-dev libocct-modeling-data-dev \
-            libocct-visualization-dev libtbb-dev libtbb12
+            libocct-data-exchange-dev libocct-foundation-dev \
+            libocct-modeling-algorithms-dev libocct-modeling-data-dev \
+            libocct-visualization-dev libocct-draw-dev \
+            libtbb-dev libtbb12
 
       # ---------- Cache ccache ----------
       - name: Cache ccache
