@@ -25,10 +25,11 @@ target_include_directories(codecad PUBLIC
 target_link_libraries(codecad PRIVATE 
 	project_settings
 	CLI11::CLI11
+	${OpenCASCADE_LIBRARIES}	
 	sol2
 )
 
 if(ENABLE_COSMA)
     target_link_libraries(codecad PRIVATE cosma)
-	target_compile_definitions(codecad PRIVATE ENABLE_COSMA)
+    target_compile_definitions(codecad PRIVATE ENABLE_COSMA)
 endif()
