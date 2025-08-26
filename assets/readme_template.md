@@ -9,7 +9,7 @@ codecad live
 Add a part:
 
 ```bash
-codecad parts add "My Part"
+codecad parts add --name "My Part"
 ```
 
 Build STL files:
