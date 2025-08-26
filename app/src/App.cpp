@@ -3,6 +3,7 @@
 #include <CLI/CLI.hpp>
 #include <filesystem>
 
+#include "Paths.hpp"
 #include "assets/part_template.h"
 #include "assets/readme_template.h"
 #include "io/Export.hpp"
@@ -12,53 +13,17 @@
 #include "CosmaMain.hpp"
 #endif
 #include <filesystem>
+#include <nlohmann/json.hpp>
 
 #include "core/LuaEngine.hpp"
-#ifdef __APPLE__
-#include <mach-o/dyld.h>
-#elif __linux__
-#include <unistd.h>
-#endif
 
 const std::string PROJECT_FILENAME = "project.json";
 const std::string PROJECT_OUTDIR = "generated";
 const std::string PARTS_DIR = "parts";
 
 namespace fs = std::filesystem;
+using json = nlohmann::json;
 using namespace std;
-
-static std::filesystem::path ExecutablePath() {
-    char buf[4096];
-#ifdef __APPLE__
-    uint32_t size = sizeof(buf);
-    _NSGetExecutablePath(buf, &size);
-    return std::filesystem::canonical(std::filesystem::path(buf));
-#elif __linux__
-    ssize_t len = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
-    if (len > 0) {
-        buf[len] = '\0';
-        return std::filesystem::canonical(std::filesystem::path(buf));
-    }
-    return {};
-#else
-    return {};
-#endif
-}
-
-static std::vector<std::string> DefaultInstallLuaPathsFromExe() {
-    namespace fs = std::filesystem;
-    fs::path exe = ExecutablePath();
-    fs::path prefix = exe.parent_path().parent_path();  // .../bin -> prefix
-    fs::path share = prefix / "share" / "codecad";
-    std::vector<std::string> out;
-    auto add = [&](const fs::path& p) {
-        out.push_back((p / "?.lua").string());
-        out.push_back((p / "?/init.lua").string());
-    };
-    add(share / "lib");
-    add(share / "types");
-    return out;
-}
 
 static std::string Slugify(const std::string& name) {
     std::string s;
@@ -126,6 +91,12 @@ reusable components, and integration with 3D printing workflows.
     auto* cmdBuild = app.add_subcommand("build", "Generate STL files");
     cmdBuild->add_option("--root", buildRoot, "Project directory");
 
+    // lsp init
+    auto* cmdLsp = app.add_subcommand("lsp", "Write LSP project file (.luarc.json)");
+
+    // doctor
+    auto* cmdDoctor = app.add_subcommand("doctor", "Diagnose your CodeCAD installation");
+
     // ---------- parse & dispatch ----------
     try {
         app.require_subcommand(1);  // force one subcommand
@@ -155,6 +126,15 @@ reusable components, and integration with 3D printing workflows.
     }
     if (*cmdInit) {
         handleNew(projectName, units, workAreaWidth, workAreaDepth);
+        return;
+    }
+
+    if (*cmdLsp) {
+        handleLspInit();
+        return;
+    }
+    if (*cmdDoctor) {
+        handleDoctor();
         return;
     }
 
@@ -334,4 +314,113 @@ void App::handleLive(const std::string& rootDir) {
 #else
     std::cerr << "This build does not support COSMA live viewer" << std::endl;
 #endif
+}
+
+void App::handleLspInit() {
+    fs::path root = fs::current_path();
+    fs::path luarc = root / ".luarc.json";
+
+    std::vector<std::string> workspaceLib = {"${workspaceFolder}/types", "${workspaceFolder}/lib"};
+
+    std::vector<std::string> installLibs;
+    for (const auto& p : DefaultInstallLuaPathsFromExe()) {
+        auto dir = fs::path(p).parent_path();
+        if (std::find(installLibs.begin(), installLibs.end(), dir.string()) == installLibs.end()) {
+            installLibs.push_back(dir.string());
+        }
+    }
+
+    json j;
+    j["$schema"] = "https://raw.githubusercontent.com/sumneko/vscode-lua/master/setting/schema.json";
+    j["runtime"]["version"] = "Lua 5.4";
+    auto libs = workspaceLib;
+    libs.insert(libs.end(), installLibs.begin(), installLibs.end());
+    j["workspace"]["library"] = libs;
+    j["workspace"]["checkThirdParty"] = false;
+
+    j["diagnostics"]["globals"] = {
+        "emit",  "param",      "box",       "cylinder",  "sphere",  "wedge",   "hex_prism",
+        "union", "difference", "intersect", "translate", "rotate",  "scale",   "rot_x",
+        "rot_y", "rot_z",      "extrude",   "revolve",   "poly_xy", "poly_xz", "section_outline"};
+
+    std::string err;
+    if (!WriteTextFile(luarc, j.dump(2) + "\n", &err)) {
+        std::cerr << "Failed to write .luarc.json: " << err << "\n";
+        return;
+    }
+    std::cout << "Wrote " << luarc << "\n";
+    std::cout << "Included library paths:\n";
+    for (auto& s : libs) std::cout << "  - " << s << "\n";
+}
+
+void App::handleDoctor() {
+    cout << "== CodeCAD Doctor ==\n";
+    auto exe = ExecutablePath();
+    cout << "Executable: " << (exe.empty() ? "<unknown>" : exe.string()) << "\n";
+
+    auto installPatterns = DefaultInstallLuaPathsFromExe();
+    cout << "Derived install search patterns:\n";
+    for (auto& p : installPatterns) cout << "  " << p << "\n";
+
+    auto& L = m_Engine->Lua();
+    try {
+        std::string pkg_path = L["package"]["path"];
+        cout << "\nLua package.path:\n" << pkg_path << "\n";
+    } catch (...) { /* ignore */
+    }
+
+    // Minimal-Checks
+    auto try_require = [&](const char* mod) {
+        try {
+            sol::load_result lr = m_Engine->Lua().load(("return require('" + std::string(mod) + "')").c_str());
+            if (!lr.valid()) {
+                sol::error e = lr;
+                cout << "  " << mod << ": load error: " << e.what() << "\n";
+                return;
+            }
+            sol::protected_function_result r = lr();
+            if (!r.valid()) {
+                sol::error e = r;
+                cout << "  " << mod << ": runtime error: " << e.what() << "\n";
+                return;
+            }
+            cout << "  " << mod << ": OK\n";
+        } catch (const std::exception& e) {
+            cout << "  " << mod << ": exception: " << e.what() << "\n";
+        }
+    };
+
+    cout << "\nRequire checks:\n";
+    // TODO: fixme
+    try_require("util.box");
+    // try_require("ccad.core.project");
+    // try_require("ccad.util.transform");
+    // try_require("ccad.util.sketch");
+    // try_require("ccad.mech.gears");
+    // try_require("ccad.struct.wood");
+
+    cout << "\nEnvironment:\n";
+#ifdef __APPLE__
+    cout << "  OS: macOS\n";
+#elif __linux__
+    cout << "  OS: Linux\n";
+#else
+    cout << "  OS: (unknown)\n";
+#endif
+
+    try {
+        auto lr = L.load(R"(
+      local ok = pcall(function() return box(1,1,1) end)
+      return ok
+    )");
+        auto r = lr();
+        bool ok = r.get<bool>();
+        cout << "  Primitive test (box): " << (ok ? "OK" : "FAILED") << "\n";
+    } catch (...) {
+        cout << "  Primitive test (box): FAILED\n";
+    }
+
+    cout << "\nTipps:\n";
+    cout << "  - Falls Completion in Neovim fehlt: 'ccad lsp init' im Projekt ausführen\n";
+    cout << "  - Prüfe, ob installierte Pfade in package.path auftauchen (siehe oben)\n";
 }
