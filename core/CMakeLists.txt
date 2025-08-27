@@ -12,7 +12,6 @@ add_library(core STATIC
    src/Sketch.cpp
    src/Transform.cpp
    src/Triangulate.cpp
-   src/lua/BindAssembly.cpp
    src/lua/BindBooleans.cpp
    src/lua/BindConstruct.cpp
    src/lua/BindDraft.cpp

@@ -420,7 +420,7 @@ void App::handleDoctor() {
         cout << "  Primitive test (box): FAILED\n";
     }
 
-    cout << "\nTipps:\n";
-    cout << "  - Falls Completion in Neovim fehlt: 'ccad lsp init' im Projekt ausführen\n";
-    cout << "  - Prüfe, ob installierte Pfade in package.path auftauchen (siehe oben)\n";
+    cout << "\nGood to know:\n";
+    cout << "  - In case of neovim completion problems: 'ccad lsp' should fix it\n";
+    cout << "  - Make sure that all paths are set properly\n";
 }
