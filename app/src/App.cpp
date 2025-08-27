@@ -75,11 +75,10 @@ reusable components, and integration with 3D printing workflows.
     cmdInit->add_option("--wa-w", workAreaWidth, "Workarea width [mm]")->capture_default_str();
     cmdInit->add_option("--wa-d", workAreaDepth, "Workarea depth [mm]")->capture_default_str();
 
-    // parts add "<Part Name>"
-    std::string partName = "Part 1";
-    auto* cmdParts = app.add_subcommand("parts", "Manage parts");
-    auto* cmdAdd = cmdParts->add_subcommand("add", "Add a new part to the project");
-    cmdAdd->add_option("--name", partName, "Part name (e.g. \"Bracket A\")")->required();
+    // add [--name "<Part Name>"]
+    std::string partName = "part";
+    auto* cmdAdd = app.add_subcommand("add", "Add a new part to the project");
+    cmdAdd->add_option("--name", partName, "Part name (e.g. \"Bracket A\")");
 
     // live [<rootDir>]
     std::string liveRoot = ".";
@@ -120,7 +119,7 @@ reusable components, and integration with 3D printing workflows.
         handleBuild(buildRoot);
         return;
     }
-    if (*cmdParts && *cmdAdd) {
+    if (*cmdAdd) {
         handlePartsAdd(partName);
         return;
     }
@@ -212,7 +211,7 @@ void App::handleNew(const std::string& projectName, const std::string& unit, int
               << "  - parts/\n"
               << "  - " << PROJECT_OUTDIR << "/\n\n"
               << "Next steps:\n"
-              << "  1) codecad parts add --name \"Part 1\"\n"
+              << "  1) codecad add\n"
               << "  2) codecad live\n"
               << "  3) codecad build\n";
 }

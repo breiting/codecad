@@ -3,17 +3,29 @@ This is a CodeCAD project.
 Start live mode:"
 
 ```bash
-codecad live
+ccad live
 ```
 
 Add a part:
 
 ```bash
-codecad parts add --name "My Part"
+ccad add
 ```
 
 Build STL files:
 
 ```bash
-codecad build
+ccad build
+```
+
+Write LUA LSP file:
+
+```bash
+ccad lsp
+```
+
+Diagnose:
+
+```bash
+ccad doctor
 ```
