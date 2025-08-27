@@ -82,3 +82,27 @@ if(ENABLE_COSMA)
 endif()
 
 add_subdirectory(app)
+
+# ---------------------------------------------------------------
+# INSTALL
+# ---------------------------------------------------------------
+
+include(GNUInstallDirs)
+
+install(TARGETS ccad
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+# --- Lua library + types + docs ---
+set(CODECAD_SHARE_DIR ${CMAKE_INSTALL_DATADIR}/codecad)
+
+install(DIRECTORY lib/
+  DESTINATION ${CODECAD_SHARE_DIR}/lib
+  FILES_MATCHING PATTERN "*.lua"
+)
+
+install(DIRECTORY types/
+  DESTINATION ${CODECAD_SHARE_DIR}/types
+  FILES_MATCHING PATTERN "*.d.lua"
+)
+

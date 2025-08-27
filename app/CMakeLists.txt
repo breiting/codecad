@@ -1,5 +1,6 @@
-add_executable(codecad
+add_executable(ccad
 	src/App.cpp
+	src/Paths.cpp
     src/main.cpp
 )
 
@@ -15,20 +16,20 @@ embed_text_to_header("${ASSETS_SRC_DIR}/readme_template.md"     "${GEN_INC_DIR}/
 embed_text_to_header("${ASSETS_SRC_DIR}/part_template.lua"      "${GEN_INC_DIR}/assets/part_template.h"     part_template)
 
 
-target_include_directories(codecad PUBLIC
+target_include_directories(ccad PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../core/inc
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     ${LUA_INCLUDE_DIR}
     ${sol2_SOURCE_DIR}/include
 )
 
-target_link_libraries(codecad PRIVATE 
+target_link_libraries(ccad PRIVATE 
 	project_settings
 	CLI11::CLI11
 	sol2
 )
 
 if(ENABLE_COSMA)
-    target_link_libraries(codecad PRIVATE cosma)
-    target_compile_definitions(codecad PRIVATE ENABLE_COSMA)
+    target_link_libraries(ccad PRIVATE cosma)
+    target_compile_definitions(ccad PRIVATE ENABLE_COSMA)
 endif()
