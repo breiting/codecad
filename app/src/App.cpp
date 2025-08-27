@@ -451,9 +451,9 @@ void App::handleBom() {
             }
         }
 
-        bomWriter.WriteCsv("cutlist.csv");
-        bomWriter.WriteMarkdown("cutlist.md");
-        std::cout << "BOM written: cutlist.csv, cutlist.md\n";
+        bomWriter.WriteCsv("bom.csv");
+        bomWriter.WriteMarkdown("bom.md");
+        std::cout << "BOM written: bom.csv, bom.md\n";
 
     } catch (const std::exception& e) {
         std::cerr << "Error: failed to generate BOM: " << e.what() << "\n";
