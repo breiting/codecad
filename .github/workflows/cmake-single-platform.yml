@@ -73,8 +73,3 @@ jobs:
 
       - name: Build
         run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
-
-      # ---------- Run a quick smoke test ----------
-      - name: Smoke test CLI
-        run: |
-          cd ${{github.workspace}} && ./app/ccad --help || true

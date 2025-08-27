@@ -39,7 +39,7 @@ With CodeCAD you:
 
 	•	core — C++ engine with Lua bindings, geometry, triangulation & STL export
 	•	cosma — OpenGL viewer & scene graph, real-time updates, ImGui controls
-	•	main — CLI: ccad init, ccad parts add, ccad live, ccad build
+	•	main — CLI: ccad init, ccad add, ccad live, ccad build
 ```
 
 ## 🚀 Getting Started
@@ -67,9 +67,9 @@ cmake --build build -j
 mkdir myproject && cd myproject
 ccad init
 
-# add a first part
+# add a first part (the name is optional)
 
-ccad parts add --name "box"
+ccad add --name "box"
 
 # run live viewer
 ccad live
