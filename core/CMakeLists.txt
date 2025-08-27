@@ -1,5 +1,6 @@
 add_library(core STATIC
    src/Boolean.cpp
+   src/Bom.cpp
    src/Draft.cpp
    src/Export.cpp
    src/Extrude.cpp

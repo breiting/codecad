@@ -6,6 +6,7 @@
 #include "Paths.hpp"
 #include "assets/part_template.h"
 #include "assets/readme_template.h"
+#include "io/Bom.hpp"
 #include "io/Export.hpp"
 #include "io/Project.hpp"
 
@@ -90,6 +91,9 @@ reusable components, and integration with 3D printing workflows.
     auto* cmdBuild = app.add_subcommand("build", "Generate STL files");
     cmdBuild->add_option("--root", buildRoot, "Project directory");
 
+    // bom
+    auto* cmdBom = app.add_subcommand("bom", "Generate project cutlist/BOM");
+
     // lsp init
     auto* cmdLsp = app.add_subcommand("lsp", "Write LSP project file (.luarc.json)");
 
@@ -127,7 +131,10 @@ reusable components, and integration with 3D printing workflows.
         handleNew(projectName, units, workAreaWidth, workAreaDepth);
         return;
     }
-
+    if (*cmdBom) {
+        handleBom();
+        return;
+    }
     if (*cmdLsp) {
         handleLspInit();
         return;
@@ -383,6 +390,76 @@ void App::handleLspInit() {
     for (auto& s : libs) std::cout << "  - " << s << "\n";
 }
 
+void App::handleBom() {
+    try {
+        const fs::path pj = fs::current_path() / PROJECT_FILENAME;
+        if (!fs::exists(pj)) {
+            std::cerr << "Error: project.json not found in current directory. "
+                         "Run `ccad new` or `cd` into a project.\n";
+            return;
+        }
+
+        io::Project p;
+        try {
+            p = io::LoadProject(pj.string());
+        } catch (const std::exception& e) {
+            std::cerr << "Error: failed to load project.json: " << e.what() << "\n";
+            return;
+        }
+
+        std::string initErr;
+        if (!m_Engine || !m_Engine->Initialize(&initErr)) {
+            std::cerr << "Error: CoreEngine init failed: " << initErr << "\n";
+            return;
+        }
+
+        io::BomWriter bomWriter;
+
+        for (const auto& part : p.parts) {
+            fs::path src = fs::current_path() / part.source;
+            fs::path luaFile = fs::weakly_canonical(src);
+
+            try {
+                sol::state& L = m_Engine->Lua();
+                sol::table bom = L["require"]("ccad.util.bom");
+                if (bom.valid()) {
+                    sol::protected_function clear = bom["clear"];
+                    if (clear.valid()) {
+                        sol::protected_function_result r = clear();
+                        if (!r.valid()) {
+                            sol::error err = r;
+                            std::cerr << "Warning: bom.clear() failed: " << err.what() << "\n";
+                        }
+                    }
+                }
+            } catch (...) {
+                std::cerr << "Warning: could not clear BOM for part\n";
+            }
+
+            std::string err;
+            if (!m_Engine->RunFile(luaFile.string(), &err)) {
+                std::cerr << "Lua error in " << luaFile.string() << ": " << err << "\n";
+                return;
+            }
+
+            try {
+                bomWriter.Collect(m_Engine->Lua(), part.id.empty() ? part.name : part.id);
+            } catch (const std::exception& e) {
+                std::cerr << "Error: collecting BOM failed for part " << (part.id.empty() ? part.name : part.id) << ": "
+                          << e.what() << "\n";
+                return;
+            }
+        }
+
+        bomWriter.WriteCsv("cutlist.csv");
+        bomWriter.WriteMarkdown("cutlist.md");
+        std::cout << "BOM written: cutlist.csv, cutlist.md\n";
+
+    } catch (const std::exception& e) {
+        std::cerr << "Error: failed to generate BOM: " << e.what() << "\n";
+    }
+}
+
 void App::handleDoctor() {
     cout << "== CodeCAD Doctor ==\n";
     auto exe = ExecutablePath();
@@ -421,13 +498,12 @@ void App::handleDoctor() {
     };
 
     cout << "\nRequire checks:\n";
-    // TODO: fixme
-    try_require("util.box");
-    // try_require("ccad.core.project");
-    // try_require("ccad.util.transform");
-    // try_require("ccad.util.sketch");
-    // try_require("ccad.mech.gears");
-    // try_require("ccad.struct.wood");
+    try_require("ccad.util.box");
+    try_require("ccad.util.transform");
+    try_require("ccad.util.func");
+    try_require("ccad.util.place");
+    try_require("ccad.util.shape2d");
+    try_require("ccad.util.sketch");
 
     cout << "\nEnvironment:\n";
 #ifdef __APPLE__

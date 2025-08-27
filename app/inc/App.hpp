@@ -15,6 +15,7 @@ class App {
     void handleBuild(const std::string& rootDir);
     void handleLive(const std::string& rootDir);
     void handleLspInit();
+    void handleBom();
     void handleDoctor();
 
     void setupEngine();
