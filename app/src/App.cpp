@@ -338,10 +338,41 @@ void App::handleLspInit() {
     j["workspace"]["library"] = libs;
     j["workspace"]["checkThirdParty"] = false;
 
-    j["diagnostics"]["globals"] = {
-        "emit",  "param",      "box",       "cylinder",  "sphere",  "wedge",   "hex_prism",
-        "union", "difference", "intersect", "translate", "rotate",  "scale",   "rot_x",
-        "rot_y", "rot_z",      "extrude",   "revolve",   "poly_xy", "poly_xz", "section_outline"};
+    j["diagnostics"]["globals"] = {"bbox",
+                                   "box",
+                                   "center_to",
+                                   "center_x",
+                                   "center_xy",
+                                   "center_xyz",
+                                   "center_y",
+                                   "center_z",
+                                   "chamfer",
+                                   "cone",
+                                   "cylinder",
+                                   "deg",
+                                   "difference",
+                                   "emit",
+                                   "extrude",
+                                   "fillet",
+                                   "gear_involute",
+                                   "hex_prism",
+                                   "intersection",
+                                   "mm",
+                                   "param",
+                                   "poly_xy",
+                                   "poly_xz",
+                                   "revolve",
+                                   "rotate_x",
+                                   "rotate_y",
+                                   "rotate_z",
+                                   "save_step",
+                                   "save_stl",
+                                   "scale",
+                                   "section_outline",
+                                   "sphere",
+                                   "translate",
+                                   "union",
+                                   "wedge"};
 
     std::string err;
     if (!WriteTextFile(luarc, j.dump(2) + "\n", &err)) {
