@@ -48,7 +48,7 @@ With CodeCAD you:
 
 - CMake ≥ 3.16
 - C++17 compiler
-- OpenCascade (OCCT) installed (find_package(OpenCASCADE))
+- OpenCascade (OCCT) installed
 - Lua 5.4 (headers + libs)
 
 ### Build
@@ -112,14 +112,14 @@ Change hole from 6 → 8 and regenerate — instantly updated.
 
 ## 🌱 Roadmap
 
-- 📚 Tutorials & docs (GitHub Pages + YouTube demos)
-- 🪵 Library extensions: codecad-wood, codecad-print, codecad-struct for domain-specific libraries
+- 📚 Tutorials & docs
+- 🪵 Library extensions: codecad-wood, codecad-struct for domain-specific libraries
 - 🔩 Threading functions (inner & outer threads)
 - 🌍 Community support via Patreon
 
 ## 📖 Editor Support
 
-- Lua LSP stubs in types/cad.d.lua for completion & diagnostics
+- Lua LSP stubs in types/ for completion & diagnostics
 - For Neovim: include ./types and ./lib in your Lua.workspace.library
 
 ## 🤝 Contributing
@@ -129,19 +129,5 @@ You are welcome to contribute to this project. I am developing under MacOS and L
 Any feature requests should be filed directly in Github.
 
 ## 📜 License
-
-MIT
-
-## 🔗 Links
-
-- GitHub: github.com/breiting/codecad
-- OpenCascade: dev.opencascade.org
-
-## Good to know
-
-If you are specifying a luapath, then do not forget to add a `?.lua` to the end.
-E.g. if your lua path is `/home/user/luapath`, then the luapath for CodeCAD is `/home/user/luapath/?.lua`.
-
-## License
 
 [MIT License](LICENSE)
