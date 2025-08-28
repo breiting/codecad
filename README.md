@@ -81,7 +81,7 @@ This opens a viewer: edit parts/box.lua in your editor and see geometry update l
 
 ```text
 myproject/
-├── project.json # project metadata (name, units, workarea, parts…)
+├── project.json # project metadata (name, units, params, materials, parts…)
 ├── parts/ # Lua scripts for parts
 │ └── box.lua # each part is self-contained
 └── generated/ # generated meshes (STL, STEP…)

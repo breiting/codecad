@@ -10,6 +10,19 @@ using json = nlohmann::json;
 
 namespace io {
 
+// -------- PARAM helpers ----------
+std::optional<ParamValue> GetParam(const Project& p, const std::string& key) {
+    auto it = p.params.find(key);
+    if (it == p.params.end()) return std::nullopt;
+    return it->second;
+}
+void SetParam(Project& p, const std::string& key, ParamValue v) {
+    p.params[key] = std::move(v);
+}
+bool RemoveParam(Project& p, const std::string& key) {
+    return p.params.erase(key) > 0;
+}
+
 static std::string readFile(const std::string& p) {
     std::ifstream f(p);
     if (!f) throw std::runtime_error("LoadProject: cannot open file: " + p);
@@ -18,14 +31,6 @@ static std::string readFile(const std::string& p) {
     return ss.str();
 }
 
-static glm::vec2 getVec2(const json& j, const char* key) {
-    glm::vec2 v{};
-    if (j.contains(key) && j[key].is_array() && j[key].size() >= 2) {
-        v.x = j[key][0].get<double>();
-        v.y = j[key][1].get<double>();
-    }
-    return v;
-}
 static glm::vec3 getVec3(const json& j, const char* key) {
     glm::vec3 v{};
     if (j.contains(key) && j[key].is_array() && j[key].size() >= 3) {
@@ -36,9 +41,6 @@ static glm::vec3 getVec3(const json& j, const char* key) {
     return v;
 }
 
-static json j_vec2(const glm::vec2& v) {
-    return json::array({v.x, v.y});
-}
 static json j_vec3(const glm::vec3& v) {
     return json::array({v.x, v.y, v.z});
 }
@@ -90,10 +92,20 @@ Project LoadProject(const std::string& path) {
         p.meta.units = m.value("units", "mm");
     }
 
-    // workarea
-    if (j.contains("workarea")) {
-        const auto& b = j["workarea"];
-        p.workarea.size = getVec2(b, "size");
+    // params
+    if (j.contains("params") && j["params"].is_object()) {
+        for (auto it = j["params"].begin(); it != j["params"].end(); ++it) {
+            const auto& v = it.value();
+            if (v.is_boolean()) {
+                p.params[it.key()] = ParamValue::FromBool(v.get<bool>());
+            } else if (v.is_number_float() || v.is_number_integer() || v.is_number_unsigned()) {
+                p.params[it.key()] = ParamValue::FromNumber(v.get<double>());
+            } else if (v.is_string()) {
+                p.params[it.key()] = ParamValue::FromString(v.get<std::string>());
+            } else {
+                std::cerr << "Unknown parameter type for: " << it.key() << std::endl;
+            }
+        }
     }
 
     // materials
@@ -149,12 +161,24 @@ bool SaveProject(const Project& p, const std::string& path, bool pretty) {
         j["meta"] = std::move(m);
     }
 
-    // workarea
-    if (p.workarea.size.x != 0 || p.workarea.size.y != 0) {
-        json wa;
-        wa["size"] = j_vec2(p.workarea.size);
-        j["workarea"] = std::move(wa);
+    // params
+    json jp;
+    for (const auto& kv : p.params) {
+        const auto& k = kv.first;
+        const auto& v = kv.second;
+        switch (v.type) {
+            case ParamValue::Type::Number:
+                jp[k] = v.number;
+                break;
+            case ParamValue::Type::Boolean:
+                jp[k] = v.boolean;
+                break;
+            case ParamValue::Type::String:
+                jp[k] = v.string;
+                break;
+        }
     }
+    j["params"] = jp;
 
     // materials
     if (!p.materials.empty()) {
@@ -224,8 +248,18 @@ void PrintProject(const Project& p) {
     oss << "    Author : " << p.meta.author << "\n";
     oss << "    Units  : " << p.meta.units << "\n";
 
-    oss << "  Workarea:\n";
-    oss << "    Size: (" << p.workarea.size.x << ", " << p.workarea.size.y << ")\n";
+    if (!p.params.empty()) {
+        oss << "  Params:\n";
+        for (const auto& kv : p.params) {
+            if (kv.second.type == ParamValue::Type::Boolean) {
+                oss << "    " << kv.first << ": " << kv.second.boolean << "\n";
+            } else if (kv.second.type == ParamValue::Type::Number) {
+                oss << "    " << kv.first << ": " << kv.second.number << "\n";
+            } else if (kv.second.type == ParamValue::Type::String) {
+                oss << "    " << kv.first << ": " << kv.second.string << "\n";
+            }
+        }
+    }
 
     if (!p.materials.empty()) {
         oss << "  Materials:\n";

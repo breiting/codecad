@@ -44,6 +44,27 @@ static std::string Slugify(const std::string& name) {
     return s;
 }
 
+static void ApplyProjectParamsToLua(sol::state& L, const io::Project& p) {
+    sol::table P = L["PARAMS"];
+    if (!P.valid()) P = L.create_named_table("PARAMS");
+
+    for (const auto& kv : p.params) {
+        const auto& k = kv.first;
+        const auto& v = kv.second;
+        switch (v.type) {
+            case io::ParamValue::Type::Boolean:
+                P[k] = v.boolean;
+                break;
+            case io::ParamValue::Type::Number:
+                P[k] = v.number;
+                break;
+            case io::ParamValue::Type::String:
+                P[k] = v.string;
+                break;
+        }
+    }
+}
+
 App::App() = default;
 
 void App::start(int argc, char** argv) {
@@ -67,29 +88,32 @@ reusable components, and integration with 3D printing workflows.
     // new
     std::string projectName = "My CodeCAD Project";
     std::string units = "mm";
-    // Prusa Core One Bed
-    int workAreaWidth = 220;
-    int workAreaDepth = 250;
     auto* cmdInit = app.add_subcommand("init", "Initializes a new project structure in the current directory");
-    cmdInit->add_option("--name", projectName, "Name of the project");
-    cmdInit->add_option("--units", units, "Units: mm, cm, m")->capture_default_str();
-    cmdInit->add_option("--wa-w", workAreaWidth, "Workarea width [mm]")->capture_default_str();
-    cmdInit->add_option("--wa-d", workAreaDepth, "Workarea depth [mm]")->capture_default_str();
+    cmdInit->add_option("name", projectName, "Name of the project");
+    cmdInit->add_option("units", units, "Units (mm, cm, m)")->capture_default_str();
 
-    // add [--name "<Part Name>"]
+    // parts add [name <Part Name>]
     std::string partName = "part";
-    auto* cmdAdd = app.add_subcommand("add", "Add a new part to the project");
-    cmdAdd->add_option("--name", partName, "Part name (e.g. \"Bracket A\")");
+    auto* cmdParts = app.add_subcommand("parts", "Handle project parts");
+    auto* cmdAdd = cmdParts->add_subcommand("add", "Add a new part to the project");
+    cmdAdd->add_option("name", partName, "Part name (e.g. \"Bracket A\")");
 
     // live [<rootDir>]
     std::string liveRoot = ".";
     auto* cmdLive = app.add_subcommand("live", "Start live viewer");
-    cmdLive->add_option("--root", liveRoot, "Project directory");
+    cmdLive->add_option("root", liveRoot, "Project directory");
 
     // build [<rootDir>]
     std::string buildRoot = ".";
     auto* cmdBuild = app.add_subcommand("build", "Generate STL files");
-    cmdBuild->add_option("--root", buildRoot, "Project directory");
+    cmdBuild->add_option("root", buildRoot, "Project directory");
+
+    // params set key <key> value <value>
+    auto* cmdParams = app.add_subcommand("params", "Handle project parameters");
+    auto* cmdSet = cmdParams->add_subcommand("set", "Set a param (bool/number/string)");
+    std::string key, value;
+    cmdSet->add_option("key", key, "Param key")->required();
+    cmdSet->add_option("value", value, "Value (true/false/number/string)")->required();
 
     // bom
     auto* cmdBom = app.add_subcommand("bom", "Generate project cutlist/BOM");
@@ -123,12 +147,16 @@ reusable components, and integration with 3D printing workflows.
         handleBuild(buildRoot);
         return;
     }
-    if (*cmdAdd) {
+    if (*cmdParts && *cmdAdd) {
         handlePartsAdd(partName);
         return;
     }
     if (*cmdInit) {
-        handleNew(projectName, units, workAreaWidth, workAreaDepth);
+        handleNew(projectName, units);
+        return;
+    }
+    if (*cmdParams && *cmdSet) {
+        handleParamsSet(key, value);
         return;
     }
     if (*cmdBom) {
@@ -186,7 +214,7 @@ static bool EnsureDirs(const fs::path& root) {
 
 // ---------------- handlers (stubs) ----------------
 
-void App::handleNew(const std::string& projectName, const std::string& unit, int workAreaWidth, int workAreaDepth) {
+void App::handleNew(const std::string& projectName, const std::string& unit) {
     auto rootDir = fs::current_path();
 
     if (!EnsureDirs(rootDir)) {
@@ -199,7 +227,6 @@ void App::handleNew(const std::string& projectName, const std::string& unit, int
     p.meta.name = projectName;
     p.meta.author = "";
     p.meta.units = unit;
-    p.workarea.size = {workAreaWidth, workAreaDepth};
 
     const fs::path pj = rootDir / PROJECT_FILENAME;
     if (!io::SaveProject(p, pj.string(), /*pretty*/ true)) {
@@ -295,6 +322,8 @@ void App::handleBuild(const std::string& rootDir) {
         auto luaFile = std::filesystem::weakly_canonical(src);
 
         std::string err;
+        ApplyProjectParamsToLua(m_Engine->Lua(), project);
+
         if (!m_Engine->RunFile(luaFile, &err)) {
             auto errStr = std::string("Lua error in ") + luaFile.string() + ": " + err;
             std::cerr << errStr << std::endl;
@@ -320,6 +349,34 @@ void App::handleLive(const std::string& rootDir) {
 #else
     std::cerr << "This build does not support COSMA live viewer" << std::endl;
 #endif
+}
+
+void App::handleParamsSet(const std::string& key, const std::string& value) {
+    auto pj = fs::current_path() / PROJECT_FILENAME;
+    io::Project p = io::LoadProject(pj.string());
+
+    auto lower = value;
+    for (auto& c : lower) c = (char)std::tolower(c);
+    io::ParamValue v;
+    if (lower == "true" || lower == "false" || lower == "1" || lower == "0") {
+        v = io::ParamValue::FromBool(lower == "true" || lower == "1");
+    } else {
+        char* end = nullptr;
+        double num = std::strtod(value.c_str(), &end);
+        if (end && *end == '\0')
+            v = io::ParamValue::FromNumber(num);
+        else
+            v = io::ParamValue::FromString(value);
+    }
+    io::SetParam(p, key, v);
+
+    // Save project
+    if (!io::SaveProject(p, pj.string(), /*pretty*/ true)) {
+        std::cerr << "Error: failed to save " << pj << "\n";
+        return;
+    } else {
+        std::cout << "Set " << key << "\n";
+    }
 }
 
 void App::handleLspInit() {
@@ -437,6 +494,7 @@ void App::handleBom() {
             }
 
             std::string err;
+            ApplyProjectParamsToLua(m_Engine->Lua(), p);
             if (!m_Engine->RunFile(luaFile.string(), &err)) {
                 std::cerr << "Lua error in " << luaFile.string() << ": " << err << "\n";
                 return;

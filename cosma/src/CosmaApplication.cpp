@@ -31,6 +31,27 @@ using namespace std;
 const glm::vec3 SUN_LIGHT = {1.0f, 0.95f, 0.9f};
 const int STATUSBAR_TIMEOUT_MS = 3000;
 
+static void ApplyProjectParamsToLua(sol::state& L, const io::Project& p) {
+    sol::table P = L["PARAMS"];
+    if (!P.valid()) P = L.create_named_table("PARAMS");
+
+    for (const auto& kv : p.params) {
+        const auto& k = kv.first;
+        const auto& v = kv.second;
+        switch (v.type) {
+            case io::ParamValue::Type::Boolean:
+                P[k] = v.boolean;
+                break;
+            case io::ParamValue::Type::Number:
+                P[k] = v.number;
+                break;
+            case io::ParamValue::Type::String:
+                P[k] = v.string;
+                break;
+        }
+    }
+}
+
 CosmaApplication::CosmaApplication(std::shared_ptr<LuaEngine> coreEngine)
     : m_Engine(coreEngine), m_LeftMouseButtonPressed(false), m_RightMouseButtonPressed(false), m_ShiftPressed(false) {
 }
@@ -129,6 +150,7 @@ void CosmaApplication::BuildOrRebuildPart(PartRecord& rec) {
     m_Engine->Reset();
 
     std::string err;
+    ApplyProjectParamsToLua(m_Engine->Lua(), m_Project);
     if (!m_Engine->RunFile(rec.absoluteSourcePath.string(), &err)) {
         auto errStr = std::string("Lua error in ") + rec.meta.name + ": " + err;
         cerr << errStr << endl;
