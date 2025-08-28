@@ -6,6 +6,7 @@
 #include <memory>
 #include <scene/Scene.hpp>
 #include <ui/GuiLayer.hpp>
+#include <unordered_map>
 
 #include "LuaEngine.hpp"
 #include "core/FileWatcher.hpp"
@@ -15,6 +16,21 @@
 class Camera;
 class Light;
 class MeshNode;
+
+struct ProjectUiState {
+    bool initialized = false;
+    bool dirty = false;
+
+    // Meta
+    std::string nameBuf;
+    std::string authorBuf;
+    std::string unitsBuf;
+
+    // Params
+    std::unordered_map<std::string, std::string> strBuf;
+    std::unordered_map<std::string, double> numBuf;
+    std::unordered_map<std::string, bool> boolBuf;
+};
 
 class CosmaApplication : public Application {
    public:
@@ -54,12 +70,15 @@ class CosmaApplication : public Application {
 
     void BuildOrRebuildPart(PartRecord& rec);  // Run Lua → shape → transform → mesh
     void RebuildAllParts();                    // für PROJECT_KEY
+    void InitProjectUiBuffersFromProject();    // Setup UI with project information
 
    private:
     static constexpr const char* PROJECT_KEY = "__project__";
 
     std::shared_ptr<LuaEngine> m_Engine;
     io::Project m_Project;
+    std::string m_ProjectFileName;
+    ProjectUiState m_ProjectUiState;
 
     std::unordered_map<std::string, PartRecord> m_PartsByName;    // name -> record
     std::unordered_map<std::string, std::string> m_SourceToPart;  // abs source path -> part name

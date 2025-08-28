@@ -24,6 +24,7 @@
 
 #include "core/FileWatcher.hpp"
 #include "geometry/Mesh.hpp"
+#include "imgui.h"
 #include "io/Project.hpp"
 
 using namespace std;
@@ -50,6 +51,108 @@ static void ApplyProjectParamsToLua(sol::state& L, const io::Project& p) {
                 break;
         }
     }
+}
+
+static void ApplyUiToProject(io::Project& proj, const ProjectUiState& ui) {
+    // Meta
+    proj.meta.name = ui.nameBuf;
+    proj.meta.author = ui.authorBuf;
+    proj.meta.units = ui.unitsBuf;
+
+    // Params
+    for (auto& kv : proj.params) {
+        const std::string& k = kv.first;
+        auto& pv = kv.second;
+        switch (pv.type) {
+            case io::ParamValue::Type::Boolean:
+                if (auto it = ui.boolBuf.find(k); it != ui.boolBuf.end()) pv.boolean = it->second;
+                break;
+            case io::ParamValue::Type::Number:
+                if (auto it = ui.numBuf.find(k); it != ui.numBuf.end()) pv.number = it->second;
+                break;
+            case io::ParamValue::Type::String:
+                if (auto it = ui.strBuf.find(k); it != ui.strBuf.end()) pv.string = it->second;
+                break;
+        }
+    }
+}
+
+static bool InputTextString(const char* label, std::string& str) {
+    char buf[512];
+    std::snprintf(buf, sizeof(buf), "%s", str.c_str());
+    if (ImGui::InputText(label, buf, sizeof(buf))) {
+        str = buf;
+        return true;
+    }
+    return false;
+}
+
+static bool DrawProjectMetaEditor(ProjectUiState& ui) {
+    bool changed = false;
+
+    if (InputTextString("Name", ui.nameBuf)) ui.dirty = true;
+    if (InputTextString("Author", ui.authorBuf)) ui.dirty = true;
+
+    const char* units[] = {"mm", "cm", "m"};
+    static int current = 0;
+    if (ImGui::Combo("Units", &current, units, IM_ARRAYSIZE(units))) {
+        ui.unitsBuf = units[current];
+        changed = true;
+    }
+
+    return changed;
+}
+
+static bool DrawProjectParamsEditor(io::Project& proj, ProjectUiState& ui) {
+    bool changed = false;
+
+    // stabile Sortierung
+    std::vector<std::string> keys;
+    keys.reserve(proj.params.size());
+    for (auto& kv : proj.params) keys.push_back(kv.first);
+    std::sort(keys.begin(), keys.end());
+
+    if (ImGui::CollapsingHeader("Parameters", ImGuiTreeNodeFlags_DefaultOpen)) {
+        for (auto& k : keys) {
+            auto it = proj.params.find(k);
+            if (it == proj.params.end()) continue;
+            auto& pv = it->second;
+
+            ImGui::PushID(k.c_str());
+            switch (pv.type) {
+                case io::ParamValue::Type::Boolean: {
+                    bool& buf = ui.boolBuf[k];                // auto-creates false if missing
+                    if (buf != pv.boolean) buf = pv.boolean;  // sync if config reloaded
+                    if (ImGui::Checkbox(k.c_str(), &buf)) {
+                        changed = true;
+                    }
+                } break;
+
+                case io::ParamValue::Type::Number: {
+                    double& buf = ui.numBuf[k];
+                    if (ui.numBuf.find(k) == ui.numBuf.end()) buf = pv.number;  // first time
+                    if (ImGui::InputDouble((k + "##num").c_str(), &buf, 0.0, 0.0, "%.3f")) {
+                        changed = true;
+                    }
+                } break;
+
+                case io::ParamValue::Type::String: {
+                    std::string& buf = ui.strBuf[k];
+                    if (ui.strBuf.find(k) == ui.strBuf.end()) buf = pv.string;  // first time
+                    // kleiner Buffer – für längere Strings ggf. Callback-Resize nutzen
+                    char tmp[256];
+                    std::snprintf(tmp, sizeof(tmp), "%s", buf.c_str());
+                    if (ImGui::InputText((k + "##str").c_str(), tmp, sizeof(tmp))) {
+                        buf = tmp;
+                        changed = true;
+                    }
+                } break;
+            }
+            ImGui::PopID();
+        }
+    }
+
+    return changed;
 }
 
 CosmaApplication::CosmaApplication(std::shared_ptr<LuaEngine> coreEngine)
@@ -183,6 +286,35 @@ void CosmaApplication::BuildOrRebuildPart(PartRecord& rec) {
     rec.shape = shaped;  // optional behalten
 }
 
+void CosmaApplication::InitProjectUiBuffersFromProject() {
+    m_ProjectUiState.initialized = true;
+    m_ProjectUiState.dirty = false;
+
+    m_ProjectUiState.nameBuf = m_Project.meta.name;
+    m_ProjectUiState.authorBuf = m_Project.meta.author;
+    m_ProjectUiState.unitsBuf = m_Project.meta.units;
+
+    m_ProjectUiState.strBuf.clear();
+    m_ProjectUiState.numBuf.clear();
+    m_ProjectUiState.boolBuf.clear();
+
+    for (auto& kv : m_Project.params) {
+        const std::string& k = kv.first;
+        const io::ParamValue& pv = kv.second;
+        switch (pv.type) {
+            case io::ParamValue::Type::String:
+                m_ProjectUiState.strBuf[k] = pv.string;
+                break;
+            case io::ParamValue::Type::Number:
+                m_ProjectUiState.numBuf[k] = pv.number;
+                break;
+            case io::ParamValue::Type::Boolean:
+                m_ProjectUiState.boolBuf[k] = pv.boolean;
+                break;
+        }
+    }
+}
+
 void CosmaApplication::LoadLuaPartByPath(const std::string& path) {
     auto itName = m_SourceToPart.find(path);
     if (itName == m_SourceToPart.end()) return;
@@ -200,8 +332,12 @@ void CosmaApplication::LoadLuaPartByPath(const std::string& path) {
 
 void CosmaApplication::LoadProject(const std::string& projectFileName) {
     // Project
+    m_ProjectFileName = projectFileName;
     m_Project = io::LoadProject(projectFileName);
     io::PrintProject(m_Project);
+
+    // Update UI
+    InitProjectUiBuffersFromProject();
 
     m_ProjectRoot = std::filesystem::absolute(std::filesystem::path(projectFileName)).parent_path();
 
@@ -277,36 +413,106 @@ void CosmaApplication::SetStatusMessage(const std::string& msg) {
 
 void CosmaApplication::DrawGui() {
     ImGuiIO& io = ImGui::GetIO();
-    ImGuiViewport* viewport = ImGui::GetMainViewport();
 
-    float barHeight = ImGui::GetFrameHeight() + 4.0f;
-    ImGui::SetNextWindowPos(ImVec2(viewport->Pos.x, viewport->Pos.y + viewport->Size.y - barHeight));
-    ImGui::SetNextWindowSize(ImVec2(viewport->Size.x, barHeight));
+    // Font
+    // ImFont* fontDefault =
+    //     io.Fonts->AddFontFromFileTTF("/Users/breiting/workspace/codecad/assets/fonts/Roboto-Medium.ttf", 18.0f,
+    //     nullptr,
+    //                                  io.Fonts->GetGlyphRangesDefault());
+    //
+    // if (fontDefault) {
+    //     io.FontDefault = fontDefault;
+    // }
+    ImGuiViewport* vp = ImGui::GetMainViewport();
 
-    ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-                             ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings |
-                             ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoBackground;
+    // Height of statusbar
+    const float statusBarH = ImGui::GetFrameHeight() + 4.0f;
 
-    ImGui::Begin("StatusBar", nullptr, flags);
+    // Fixed UI width
+    const float sidebarW = 360.0f;
 
-    // --- Left: Status messages with timout ---
-    auto now = std::chrono::steady_clock::now();
-    bool showStatus =
-        std::chrono::duration_cast<std::chrono::milliseconds>(now - m_StatusTimestamp).count() < STATUSBAR_TIMEOUT_MS;
+    ImVec2 pos(vp->Pos.x + vp->Size.x - sidebarW, vp->Pos.y);
+    ImVec2 size(sidebarW, vp->Size.y - statusBarH);
 
-    if (showStatus && !m_StatusMessage.empty()) {
-        ImGui::TextUnformatted(m_StatusMessage.c_str());
+    ImGui::SetNextWindowPos(pos);
+    ImGui::SetNextWindowSize(size);
+    ImGui::SetNextWindowViewport(vp->ID);
+
+    ImGuiWindowFlags sideFlags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                                 ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus |
+                                 ImGuiWindowFlags_NoSavedSettings;
+
+    if (ImGui::Begin("RightSidebar", nullptr, sideFlags)) {
+        if (!m_ProjectUiState.initialized) {
+            InitProjectUiBuffersFromProject();
+        }
+
+        ImGui::TextDisabled("Project");
+        ImGui::Separator();
+        if (DrawProjectMetaEditor(m_ProjectUiState)) {
+            m_ProjectUiState.dirty = true;
+        }
+
+        // --- Viewer Settings ---
+        ImGui::Spacing();
+        ImGui::Spacing();
+        if (ImGui::CollapsingHeader("Viewer", ImGuiTreeNodeFlags_DefaultOpen)) {
+            bool grid;
+            if (ImGui::Checkbox("Grid", &grid)) {
+                // TODO: ininity grid setting
+            }
+        }
+
+        // --- Params ---
+        ImGui::Spacing();
+        ImGui::Spacing();
+        if (DrawProjectParamsEditor(m_Project, m_ProjectUiState)) {
+            m_ProjectUiState.dirty = true;
+        }
+
+        // --- Update Button unten ---
+        ImGui::Spacing();
+        ImGui::Separator();
+        if (ImGui::Button("Update", ImVec2(-1, 0))) {
+            // Werte aus UI in m_Project übernehmen
+            ApplyUiToProject(m_Project, m_ProjectUiState);
+
+            if (!io::SaveProject(m_Project, m_ProjectFileName, true)) {
+                SetStatusMessage("Cannot save project");
+            } else {
+                m_ProjectUiState.dirty = false;
+            }
+        }
     }
-
-    // --- Right: FPS ---
-    float fps = io.Framerate;
-    std::string fpsText = std::string("FPS: ") + std::to_string((int)fps);
-
-    float textWidth = ImGui::CalcTextSize(fpsText.c_str()).x;
-    ImGui::SameLine(viewport->Size.x - textWidth - 10.0f);  // right aligned
-    ImGui::TextUnformatted(fpsText.c_str());
-
     ImGui::End();
+
+    {
+        float barHeight = ImGui::GetFrameHeight() + 4.0f;
+        ImGui::SetNextWindowPos(ImVec2(vp->Pos.x, vp->Pos.y + vp->Size.y - barHeight));
+        ImGui::SetNextWindowSize(ImVec2(vp->Size.x, barHeight));
+
+        ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                                 ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings |
+                                 ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoBackground;
+
+        ImGui::Begin("StatusBar", nullptr, flags);
+
+        auto now = std::chrono::steady_clock::now();
+        bool showStatus = std::chrono::duration_cast<std::chrono::milliseconds>(now - m_StatusTimestamp).count() <
+                          STATUSBAR_TIMEOUT_MS;
+
+        if (showStatus && !m_StatusMessage.empty()) {
+            ImGui::TextUnformatted(m_StatusMessage.c_str());
+        }
+
+        float fps = io.Framerate;
+        std::string fpsText = std::string("FPS: ") + std::to_string((int)fps);
+        float textWidth = ImGui::CalcTextSize(fpsText.c_str()).x;
+        ImGui::SameLine(vp->Size.x - textWidth - 10.0f);
+        ImGui::TextUnformatted(fpsText.c_str());
+
+        ImGui::End();
+    }
 }
 
 void CosmaApplication::Shutdown() {

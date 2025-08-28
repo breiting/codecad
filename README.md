@@ -34,7 +34,7 @@ With CodeCAD you:
 ┌────────────┐      ┌────────────┐      ┌───────────────┐
 │   core     │─────▶│   cosma    │─────▶│     main      │
 │ LuaEngine  │      │ Viewer     │      │ CLI frontend  │
-│ OCCT, STL  │      │ SDL2+ImGui │      │ ccad commands │
+│ OCCT, STL  │      │ GLFW+ImGui │      │ ccad commands │
 └────────────┘      └────────────┘      └───────────────┘
 
 	•	core — C++ engine with Lua bindings, geometry, triangulation & STL export
