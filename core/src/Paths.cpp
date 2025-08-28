@@ -45,6 +45,14 @@ std::vector<std::string> DefaultInstallLuaPathsFromExe() {
     return out;
 }
 
+std::string DefaultInstallFontsPath() {
+    namespace fs = std::filesystem;
+    fs::path exe = ExecutablePath();
+    if (exe.empty()) return fs::current_path();
+    fs::path prefix = exe.parent_path().parent_path();  // .../bin -> prefix
+    return prefix / "share" / "codecad" / "fonts";
+}
+
 bool WriteTextFile(const std::filesystem::path& p, const std::string& content, std::string* err) {
     try {
         std::filesystem::create_directories(p.parent_path());

@@ -106,3 +106,9 @@ install(DIRECTORY types/
   FILES_MATCHING PATTERN "*.d.lua"
 )
 
+# Install fonts
+install(
+    DIRECTORY ${CMAKE_SOURCE_DIR}/assets/fonts
+    DESTINATION share/codecad
+    FILES_MATCHING PATTERN "*.ttf"
+)

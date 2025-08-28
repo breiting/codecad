@@ -24,7 +24,6 @@ target_include_directories(ccad PUBLIC
 
 target_link_libraries(ccad PRIVATE 
 	project_settings
-	core
 	CLI11::CLI11
 	sol2
 )
