@@ -3,6 +3,8 @@
 #include <glm/glm.hpp>
 #include <vector>
 
+#include "core/Bounds.hpp"
+
 class BaseGeometry {
    public:
     virtual void Upload() = 0;
@@ -15,7 +17,11 @@ class BaseGeometry {
     size_t VertexCount() const;
     const std::vector<Vertex>& GetVertices() const;
 
+    AABB ComputeLocalAABB() const;
+
    protected:
     std::vector<Vertex> m_Vertices;
     bool m_Dirty;
+
+    mutable AABB m_CachedAABB;
 };

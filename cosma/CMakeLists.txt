@@ -11,6 +11,7 @@ file(GLOB IMGUI
 # -------------------------
 add_library(cosma STATIC
     src/ArrowNode.cpp
+    src/Bounds.cpp
     src/AxesNode.cpp
     src/BaseGeometry.cpp
     src/CameraOrbit.cpp

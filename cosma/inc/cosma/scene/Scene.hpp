@@ -17,6 +17,8 @@ class Scene {
 
     std::shared_ptr<DirectionalLight> GetDirectionalLight();
 
+    AABB ComputeWorldBounds() const;
+
    private:
     std::vector<std::shared_ptr<SceneNode>> m_Nodes;
     std::shared_ptr<DirectionalLight> m_DirectionalLight;

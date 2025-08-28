@@ -21,3 +21,13 @@ void ShapeNode::Render(const glm::mat4& model, const glm::mat4& view, const glm:
         m_Renderable->Render(worldTransform, view, projection, light);
     }
 }
+
+AABB ShapeNode::GetWorldAABB() const {
+    if (m_Renderable) {
+        if (!m_Renderable->mesh) return {};
+        AABB local = m_Renderable->mesh->ComputeLocalAABB();
+        if (!local.valid) return {};
+        return TransformAABB(WorldMatrix(), local);
+    }
+    return SceneNode::GetWorldAABB();
+}

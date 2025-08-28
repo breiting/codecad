@@ -245,7 +245,7 @@ void App::handleNew(const std::string& projectName, const std::string& unit) {
               << "  - parts/\n"
               << "  - " << PROJECT_OUTDIR << "/\n\n"
               << "Next steps:\n"
-              << "  1) codecad add\n"
+              << "  1) codecad parts add\n"
               << "  2) codecad live\n"
               << "  3) codecad build\n";
 }

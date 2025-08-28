@@ -18,3 +18,14 @@ size_t BaseGeometry::VertexCount() const {
 const std::vector<Vertex>& BaseGeometry::GetVertices() const {
     return m_Vertices;
 }
+
+AABB BaseGeometry::ComputeLocalAABB() const {
+    if (m_CachedAABB.valid) return m_CachedAABB;
+
+    AABB box;
+    for (const auto& v : m_Vertices) {
+        box.Expand(v.GetPosition());
+    }
+    m_CachedAABB = box;  // cache
+    return box;
+}

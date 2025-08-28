@@ -22,6 +22,11 @@ class SceneNode {
     virtual void Render(const glm::mat4& model, const glm::mat4& view, const glm::mat4& projection,
                         std::shared_ptr<Light> light) = 0;
 
+    virtual glm::mat4 WorldMatrix() const;
+    virtual AABB GetWorldAABB() const {
+        return AABB{};
+    }  // default: invalid
+
    protected:
     Transform m_Transform;
     std::string m_Name;
