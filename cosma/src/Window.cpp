@@ -18,7 +18,7 @@ void window_focus_callback(GLFWwindow* window, int focused) {
     ImGui_ImplGlfw_WindowFocusCallback(window, focused);
 }
 
-void window_content_scale_callback(GLFWwindow* window, float xscale, float yscale) {
+void window_content_scale_callback(GLFWwindow* /*window*/, float xscale, float yscale) {
     ImGui::GetIO().DisplayFramebufferScale = ImVec2(xscale, yscale);
 }
 

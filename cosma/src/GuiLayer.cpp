@@ -7,6 +7,19 @@
 
 #include <ui/GuiLayer.hpp>
 
+void LoadDefaultFonts(const std::string& fontDir) {
+    ImGuiIO& io = ImGui::GetIO();
+
+    io.Fonts->Clear();
+
+    const std::string roboto = fontDir + "/Roboto-Medium.ttf";
+    ImFont* def = io.Fonts->AddFontFromFileTTF(roboto.c_str(), 16.0f, nullptr, io.Fonts->GetGlyphRangesDefault());
+    if (def) io.FontDefault = def;
+
+    ImGui_ImplOpenGL3_DestroyFontsTexture();  // idempotent
+    ImGui_ImplOpenGL3_CreateFontsTexture();
+}
+
 void GuiLayer::Init(Window* window) {
     if (!window) return;
     m_Window = window;
@@ -21,6 +34,9 @@ void GuiLayer::Init(Window* window) {
 
     ImGui_ImplGlfw_InitForOpenGL(window->GetNativeWindow(), true);
     ImGui_ImplOpenGL3_Init("#version 330");
+
+    LoadDefaultFonts("/Users/breiting/workspace/codecad/assets/fonts");
+    // LoadDefaultFonts("/usr/local/share/codecad/fonts");
 }
 
 void GuiLayer::Begin() {

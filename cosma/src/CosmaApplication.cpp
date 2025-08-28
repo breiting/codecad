@@ -414,15 +414,6 @@ void CosmaApplication::SetStatusMessage(const std::string& msg) {
 void CosmaApplication::DrawGui() {
     ImGuiIO& io = ImGui::GetIO();
 
-    // Font
-    // ImFont* fontDefault =
-    //     io.Fonts->AddFontFromFileTTF("/Users/breiting/workspace/codecad/assets/fonts/Roboto-Medium.ttf", 18.0f,
-    //     nullptr,
-    //                                  io.Fonts->GetGlyphRangesDefault());
-    //
-    // if (fontDefault) {
-    //     io.FontDefault = fontDefault;
-    // }
     ImGuiViewport* vp = ImGui::GetMainViewport();
 
     // Height of statusbar
