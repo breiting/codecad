@@ -1,4 +1,4 @@
-#include "Paths.hpp"
+#include "io/Paths.hpp"
 
 #include <fstream>
 #ifdef __APPLE__
@@ -6,6 +6,8 @@
 #elif __linux__
 #include <unistd.h>
 #endif
+
+namespace io {
 
 std::filesystem::path ExecutablePath() {
     char buf[4096] = {0};
@@ -58,3 +60,4 @@ bool WriteTextFile(const std::filesystem::path& p, const std::string& content, s
         return false;
     }
 }
+}  // namespace io

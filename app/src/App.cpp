@@ -3,11 +3,11 @@
 #include <CLI/CLI.hpp>
 #include <filesystem>
 
-#include "Paths.hpp"
 #include "assets/part_template.h"
 #include "assets/readme_template.h"
 #include "io/Bom.hpp"
 #include "io/Export.hpp"
+#include "io/Paths.hpp"
 #include "io/Project.hpp"
 
 #ifdef ENABLE_COSMA
@@ -183,7 +183,7 @@ void App::setupEngine() {
     std::vector<std::string> paths = {"./lib/?.lua", "./lib/?/init.lua", "./vendor/?.lua", "./vendor/?/init.lua"};
 
     // installed standard paths
-    auto installPaths = DefaultInstallLuaPathsFromExe();
+    auto installPaths = io::DefaultInstallLuaPathsFromExe();
     paths.insert(paths.end(), installPaths.begin(), installPaths.end());
 
     // Environment-Variable LUA_PATH (optional)
@@ -386,7 +386,7 @@ void App::handleLspInit() {
     std::vector<std::string> workspaceLib = {"${workspaceFolder}/types", "${workspaceFolder}/lib"};
 
     std::vector<std::string> installLibs;
-    for (const auto& p : DefaultInstallLuaPathsFromExe()) {
+    for (const auto& p : io::DefaultInstallLuaPathsFromExe()) {
         auto dir = fs::path(p).parent_path();
         if (std::find(installLibs.begin(), installLibs.end(), dir.string()) == installLibs.end()) {
             installLibs.push_back(dir.string());
@@ -438,7 +438,7 @@ void App::handleLspInit() {
                                    "wedge"};
 
     std::string err;
-    if (!WriteTextFile(luarc, j.dump(2) + "\n", &err)) {
+    if (!io::WriteTextFile(luarc, j.dump(2) + "\n", &err)) {
         std::cerr << "Failed to write .luarc.json: " << err << "\n";
         return;
     }
@@ -520,10 +520,10 @@ void App::handleBom() {
 
 void App::handleDoctor() {
     cout << "== CodeCAD Doctor ==\n";
-    auto exe = ExecutablePath();
+    auto exe = io::ExecutablePath();
     cout << "Executable: " << (exe.empty() ? "<unknown>" : exe.string()) << "\n";
 
-    auto installPatterns = DefaultInstallLuaPathsFromExe();
+    auto installPatterns = io::DefaultInstallLuaPathsFromExe();
     cout << "Derived install search patterns:\n";
     for (auto& p : installPatterns) cout << "  " << p << "\n";
 
