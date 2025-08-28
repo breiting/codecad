@@ -124,6 +124,7 @@ static bool DrawProjectParamsEditor(io::Project& proj, ProjectUiState& ui) {
                     bool& buf = ui.boolBuf[k];                // auto-creates false if missing
                     if (buf != pv.boolean) buf = pv.boolean;  // sync if config reloaded
                     if (ImGui::Checkbox(k.c_str(), &buf)) {
+                        pv.boolean = buf;
                         changed = true;
                     }
                 } break;
