@@ -13,10 +13,25 @@ struct PureRenderParams {
     glm::vec3 lightDir = glm::normalize(glm::vec3(-1.0f, -1.0f, -0.5f));
 };
 
-void DrawMesh(const PureMesh& mesh, const PureShader& shader, const glm::mat4& model, const glm::mat4& view,
-              const glm::mat4& proj, const glm::vec3& camPos, const PureRenderParams& params);
+class PureRenderer {
+   public:
+    PureRenderer() = default;
 
-void DrawScene(std::shared_ptr<PureScene> scene, const PureShader& shader, const glm::mat4& view, const glm::mat4& proj,
-               const glm::vec3& camPos, const glm::vec3& camViewDir /* Headlight */);
+    void DrawMesh(const PureMesh& mesh, const PureShader& shader, const glm::mat4& model, const glm::mat4& view,
+                  const glm::mat4& proj, const glm::vec3& camPos, const PureRenderParams& params);
 
+    void DrawScene(std::shared_ptr<PureScene> scene, const PureShader& shader, const glm::mat4& view,
+                   const glm::mat4& proj, const glm::vec3& camPos, const glm::vec3& camViewDir /* Headlight */);
+
+    void SetWireframe(bool onoff) {
+        m_Wireframe = onoff;
+    }
+
+    bool IsWireframe() {
+        return m_Wireframe;
+    }
+
+   private:
+    bool m_Wireframe = false;
+};
 }  // namespace pure

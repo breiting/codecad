@@ -7,7 +7,7 @@
 
 namespace fs = std::filesystem;
 
-class Controller : PureInputHandler {
+class Controller {
    public:
     Controller(std::vector<std::string>& luaPaths);
     void LoadProject(const fs::path& projectDir);
@@ -16,12 +16,6 @@ class Controller : PureInputHandler {
     void CreateBom();
 
     void HealthCheck();
-
-    // Interface: PureInputHandler
-    void OnKeyPressed(int key, int mods) override;
-    void OnKeyReleased(int key, int mods) override;
-    void OnMouseButtonPressed(int button, int mods) override;
-    void OnMouseButtonReleased(int button, int mods) override;
 
    private:
     void SetupEngine();

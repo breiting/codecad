@@ -151,8 +151,16 @@ void Controller::ViewProject() {
         return;
     }
 
-    // Register for mouse and keyboard events
-    pureController.SetInputHandler(this);
+    pureController.SetKeyPressedHandler([this, &pureController](int key, int mods) {
+        switch (key) {
+            case GLFW_KEY_W: {
+                pureController.ToggleWireframe();
+            } break;
+
+            default:
+                break;
+        }
+    });
 
     auto scene = std::make_shared<PureScene>();
 
@@ -394,20 +402,4 @@ void Controller::HealthCheck() {
     cout << "\nGood to know:\n";
     cout << "  - In case of neovim completion problems: 'ccad lsp' should fix it\n";
     cout << "  - Make sure that all paths are set properly\n";
-}
-
-void Controller::OnKeyPressed(int key, int /*mods*/) {
-    std::cout << "Key pressed " << key << std::endl;
-}
-
-void Controller::OnKeyReleased(int key, int /*mods*/) {
-    std::cout << "Key released " << key << std::endl;
-}
-
-void Controller::OnMouseButtonPressed(int button, int /*mods*/) {
-    std::cout << "Mouse BT pressed " << button << std::endl;
-}
-
-void Controller::OnMouseButtonReleased(int button, int /*mods*/) {
-    std::cout << "Mouse BT released " << button << std::endl;
 }

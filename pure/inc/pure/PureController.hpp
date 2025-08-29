@@ -5,13 +5,14 @@
 #include <GLFW/glfw3.h>
 // clang-format on
 
+#include <functional>
 #include <pure/PureCamera.hpp>
 #include <pure/PureScene.hpp>
 #include <pure/PureShader.hpp>
 
 #include "pure/PureAxis.hpp"
 #include "pure/PureGui.hpp"
-#include "pure/PureInputHandler.hpp"
+#include "pure/PureRenderer.hpp"
 
 namespace pure {
 
@@ -24,17 +25,32 @@ class PureController {
     void Run(std::shared_ptr<PureScene> scene);
     void Shutdown();
 
-    void SetInputHandler(PureInputHandler* handler);
-
     void BuildDemoScene();
+
+    void ToggleWireframe();
+
+    using KeyPressedHandler = std::function<void(int key, int mods)>;
+    using MouseButtonHandler = std::function<void(int button, int action, int mods)>;
+
+    void SetKeyPressedHandler(KeyPressedHandler h) {
+        m_KeyPressedHandler = std::move(h);
+    }
+    void SetMouseButtonHandler(MouseButtonHandler h) {
+        m_MouseButtonHandler = std::move(h);
+    }
 
    private:
     void SetupGl();
     void HandleInput();
     void Render();
+    void InstallGlfwCallbacks();
 
    private:
     GLFWwindow* m_Window = nullptr;
+
+    // Handler
+    KeyPressedHandler m_KeyPressedHandler;
+    MouseButtonHandler m_MouseButtonHandler;
 
     // Input-Cache (mouse)
     bool m_Lmb = false, m_Rmb = false, m_Mmb = false;
@@ -43,6 +59,7 @@ class PureController {
     PureCamera m_Camera;
     PureShader m_Shader;
     std::shared_ptr<PureScene> m_Scene;
+    std::shared_ptr<PureRenderer> m_Renderer;
 
     PureGui m_Gui;
 
@@ -50,6 +67,8 @@ class PureController {
 
     int m_FramebufferW = 1280;
     int m_FramebufferH = 800;
+
+    bool m_Wireframe = false;
 };
 
 }  // namespace pure
