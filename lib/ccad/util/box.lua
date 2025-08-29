@@ -2,7 +2,7 @@
 -- Convenience helpers to build rectangular and rounded boxes
 -- using CodeCAD core primitives. Units: mm. Angles: degrees.
 
-local sketch = require("util.sketch")
+local sketch = require("ccad.util.sketch")
 
 local M = {}
 

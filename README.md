@@ -34,7 +34,7 @@ With CodeCAD you:
 ┌────────────┐      ┌────────────┐      ┌───────────────┐
 │   core     │─────▶│   cosma    │─────▶│     main      │
 │ LuaEngine  │      │ Viewer     │      │ CLI frontend  │
-│ OCCT, STL  │      │ SDL2+ImGui │      │ ccad commands │
+│ OCCT, STL  │      │ GLFW+ImGui │      │ ccad commands │
 └────────────┘      └────────────┘      └───────────────┘
 
 	•	core — C++ engine with Lua bindings, geometry, triangulation & STL export
@@ -81,7 +81,7 @@ This opens a viewer: edit parts/box.lua in your editor and see geometry update l
 
 ```text
 myproject/
-├── project.json # project metadata (name, units, workarea, parts…)
+├── project.json # project metadata (name, units, params, materials, parts…)
 ├── parts/ # Lua scripts for parts
 │ └── box.lua # each part is self-contained
 └── generated/ # generated meshes (STL, STEP…)

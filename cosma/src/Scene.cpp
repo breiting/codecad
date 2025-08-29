@@ -1,8 +1,8 @@
+#include <algorithm>
 #include <core/DirectionalLight.hpp>
 #include <memory>
 #include <scene/Scene.hpp>
 #include <vector>
-#include <algorithm>
 
 /**
  * Make sure to convert all geometry into our coordinate system where +z is the height. Therefore we just flip Y and Z
@@ -42,4 +42,13 @@ void Scene::Render(const glm::mat4& view, const glm::mat4& projection) {
     for (auto& node : m_Nodes) {
         node->Render(GLOBAL_WORLD_TRANSFORM, view, projection, m_DirectionalLight);
     }
+}
+
+AABB Scene::ComputeWorldBounds() const {
+    AABB out;
+    for (const auto& n : m_Nodes) {
+        if (!n) continue;
+        out.Include(n->GetWorldAABB());
+    }
+    return out;
 }

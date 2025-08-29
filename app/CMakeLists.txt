@@ -1,6 +1,5 @@
 add_executable(ccad
 	src/App.cpp
-	src/Paths.cpp
     src/main.cpp
 )
 

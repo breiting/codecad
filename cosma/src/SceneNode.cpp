@@ -31,3 +31,7 @@ void SceneNode::SetRotation(const glm::quat& rotation) {
 void SceneNode::Move(const glm::vec3& delta) {
     m_Transform.position += delta;
 }
+
+glm::mat4 SceneNode::WorldMatrix() const {
+    return m_Transform.GetTransformationMatrix();
+}
