@@ -88,14 +88,6 @@ bool PureController::Initialize(int width, int height, const std::string& title)
     glfwGetFramebufferSize(m_Window, &m_FramebufferW, &m_FramebufferH);
     m_Camera.SetAspect((float)m_FramebufferW / std::max(1, m_FramebufferH));
 
-    BuildDemoScene();
-
-    // Fit camera
-    glm::vec3 bmin, bmax;
-    if (m_Scene.ComputeBounds(bmin, bmax)) {
-        m_Camera.FitToBounds(bmin, bmax, 1.12f);
-    }
-
     return true;
 }
 
@@ -104,7 +96,14 @@ void PureController::SetupGl() {
     glClearColor(0.11f, 0.12f, 0.14f, 1.0f);
 }
 
-void PureController::Run() {
+void PureController::Run(std::shared_ptr<PureScene> scene) {
+    m_Scene = scene;
+    // Fit camera
+    glm::vec3 bmin, bmax;
+    if (scene->ComputeBounds(bmin, bmax)) {
+        m_Camera.FitToBounds(bmin, bmax, 1.12f);
+    }
+
     while (!glfwWindowShouldClose(m_Window)) {
         HandleInput();
 
@@ -114,8 +113,7 @@ void PureController::Run() {
         snprintf(fps, sizeof(fps), "FPS: %.0f", ImGui::GetIO().Framerate);
         m_Gui.DrawStatusBar("Ready.", fps);
 
-        // Render scene
-        Frame();
+        Render();
 
         m_Gui.End();
 
@@ -167,11 +165,11 @@ void PureController::HandleInput() {
 
     if (glfwGetKey(m_Window, GLFW_KEY_F) == GLFW_PRESS) {
         glm::vec3 bmin, bmax;
-        if (m_Scene.ComputeBounds(bmin, bmax)) m_Camera.FitToBounds(bmin, bmax, 1.12f);
+        if (m_Scene->ComputeBounds(bmin, bmax)) m_Camera.FitToBounds(bmin, bmax, 1.12f);
     }
 }
 
-void PureController::Frame() {
+void PureController::Render() {
     glfwGetFramebufferSize(m_Window, &m_FramebufferW, &m_FramebufferH);
     glViewport(0, 0, m_FramebufferW, m_FramebufferH);
     m_Camera.SetAspect((float)m_FramebufferW / std::max(1, m_FramebufferH));
@@ -189,14 +187,15 @@ void PureController::Frame() {
 }
 
 void PureController::BuildDemoScene() {
-    m_Scene.Clear();
+    m_Scene->Clear();
 
     auto cube = PureMeshFactory::CreateCube(1.0f, 2.f);
 
     // Three colored cubes
-    m_Scene.AddPart(cube, glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, 0.0f, 0.0f)), glm::vec3(1.0f, 0.25f, 0.25f));
-    m_Scene.AddPart(cube, glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)), glm::vec3(0.25f, 1.0f, 0.25f));
-    m_Scene.AddPart(cube, glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 0.0f)), glm::vec3(0.25f, 0.25f, 1.0f));
+    m_Scene->AddPart(cube, glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, 0.0f, 0.0f)),
+                     glm::vec3(1.0f, 0.25f, 0.25f));
+    m_Scene->AddPart(cube, glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)), glm::vec3(0.25f, 1.0f, 0.25f));
+    m_Scene->AddPart(cube, glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 0.0f)), glm::vec3(0.25f, 0.25f, 1.0f));
 }
 
 }  // namespace pure

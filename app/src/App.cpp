@@ -261,6 +261,16 @@ void App::handleLive(const std::string& rootDir) {
     m_Controller->ViewProject();
 }
 
+void App::handleBom() {
+    fs::path root = fs::current_path();
+    m_Controller->LoadProject(root);
+    m_Controller->CreateBom();
+}
+
+void App::handleDoctor() {
+    m_Controller->HealthCheck();
+}
+
 void App::handleParamsSet(const std::string& key, const std::string& value) {
     auto pj = fs::current_path() / PROJECT_FILENAME;
     io::Project p = io::LoadProject(pj.string());
@@ -355,14 +365,4 @@ void App::handleLspInit() {
     std::cout << "Wrote " << luarc << "\n";
     std::cout << "Included library paths:\n";
     for (auto& s : libs) std::cout << "  - " << s << "\n";
-}
-
-void App::handleBom() {
-    fs::path root = fs::current_path();
-    m_Controller->LoadProject(root);
-    m_Controller->CreateBom();
-}
-
-void App::handleDoctor() {
-    m_Controller->HealthCheck();
 }

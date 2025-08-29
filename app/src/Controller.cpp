@@ -1,11 +1,16 @@
 #include "Controller.hpp"
 
+#include <BRepBuilderAPI_Transform.hxx>
 #include <filesystem>
+#include <gp_Ax1.hxx>
+#include <gp_Quaternion.hxx>
+#include <gp_Trsf.hxx>
 #include <iostream>
 
 #include "io/Bom.hpp"
 #include "io/Export.hpp"
 #include "io/Paths.hpp"
+#include "pure/PureMesh.hpp"
 
 using namespace std;
 using namespace pure;
@@ -32,6 +37,41 @@ static void ApplyProjectParamsToLua(sol::state& L, const io::Project& p) {
                 break;
         }
     }
+}
+
+geometry::ShapePtr ApplyProjectTransform(const geometry::ShapePtr& s, const io::Transform& tr) {
+    if (!s || s->Get().IsNull()) return s;
+
+    gp_Trsf t;
+
+    // Scale
+    t.SetScale(gp_Pnt(0, 0, 0), tr.scale);
+
+    // Rotation (deg) – ZYX sequence
+    auto deg2rad = [](double d) { return d * M_PI / 180.0; };
+    gp_Trsf rx, ry, rz;
+    if (tr.rotate.x != 0) {
+        rx.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(1, 0, 0)), deg2rad(tr.rotate.x));
+        t = rx * t;
+    }
+    if (tr.rotate.y != 0) {
+        ry.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(0, 1, 0)), deg2rad(tr.rotate.y));
+        t = ry * t;
+    }
+    if (tr.rotate.z != 0) {
+        rz.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)), deg2rad(tr.rotate.z));
+        t = rz * t;
+    }
+
+    // Translation
+    if (tr.translate.x != 0 || tr.translate.y != 0 || tr.translate.z != 0) {
+        gp_Trsf tt;
+        tt.SetTranslation(gp_Vec(tr.translate.x, tr.translate.y, tr.translate.z));
+        t = tt * t;
+    }
+
+    TopoDS_Shape res = BRepBuilderAPI_Transform(s->Get(), t, /*copy*/ true).Shape();
+    return std::make_shared<geometry::Shape>(res);
 }
 
 Controller::Controller(std::vector<std::string>& luaPaths) : m_LuaPaths(luaPaths) {
@@ -74,7 +114,6 @@ void Controller::BuildProject() {
         auto luaFile = std::filesystem::weakly_canonical(src);
 
         std::string err;
-        ApplyProjectParamsToLua(m_Engine->Lua(), m_Project);
 
         if (!m_Engine->RunFile(luaFile, &err)) {
             auto errStr = std::string("Lua error in ") + luaFile.string() + ": " + err;
@@ -97,9 +136,51 @@ void Controller::ViewProject() {
         throw std::runtime_error("No project is loaded!");
     }
 
-    //  PURE Controller
-    // pure = std::make_unique<pure::PureController>();
-    // if (!pure->Initialize(1280, 800, "CodeCAD Viewer", err)) return false;
+    PureController controller;
+    if (!controller.Initialize(1280, 800, "CodeCAD Viewer")) {
+        std::cerr << "Failed to initialize CodeCAD Viewer\n";
+        return;
+    }
+
+    auto scene = std::make_shared<PureScene>();
+
+    for (const auto& part : m_Project.parts) {
+        fs::path src = fs::path(m_ProjectDir) / part.source;
+        auto luaFile = std::filesystem::weakly_canonical(src);
+
+        std::string err;
+        if (!m_Engine->RunFile(luaFile, &err)) {
+            auto errStr = std::string("Lua error in ") + luaFile.string() + ": " + err;
+            std::cerr << errStr << std::endl;
+            return;
+        }
+
+        auto emitted = m_Engine->GetEmitted();
+        if (!emitted) {
+            std::cerr << "Canot get shape from " << luaFile << std::endl;
+            return;
+        }
+
+        // Apply transform from project.json
+        auto shaped = ApplyProjectTransform(*emitted, part.transform);
+
+        // TODO: Color
+        // auto color = m_Project.materials[rec.meta.material].color;
+        // auto newNode = BuildMeshNodeFromShape(shaped->Get(), color.empty() ? "#cccccc" : color);
+
+        geometry::TriMesh tri =
+            geometry::TriangulateShape(shaped->Get(), /*defl*/ 0.3, /*ang*/ 25.0, /*parallel*/ true);
+
+        std::vector<PureVertex> vertices;
+
+        for (const auto& v : tri.positions) {
+            vertices.push_back({glm::vec3(v.x, v.y, v.z), glm::vec3(0.0, 0.0, 0.0)});  // no normals!
+        }
+
+        auto mesh = std::make_shared<PureMesh>();
+        mesh->Upload(vertices, tri.indices);
+        scene->AddPart(mesh, glm::mat4(1.0f), glm::vec3(1.0f, 0.25f, 0.25f));
+    }
 
     // 4) Bridge
     // bridge = std::make_unique<RenderBridge>(pure->Scene());
@@ -118,13 +199,7 @@ void Controller::ViewProject() {
     //     luaWatchers.emplace(lp, FileWatcher(lp));
     // }
 
-    PureController controller;
-    if (!controller.Initialize(1280, 800, "CodeCAD Viewer")) {
-        std::cerr << "Failed to initialize CodeCAD Viewer\n";
-        return;
-    }
-
-    controller.Run();
+    controller.Run(scene);
     controller.Shutdown();
 
     //     while (!pure->ShouldClose()) {

@@ -19,10 +19,10 @@ void DrawMesh(const PureMesh& mesh, const PureShader& shader, const glm::mat4& m
     mesh.Draw();
 }
 
-void DrawScene(const PureScene& scene, const PureShader& shader, const glm::mat4& view, const glm::mat4& proj,
+void DrawScene(std::shared_ptr<PureScene> scene, const PureShader& shader, const glm::mat4& view, const glm::mat4& proj,
                const glm::vec3& camPos, const glm::vec3& camViewDir) {
     // Headlight = Camera direction
-    for (const auto& part : scene.Parts()) {
+    for (const auto& part : scene->Parts()) {
         PureRenderParams rp;
         rp.baseColor = part.material.baseColor;
         rp.lightDir = camViewDir;

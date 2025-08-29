@@ -20,16 +20,15 @@ class PureController {
     ~PureController();
 
     bool Initialize(int width, int height, const std::string& title);
-    void Run();
+    void Run(std::shared_ptr<PureScene> scene);
     void Shutdown();
 
-    // Demo scene
     void BuildDemoScene();
 
    private:
     void SetupGl();
     void HandleInput();
-    void Frame();
+    void Render();
 
    private:
     GLFWwindow* m_Window = nullptr;
@@ -39,8 +38,8 @@ class PureController {
     double m_LastX = 0.0, m_LastY = 0.0;
 
     PureCamera m_Camera;
-    PureScene m_Scene;
     PureShader m_Shader;
+    std::shared_ptr<PureScene> m_Scene;
 
     PureGui m_Gui;
 

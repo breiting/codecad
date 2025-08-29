@@ -33,7 +33,8 @@ class PureMesh {
     PureMesh() = default;
     ~PureMesh();
 
-    void Upload(const std::vector<PureVertex>& vertices, const std::vector<unsigned>& indices);
+    void Upload(std::vector<PureVertex>& vertices, const std::vector<unsigned>& indices,
+                bool recalculateNormals = true);
 
     void Draw() const;
 

@@ -8,7 +8,33 @@ PureMesh::~PureMesh() {
     if (m_Vao) glDeleteVertexArrays(1, &m_Vao);
 }
 
-void PureMesh::Upload(const std::vector<PureVertex>& vertices, const std::vector<unsigned>& indices) {
+void PureMesh::Upload(std::vector<PureVertex>& vertices, const std::vector<unsigned>& indices,
+                      bool recalculateNormals) {
+    if (recalculateNormals) {
+        for (auto& v : vertices) {
+            v.normal = glm::vec3(0.0f);
+        }
+
+        for (size_t i = 0; i + 2 < indices.size(); i += 3) {
+            unsigned int i0 = indices[i];
+            unsigned int i1 = indices[i + 1];
+            unsigned int i2 = indices[i + 2];
+
+            const glm::vec3& p0 = vertices[i0].position;
+            const glm::vec3& p1 = vertices[i1].position;
+            const glm::vec3& p2 = vertices[i2].position;
+
+            glm::vec3 edge1 = p1 - p0;
+            glm::vec3 edge2 = p2 - p0;
+
+            glm::vec3 normal = glm::normalize(glm::cross(edge1, edge2));
+
+            vertices[i0].normal = normal;
+            vertices[i1].normal = normal;
+            vertices[i2].normal = normal;
+        }
+    }
+
     if (!m_Vao) glGenVertexArrays(1, &m_Vao);
     if (!m_Vbo) glGenBuffers(1, &m_Vbo);
     if (!m_Ebo) glGenBuffers(1, &m_Ebo);
