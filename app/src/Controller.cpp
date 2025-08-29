@@ -18,6 +18,15 @@ using namespace pure;
 const std::string PROJECT_FILENAME = "project.json";
 const std::string PROJECT_OUTDIR = "generated";
 
+static glm::vec3 ParseHexColor(const std::string& hex, glm::vec3 fallback = {0.7f, 0.7f, 0.7f}) {
+    if (hex.size() != 7 || hex[0] != '#') return fallback;
+    auto to01 = [](int v) { return static_cast<float>(v) / 255.0f; };
+    int r = std::stoi(hex.substr(1, 2), nullptr, 16);
+    int g = std::stoi(hex.substr(3, 2), nullptr, 16);
+    int b = std::stoi(hex.substr(5, 2), nullptr, 16);
+    return {to01(r), to01(g), to01(b)};
+}
+
 static void ApplyProjectParamsToLua(sol::state& L, const io::Project& p) {
     sol::table P = L["PARAMS"];
     if (!P.valid()) P = L.create_named_table("PARAMS");
@@ -164,9 +173,8 @@ void Controller::ViewProject() {
         // Apply transform from project.json
         auto shaped = ApplyProjectTransform(*emitted, part.transform);
 
-        // TODO: Color
-        // auto color = m_Project.materials[rec.meta.material].color;
-        // auto newNode = BuildMeshNodeFromShape(shaped->Get(), color.empty() ? "#cccccc" : color);
+        auto color = m_Project.materials[part.material].color;
+        if (color.empty()) color = "#cccccc";
 
         geometry::TriMesh tri =
             geometry::TriangulateShape(shaped->Get(), /*defl*/ 0.3, /*ang*/ 25.0, /*parallel*/ true);
@@ -179,7 +187,7 @@ void Controller::ViewProject() {
 
         auto mesh = std::make_shared<PureMesh>();
         mesh->Upload(vertices, tri.indices);
-        scene->AddPart(mesh, glm::mat4(1.0f), glm::vec3(1.0f, 0.25f, 0.25f));
+        scene->AddPart(mesh, glm::mat4(1.0f), ParseHexColor(color));
     }
 
     // 4) Bridge
