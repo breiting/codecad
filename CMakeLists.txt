@@ -10,6 +10,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(ENABLE_COSMA "Build with Cosma 3D viewer support" ON)
+option(ENABLE_PURE "Build with PURE 3D viewer support" ON)
 
 # Load compiler settings target
 include(cmake/CompilerSettings.cmake)
@@ -45,12 +46,23 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(json)
 
 # GLFW
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(
   glfw
   GIT_REPOSITORY https://github.com/glfw/glfw.git
   GIT_TAG 3.4
 )
 FetchContent_MakeAvailable(glfw)
+
+# Dear ImGui
+FetchContent_Declare(imgui
+  GIT_REPOSITORY https://github.com/ocornut/imgui.git
+  GIT_TAG        v1.92.2b-docking
+)
+FetchContent_MakeAvailable(imgui)
 
 # CLI11
 FetchContent_Declare(
@@ -79,6 +91,10 @@ add_subdirectory(core)
 if(ENABLE_COSMA)
 	include(cmake/ConfigCosma.cmake)
 	add_subdirectory(cosma)
+endif()
+
+if(ENABLE_PURE)
+	add_subdirectory(pure)
 endif()
 
 add_subdirectory(app)
