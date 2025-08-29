@@ -8,6 +8,7 @@
 #include "io/Paths.hpp"
 
 using namespace std;
+using namespace pure;
 
 const std::string PROJECT_FILENAME = "project.json";
 const std::string PROJECT_OUTDIR = "generated";
@@ -56,27 +57,6 @@ void Controller::LoadProject(const fs::path& projectDir) {
     ApplyProjectParamsToLua(m_Engine->Lua(), m_Project);
 
     m_ProjectLoaded = true;
-
-    //  PURE Controller
-    // pure = std::make_unique<pure::PureController>();
-    // if (!pure->Initialize(1280, 800, "CodeCAD Viewer", err)) return false;
-
-    // 4) Bridge
-    // bridge = std::make_unique<RenderBridge>(pure->Scene());
-
-    // 5) Initiale Szene
-    // std::string buildErr;
-    // if (!bridge->BuildProject(engine, project, &buildErr)) {
-    //     if (err) *err = buildErr;
-    //     return false;
-    // }
-
-    // 6) Watcher setzen
-    // projectWatch = FileWatcher(pj);
-    // for (const auto& part : project.parts) {
-    //     std::string lp = (fs::path(rootDir) / part.source).string();
-    //     luaWatchers.emplace(lp, FileWatcher(lp));
-    // }
 }
 void Controller::BuildProject() {
     if (!m_ProjectLoaded) {
@@ -116,7 +96,45 @@ void Controller::ViewProject() {
     if (!m_ProjectLoaded) {
         throw std::runtime_error("No project is loaded!");
     }
-    throw std::runtime_error("not implemented!");
+
+    //  PURE Controller
+    // pure = std::make_unique<pure::PureController>();
+    // if (!pure->Initialize(1280, 800, "CodeCAD Viewer", err)) return false;
+
+    // 4) Bridge
+    // bridge = std::make_unique<RenderBridge>(pure->Scene());
+
+    // 5) Initiale Szene
+    // std::string buildErr;
+    // if (!bridge->BuildProject(engine, project, &buildErr)) {
+    //     if (err) *err = buildErr;
+    //     return false;
+    // }
+
+    // 6) Watcher setzen
+    // projectWatch = FileWatcher(pj);
+    // for (const auto& part : project.parts) {
+    //     std::string lp = (fs::path(rootDir) / part.source).string();
+    //     luaWatchers.emplace(lp, FileWatcher(lp));
+    // }
+
+    PureController controller;
+    if (!controller.Initialize(1280, 800, "CodeCAD Viewer")) {
+        std::cerr << "Failed to initialize CodeCAD Viewer\n";
+        return;
+    }
+
+    controller.Run();
+    controller.Shutdown();
+
+    //     while (!pure->ShouldClose()) {
+    //         // Live-Reload polling (leichtes Debounce in deinem FileWatcher)
+    //         projectWatch.Poll([&](const std::string&) { OnProjectChanged(); });
+    //         for (auto& kv : luaWatchers) {
+    //             kv.second.Poll([&](const std::string& path) { OnLuaChanged(path); });
+    //         }
+    //         pure->RunFrame();  // rendert Scene + GUI + Axis etc.
+    //     }
 }
 
 void Controller::CreateBom() {
@@ -239,16 +257,6 @@ void Controller::SetupEngine() {
 //     }
 // }
 //
-// void Controller::Run() {
-//     while (!pure->ShouldClose()) {
-//         // Live-Reload polling (leichtes Debounce in deinem FileWatcher)
-//         projectWatch.Poll([&](const std::string&) { OnProjectChanged(); });
-//         for (auto& kv : luaWatchers) {
-//             kv.second.Poll([&](const std::string& path) { OnLuaChanged(path); });
-//         }
-//         pure->RunFrame();  // rendert Scene + GUI + Axis etc.
-//     }
-// }
 //
 void Controller::HealthCheck() {
     cout << "== CodeCAD Doctor ==\n";

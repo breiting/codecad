@@ -1,6 +1,6 @@
 #pragma once
 #include <RenderBridge.hpp>
-#include <core/FileWatcher.hpp>
+// #include <core/FileWatcher.hpp>
 #include <core/LuaEngine.hpp>
 #include <io/Project.hpp>
 #include <memory>

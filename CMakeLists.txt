@@ -9,14 +9,14 @@ set (CMAKE_EXPORT_COMPILE_COMMANDS 1)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(ENABLE_COSMA "Build with Cosma 3D viewer support" ON)
 option(ENABLE_PURE "Build with PURE 3D viewer support" ON)
 
 # Load compiler settings target
 include(cmake/CompilerSettings.cmake)
 
-# Load embed text functionality
+# Load embed text functionality and create assets folder
 include(cmake/EmbedText.cmake)
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/generated/assets")
 
 include(FetchContent)
 
@@ -87,11 +87,6 @@ message(STATUS "Lua libs: ${LUA_LIBRARIES}")
 # ---------------------------------------------------------------
 
 add_subdirectory(core)
-
-if(ENABLE_COSMA)
-	include(cmake/ConfigCosma.cmake)
-	add_subdirectory(cosma)
-endif()
 
 if(ENABLE_PURE)
 	add_subdirectory(pure)

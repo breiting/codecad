@@ -23,18 +23,16 @@ target_include_directories(ccad PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     ${LUA_INCLUDE_DIR}
     ${sol2_SOURCE_DIR}/include
+    ${CMAKE_BINARY_DIR}/generated
 )
 
 target_link_libraries(ccad PRIVATE 
 	project_settings
 	CLI11::CLI11
 	sol2
+	core
+	nlohmann_json::nlohmann_json
 )
-
-if(ENABLE_COSMA)
-    target_link_libraries(ccad PRIVATE cosma)
-    target_compile_definitions(ccad PRIVATE ENABLE_COSMA)
-endif()
 
 if(ENABLE_PURE)
     target_link_libraries(ccad PRIVATE pure)
