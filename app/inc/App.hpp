@@ -1,8 +1,7 @@
 #pragma once
+#include <string>
 
-#include <memory>
-
-#include "LuaEngine.hpp"
+#include "Controller.hpp"
 
 class App {
    public:
@@ -19,9 +18,6 @@ class App {
     void handleBom();
     void handleDoctor();
 
-    void setupEngine();
-
    private:
-    std::shared_ptr<LuaEngine> m_Engine;
-    std::vector<std::string> m_LuaPaths;
+    std::unique_ptr<Controller> m_Controller;
 };

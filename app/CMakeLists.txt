@@ -1,5 +1,7 @@
 add_executable(ccad
 	src/App.cpp
+	# src/RenderBridge.cpp
+	src/Controller.cpp
     src/main.cpp
 )
 
@@ -17,6 +19,7 @@ embed_text_to_header("${ASSETS_SRC_DIR}/part_template.lua"      "${GEN_INC_DIR}/
 
 target_include_directories(ccad PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../core/inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/../pure/inc
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     ${LUA_INCLUDE_DIR}
     ${sol2_SOURCE_DIR}/include
@@ -31,4 +34,9 @@ target_link_libraries(ccad PRIVATE
 if(ENABLE_COSMA)
     target_link_libraries(ccad PRIVATE cosma)
     target_compile_definitions(ccad PRIVATE ENABLE_COSMA)
+endif()
+
+if(ENABLE_PURE)
+    target_link_libraries(ccad PRIVATE pure)
+	target_compile_definitions(ccad PRIVATE ENABLE_PURE)
 endif()
