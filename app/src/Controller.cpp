@@ -145,11 +145,14 @@ void Controller::ViewProject() {
         throw std::runtime_error("No project is loaded!");
     }
 
-    PureController controller;
-    if (!controller.Initialize(1280, 800, "CodeCAD Viewer")) {
+    PureController pureController;
+    if (!pureController.Initialize(1280, 800, "CodeCAD Viewer")) {
         std::cerr << "Failed to initialize CodeCAD Viewer\n";
         return;
     }
+
+    // Register for mouse and keyboard events
+    pureController.SetInputHandler(this);
 
     auto scene = std::make_shared<PureScene>();
 
@@ -190,16 +193,6 @@ void Controller::ViewProject() {
         scene->AddPart(mesh, glm::mat4(1.0f), ParseHexColor(color));
     }
 
-    // 4) Bridge
-    // bridge = std::make_unique<RenderBridge>(pure->Scene());
-
-    // 5) Initiale Szene
-    // std::string buildErr;
-    // if (!bridge->BuildProject(engine, project, &buildErr)) {
-    //     if (err) *err = buildErr;
-    //     return false;
-    // }
-
     // 6) Watcher setzen
     // projectWatch = FileWatcher(pj);
     // for (const auto& part : project.parts) {
@@ -207,17 +200,8 @@ void Controller::ViewProject() {
     //     luaWatchers.emplace(lp, FileWatcher(lp));
     // }
 
-    controller.Run(scene);
-    controller.Shutdown();
-
-    //     while (!pure->ShouldClose()) {
-    //         // Live-Reload polling (leichtes Debounce in deinem FileWatcher)
-    //         projectWatch.Poll([&](const std::string&) { OnProjectChanged(); });
-    //         for (auto& kv : luaWatchers) {
-    //             kv.second.Poll([&](const std::string& path) { OnLuaChanged(path); });
-    //         }
-    //         pure->RunFrame();  // rendert Scene + GUI + Axis etc.
-    //     }
+    pureController.Run(scene);
+    pureController.Shutdown();
 }
 
 void Controller::CreateBom() {
@@ -410,4 +394,20 @@ void Controller::HealthCheck() {
     cout << "\nGood to know:\n";
     cout << "  - In case of neovim completion problems: 'ccad lsp' should fix it\n";
     cout << "  - Make sure that all paths are set properly\n";
+}
+
+void Controller::OnKeyPressed(int key, int /*mods*/) {
+    std::cout << "Key pressed " << key << std::endl;
+}
+
+void Controller::OnKeyReleased(int key, int /*mods*/) {
+    std::cout << "Key released " << key << std::endl;
+}
+
+void Controller::OnMouseButtonPressed(int button, int /*mods*/) {
+    std::cout << "Mouse BT pressed " << button << std::endl;
+}
+
+void Controller::OnMouseButtonReleased(int button, int /*mods*/) {
+    std::cout << "Mouse BT released " << button << std::endl;
 }

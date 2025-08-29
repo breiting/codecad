@@ -1,3 +1,5 @@
+#include <imgui.h>
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 #include <pure/PureController.hpp>
@@ -7,7 +9,9 @@
 
 #include "GLFW/glfw3.h"
 #include "imgui.h"
+#include "imgui_impl_glfw.h"
 #include "pure/PureCamera.hpp"
+#include "pure/PureInputHandler.hpp"
 
 namespace pure {
 
@@ -15,13 +19,59 @@ const float NEAR_PLANE = 0.01f;
 const float FAR_PLANE = 5000.0f;
 
 static PureCamera* sCamera = nullptr;
+static PureInputHandler* s_InputHandler = nullptr;
 
-// GLFW Callbacks
-static void ScrollCallback(GLFWwindow* /*win*/, double /*xoff*/, double yoff) {
-    if (sCamera) sCamera->OnScrollWheel(yoff);
-}
 static void ErrorCallback(int code, const char* msg) {
     std::cerr << "GLFW error " << code << ": " << msg << "\n";
+}
+
+void window_focus_callback(GLFWwindow* window, int focused) {
+    ImGui_ImplGlfw_WindowFocusCallback(window, focused);
+}
+
+void window_content_scale_callback(GLFWwindow* /*window*/, float xscale, float yscale) {
+    ImGui::GetIO().DisplayFramebufferScale = ImVec2(xscale, yscale);
+}
+
+void cursor_enter_callback(GLFWwindow* window, int entered) {
+    ImGui_ImplGlfw_CursorEnterCallback(window, entered);
+}
+
+void cursor_pos_callback(GLFWwindow* window, double x, double y) {
+    ImGui_ImplGlfw_CursorPosCallback(window, x, y);
+    if (ImGui::GetIO().WantCaptureMouse) return;
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+    ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
+    if (ImGui::GetIO().WantCaptureMouse) return;
+    if (sCamera) sCamera->OnScrollWheel(yoffset);
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
+    if (ImGui::GetIO().WantCaptureKeyboard) return;
+    if (s_InputHandler) {
+        if (action == GLFW_PRESS) s_InputHandler->OnKeyPressed(key, mods);
+        if (action == GLFW_RELEASE) s_InputHandler->OnKeyReleased(key, mods);
+    }
+}
+
+void char_callback(GLFWwindow* window, unsigned int c) {
+    ImGui_ImplGlfw_CharCallback(window, c);
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+    ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
+    if (ImGui::GetIO().WantCaptureMouse) return;
+    if (s_InputHandler) {
+        if (action == GLFW_PRESS) s_InputHandler->OnMouseButtonPressed(button, mods);
+        if (action == GLFW_RELEASE) s_InputHandler->OnMouseButtonReleased(button, mods);
+    }
+}
+
+void monitor_callback(GLFWmonitor* monitor, int event) {
+    ImGui_ImplGlfw_MonitorCallback(monitor, event);
 }
 
 PureController::PureController() {
@@ -52,7 +102,6 @@ bool PureController::Initialize(int width, int height, const std::string& title)
     }
     glfwMakeContextCurrent(m_Window);
     glfwSwapInterval(1);
-    glfwSetScrollCallback(m_Window, ScrollCallback);
 
     if (!gladLoadGL((GLADloadfunc)glfwGetProcAddress)) {
         throw std::runtime_error("Failed to initialize GLAD");
@@ -70,8 +119,6 @@ bool PureController::Initialize(int width, int height, const std::string& title)
             std::cerr << "Axis init failed: " << err << "\n";
             m_Axis.reset();
         }
-        // Optional scale or translate
-        // m_Axis->SetModel(glm::translate(glm::mat4(1), glm::vec3(0,0,0)));
     }
 
     // TODO: fix path
@@ -87,6 +134,8 @@ bool PureController::Initialize(int width, int height, const std::string& title)
 
     glfwGetFramebufferSize(m_Window, &m_FramebufferW, &m_FramebufferH);
     m_Camera.SetAspect((float)m_FramebufferW / std::max(1, m_FramebufferH));
+
+    glfwSetScrollCallback(m_Window, scroll_callback);
 
     return true;
 }
@@ -138,6 +187,22 @@ void PureController::Shutdown() {
     glfwTerminate();
 }
 
+void PureController::SetInputHandler(PureInputHandler* handler) {
+    s_InputHandler = handler;
+
+    glfwSetWindowFocusCallback(m_Window, window_focus_callback);
+    glfwSetWindowContentScaleCallback(m_Window, window_content_scale_callback);
+
+    glfwSetCursorEnterCallback(m_Window, cursor_enter_callback);
+    glfwSetCursorPosCallback(m_Window, cursor_pos_callback);
+
+    glfwSetKeyCallback(m_Window, key_callback);
+    glfwSetCharCallback(m_Window, char_callback);
+    glfwSetMouseButtonCallback(m_Window, mouse_button_callback);
+
+    glfwSetMonitorCallback(monitor_callback);
+}
+
 void PureController::HandleInput() {
     double x, y;
     glfwGetCursorPos(m_Window, &x, &y);
@@ -153,11 +218,6 @@ void PureController::HandleInput() {
     m_Mmb = m;
     m_LastX = x;
     m_LastY = y;
-
-    double sy = 0.0;
-    if (glfwGetKey(m_Window, GLFW_KEY_EQUAL) == GLFW_PRESS) sy += 1.0;
-    if (glfwGetKey(m_Window, GLFW_KEY_MINUS) == GLFW_PRESS) sy -= 1.0;
-    if (std::abs(sy) > 1e-6) m_Camera.Dolly(sy);
 
     if (glfwGetKey(m_Window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(m_Window, true);

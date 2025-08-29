@@ -11,6 +11,7 @@
 
 #include "pure/PureAxis.hpp"
 #include "pure/PureGui.hpp"
+#include "pure/PureInputHandler.hpp"
 
 namespace pure {
 
@@ -22,6 +23,8 @@ class PureController {
     bool Initialize(int width, int height, const std::string& title);
     void Run(std::shared_ptr<PureScene> scene);
     void Shutdown();
+
+    void SetInputHandler(PureInputHandler* handler);
 
     void BuildDemoScene();
 

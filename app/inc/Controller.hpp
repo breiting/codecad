@@ -1,5 +1,4 @@
 #pragma once
-#include <RenderBridge.hpp>
 // #include <core/FileWatcher.hpp>
 #include <core/LuaEngine.hpp>
 #include <io/Project.hpp>
@@ -8,7 +7,7 @@
 
 namespace fs = std::filesystem;
 
-class Controller {
+class Controller : PureInputHandler {
    public:
     Controller(std::vector<std::string>& luaPaths);
     void LoadProject(const fs::path& projectDir);
@@ -17,6 +16,12 @@ class Controller {
     void CreateBom();
 
     void HealthCheck();
+
+    // Interface: PureInputHandler
+    void OnKeyPressed(int key, int mods) override;
+    void OnKeyReleased(int key, int mods) override;
+    void OnMouseButtonPressed(int button, int mods) override;
+    void OnMouseButtonReleased(int button, int mods) override;
 
    private:
     void SetupEngine();
