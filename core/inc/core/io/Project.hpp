@@ -7,6 +7,12 @@
 
 namespace io {
 
+struct Meta {
+    std::string name;
+    std::string author;
+    std::string units{"mm"};
+};
+
 struct Transform {
     glm::vec3 translate{0, 0, 0};
     glm::vec3 rotate{0, 0, 0};  // degrees
@@ -66,11 +72,7 @@ using ParamsMap = std::map<std::string, ParamValue>;
 
 struct Project {
     int version{1};
-    struct {
-        std::string name;
-        std::string author;
-        std::string units{"mm"};
-    } meta;
+    Meta meta;
 
     ParamsMap params;
 

@@ -1,6 +1,6 @@
 add_executable(ccad
 	src/App.cpp
-	# src/RenderBridge.cpp
+	src/ProjectPanel.cpp
 	src/Controller.cpp
     src/main.cpp
 )
@@ -24,6 +24,8 @@ target_include_directories(ccad PUBLIC
     ${LUA_INCLUDE_DIR}
     ${sol2_SOURCE_DIR}/include
     ${CMAKE_BINARY_DIR}/generated
+    ${imgui_SOURCE_DIR}
+    ${imgui_SOURCE_DIR}/backends
 )
 
 target_link_libraries(ccad PRIVATE 

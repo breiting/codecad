@@ -87,6 +87,32 @@ bool PureController::Initialize(int width, int height, const std::string& title)
     return true;
 }
 
+void PureController::SetRightDockPanel(PanelRenderer panelRenderer) {
+    m_RightPanel = panelRenderer;
+}
+
+void PureController::BeginDockspace() {
+    ImGuiViewport* vp = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(vp->WorkPos, ImGuiCond_Always);
+    ImGui::SetNextWindowSize(vp->WorkSize, ImGuiCond_Always);
+    ImGui::SetNextWindowViewport(vp->ID);
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
+                             ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                             ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus |
+                             ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_MenuBar;
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::Begin("RootDock", nullptr, flags);
+    ImGui::PopStyleVar(2);
+
+    ImGuiID dockspace_id = ImGui::GetID("MainDock");
+    ImGui::DockSpace(dockspace_id, ImVec2(0, 0), ImGuiDockNodeFlags_PassthruCentralNode);
+}
+
+void PureController::EndDockspace() {
+    ImGui::End();  // RootDock
+}
+
 void PureController::SetupGl() {
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.11f, 0.12f, 0.14f, 1.0f);
@@ -125,15 +151,29 @@ void PureController::InstallGlfwCallbacks() {
         self->m_Camera.OnScrollWheel(yoff);
     });
 
-    glfwSetCursorPosCallback(m_Window, [](GLFWwindow* w, double /*x*/, double /*y*/) {
-        auto* self = static_cast<PureController*>(glfwGetWindowUserPointer(w));
-        if (!self) return;
+    glfwSetCursorPosCallback(m_Window, [](GLFWwindow* w, double x, double y) {
+        ImGui_ImplGlfw_CursorPosCallback(w, x, y);
+        if (ImGui::GetIO().WantCaptureMouse) return;
     });
 
     glfwSetFramebufferSizeCallback(m_Window, [](GLFWwindow* w, int /*width*/, int /*height*/) {
         auto* self = static_cast<PureController*>(glfwGetWindowUserPointer(w));
         if (!self) return;
     });
+
+    glfwSetWindowFocusCallback(
+        m_Window, [](GLFWwindow* window, int focused) { ImGui_ImplGlfw_WindowFocusCallback(window, focused); });
+
+    glfwSetWindowContentScaleCallback(m_Window, [](GLFWwindow* /*window*/, float xscale, float yscale) {
+        ImGui::GetIO().DisplayFramebufferScale = ImVec2(xscale, yscale);
+    });
+
+    glfwSetCursorEnterCallback(
+        m_Window, [](GLFWwindow* window, int entered) { ImGui_ImplGlfw_CursorEnterCallback(window, entered); });
+
+    glfwSetCharCallback(m_Window, [](GLFWwindow* window, unsigned int c) { ImGui_ImplGlfw_CharCallback(window, c); });
+
+    glfwSetMonitorCallback([](GLFWmonitor* monitor, int event) { ImGui_ImplGlfw_MonitorCallback(monitor, event); });
 }
 
 void PureController::Run(std::shared_ptr<PureScene> scene) {
@@ -149,6 +189,21 @@ void PureController::Run(std::shared_ptr<PureScene> scene) {
 
         m_Gui.Begin();
 
+        // DockPanel
+        BeginDockspace();
+
+        if (m_RightPanel) {
+            ImGui::SetNextWindowDockID(ImGui::GetID("MainDock"), ImGuiCond_Once);
+            ImGui::SetNextWindowSizeConstraints(ImVec2(260, 200), ImVec2(FLT_MAX, FLT_MAX));
+            if (ImGui::Begin("Project", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav)) {
+                m_RightPanel();
+            }
+            ImGui::End();
+        }
+
+        EndDockspace();
+
+        // Statusbar
         char fps[64];
         snprintf(fps, sizeof(fps), "FPS: %.0f", ImGui::GetIO().Framerate);
         m_Gui.DrawStatusBar("Ready.", fps);

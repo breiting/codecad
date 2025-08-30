@@ -7,6 +7,7 @@
 #include <gp_Trsf.hxx>
 #include <iostream>
 
+#include "ProjectPanel.hpp"
 #include "io/Bom.hpp"
 #include "io/Export.hpp"
 #include "io/Paths.hpp"
@@ -150,6 +151,17 @@ void Controller::ViewProject() {
         std::cerr << "Failed to initialize CodeCAD Viewer\n";
         return;
     }
+
+    ProjectPanel panel(m_Project);
+    panel.SetOnSave([this](const io::Project& p) {
+        std::cout << "CB: Saving project" << std::endl;
+        // io::SaveProject(p, m_ProjectFilePath, /*pretty*/ true);
+        // falls PARAMS relevant: m_Engine->SetParams(p.params);
+        // optional: Teile neu bauen, wenn param-getriebene Lua-Modelle sich ändern
+        // RebuildAllParts();  // oder nur wenn nötig
+    });
+
+    pureController.SetRightDockPanel([&panel]() { panel.Draw(); });
 
     pureController.SetKeyPressedHandler([this, &pureController](int key, int mods) {
         switch (key) {

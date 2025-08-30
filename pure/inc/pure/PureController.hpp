@@ -18,6 +18,8 @@ namespace pure {
 
 class PureController {
    public:
+    using PanelRenderer = std::function<void()>;
+
     PureController();
     ~PureController();
 
@@ -28,6 +30,8 @@ class PureController {
     void BuildDemoScene();
 
     void ToggleWireframe();
+    void SetStatus(const std::string& msg);
+    void SetRightDockPanel(PanelRenderer panelRenderer);
 
     using KeyPressedHandler = std::function<void(int key, int mods)>;
     using MouseButtonHandler = std::function<void(int button, int action, int mods)>;
@@ -44,9 +48,13 @@ class PureController {
     void HandleInput();
     void Render();
     void InstallGlfwCallbacks();
+    void BeginDockspace();
+    void EndDockspace();
 
    private:
     GLFWwindow* m_Window = nullptr;
+
+    PanelRenderer m_RightPanel;
 
     // Handler
     KeyPressedHandler m_KeyPressedHandler;
