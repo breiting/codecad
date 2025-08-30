@@ -184,9 +184,17 @@ void Controller::ViewProject() {
     RebuildAllParts();
     SetupWatchers();
 
-    m_PureController.Run(m_Scene);
+    while (!m_PureController.ShouldClose()) {
+        PollWatchers();
 
-    // TODO: loop here with PollingWatcher
+        m_PureController.BeginFrame();
+
+        m_PureController.DrawGui();
+        m_PureController.RenderScene(m_Scene);
+
+        m_PureController.EndFrame();
+    }
+
     m_PureController.Shutdown();
 }
 

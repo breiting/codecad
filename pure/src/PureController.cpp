@@ -184,42 +184,48 @@ void PureController::InstallGlfwCallbacks() {
     glfwSetMonitorCallback([](GLFWmonitor* monitor, int event) { ImGui_ImplGlfw_MonitorCallback(monitor, event); });
 }
 
-void PureController::Run(std::shared_ptr<PureScene> scene) {
+bool PureController::ShouldClose() const {
+    return glfwWindowShouldClose(m_Window);
+}
+
+void PureController::BeginFrame() {
+    HandleInput();
+
+    m_Gui.Begin();
+}
+
+void PureController::DrawGui() {
+    BeginDockspace();
+    if (m_RightPanel) {
+        ImGui::SetNextWindowDockID(ImGui::GetID("MainDock"), ImGuiCond_Once);
+        if (ImGui::Begin("Project", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav)) {
+            m_RightPanel();
+        }
+        ImGui::End();
+    }
+    EndDockspace();
+
+    // Statusbar
+    char fps[64];
+    snprintf(fps, sizeof(fps), "FPS: %.0f", ImGui::GetIO().Framerate);
+    m_Gui.DrawStatusBar(m_StatusMessage, fps);
+}
+
+void PureController::RenderScene(std::shared_ptr<PureScene> scene) {
     m_Scene = scene;
     // Fit camera
     glm::vec3 bmin, bmax;
     if (scene->ComputeBounds(bmin, bmax)) {
         m_Camera.FitToBounds(bmin, bmax, 1.12f);
     }
+    Render();
+}
 
-    while (!glfwWindowShouldClose(m_Window)) {
-        HandleInput();
+void PureController::EndFrame() {
+    m_Gui.End();
 
-        m_Gui.Begin();
-
-        BeginDockspace();
-        if (m_RightPanel) {
-            ImGui::SetNextWindowDockID(ImGui::GetID("MainDock"), ImGuiCond_Once);
-            // ImGui::SetNextWindowSizeConstraints(ImVec2(260, 200), ImVec2(FLT_MAX, FLT_MAX));
-            if (ImGui::Begin("Project", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav)) {
-                m_RightPanel();
-            }
-            ImGui::End();
-        }
-        EndDockspace();
-
-        // Statusbar
-        char fps[64];
-        snprintf(fps, sizeof(fps), "FPS: %.0f", ImGui::GetIO().Framerate);
-        m_Gui.DrawStatusBar(m_StatusMessage, fps);
-
-        Render();
-
-        m_Gui.End();
-
-        glfwSwapBuffers(m_Window);
-        glfwPollEvents();
-    }
+    glfwSwapBuffers(m_Window);
+    glfwPollEvents();
 }
 
 void PureController::ToggleWireframe() {

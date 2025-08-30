@@ -24,7 +24,6 @@ class PureController {
     ~PureController();
 
     bool Initialize(int width, int height, const std::string& title);
-    void Run(std::shared_ptr<PureScene> scene);
     void Shutdown();
 
     void BuildDemoScene();
@@ -44,6 +43,12 @@ class PureController {
     void SetMouseButtonHandler(MouseButtonHandler h) {
         m_MouseButtonHandler = std::move(h);
     }
+
+    bool ShouldClose() const;
+    void BeginFrame();
+    void DrawGui();
+    void RenderScene(std::shared_ptr<PureScene> scene);
+    void EndFrame();
 
    private:
     void SetupGl();
