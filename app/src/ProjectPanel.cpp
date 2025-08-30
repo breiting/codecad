@@ -2,39 +2,39 @@
 
 #include <imgui.h>
 
-ProjectPanel::ProjectPanel(io::Project& p) : proj(p) {
+ProjectPanel::ProjectPanel(io::Project& p) : m_Project(p) {
 }
 void ProjectPanel::SetOnSave(SaveCallback cb) {
-    onSave = std::move(cb);
+    m_OnSave = std::move(cb);
 }
 
 void ProjectPanel::Draw() {
     bool changed = false;
     if (ImGui::CollapsingHeader("Meta", ImGuiTreeNodeFlags_DefaultOpen)) {
-        changed |= DrawMeta(proj.meta);
+        changed |= DrawMeta(m_Project.meta);
     }
     if (ImGui::CollapsingHeader("Parameters", ImGuiTreeNodeFlags_DefaultOpen)) {
-        changed |= DrawParams(proj.params);
+        changed |= DrawParams(m_Project.params);
     }
 
     if (changed) {
-        dirty = true;
-        lastEdit = std::chrono::steady_clock::now();
+        m_Dirty = true;
+        m_LastEdit = std::chrono::steady_clock::now();
     }
 
     // Debounced Save
-    if (dirty) {
+    if (m_Dirty) {
         auto now = std::chrono::steady_clock::now();
-        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastEdit).count();
-        if (ms > debounceMs && onSave) {
-            onSave(proj);
-            dirty = false;
+        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - m_LastEdit).count();
+        if (ms > m_DebounceMs && m_OnSave) {
+            m_OnSave(m_Project);
+            m_Dirty = false;
         }
     }
 
-    if (ImGui::Button("Save now")) {
-        if (onSave) onSave(proj);
-        dirty = false;
+    if (ImGui::Button("Save")) {
+        if (m_OnSave) m_OnSave(m_Project);
+        m_Dirty = false;
     }
 }
 

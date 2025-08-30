@@ -28,6 +28,8 @@ bool PureGui::Initialize(GLFWwindow* window, const char* glslVersion) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
 
+    ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
     ImGui::StyleColorsDark();
 
     // Backends init

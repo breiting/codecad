@@ -93,15 +93,23 @@ void PureController::SetRightDockPanel(PanelRenderer panelRenderer) {
 
 void PureController::BeginDockspace() {
     ImGuiViewport* vp = ImGui::GetMainViewport();
-    ImGui::SetNextWindowPos(vp->WorkPos, ImGuiCond_Always);
-    ImGui::SetNextWindowSize(vp->WorkSize, ImGuiCond_Always);
+
+    const float sidebarW = 360.0f;
+
+    ImVec2 pos(vp->Pos.x + vp->Size.x - sidebarW, vp->Pos.y);
+    ImVec2 size(sidebarW, vp->Size.y);
+
+    ImGui::SetNextWindowPos(pos);
+    ImGui::SetNextWindowSize(size);
     ImGui::SetNextWindowViewport(vp->ID);
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
                              ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
                              ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus |
                              ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_MenuBar;
+
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+
     ImGui::Begin("RootDock", nullptr, flags);
     ImGui::PopStyleVar(2);
 
@@ -189,18 +197,15 @@ void PureController::Run(std::shared_ptr<PureScene> scene) {
 
         m_Gui.Begin();
 
-        // DockPanel
         BeginDockspace();
-
         if (m_RightPanel) {
             ImGui::SetNextWindowDockID(ImGui::GetID("MainDock"), ImGuiCond_Once);
-            ImGui::SetNextWindowSizeConstraints(ImVec2(260, 200), ImVec2(FLT_MAX, FLT_MAX));
+            // ImGui::SetNextWindowSizeConstraints(ImVec2(260, 200), ImVec2(FLT_MAX, FLT_MAX));
             if (ImGui::Begin("Project", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav)) {
                 m_RightPanel();
             }
             ImGui::End();
         }
-
         EndDockspace();
 
         // Statusbar

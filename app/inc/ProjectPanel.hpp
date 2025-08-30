@@ -17,9 +17,9 @@ class ProjectPanel {
     bool DrawParams(io::ParamsMap& params);
 
    private:
-    io::Project& proj;
-    SaveCallback onSave;
-    bool dirty = false;
-    std::chrono::steady_clock::time_point lastEdit = std::chrono::steady_clock::now();
-    const int debounceMs = 300;  // Save after debounce
+    io::Project& m_Project;
+    SaveCallback m_OnSave;
+    bool m_Dirty = false;
+    std::chrono::steady_clock::time_point m_LastEdit = std::chrono::steady_clock::now();
+    const int m_DebounceMs = 300;  // Save after debounce
 };
