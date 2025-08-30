@@ -213,11 +213,6 @@ void PureController::DrawGui() {
 
 void PureController::RenderScene(std::shared_ptr<PureScene> scene) {
     m_Scene = scene;
-    // Fit camera
-    glm::vec3 bmin, bmax;
-    if (scene->ComputeBounds(bmin, bmax)) {
-        m_Camera.FitToBounds(bmin, bmax, 1.12f);
-    }
     Render();
 }
 

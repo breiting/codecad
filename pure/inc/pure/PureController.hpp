@@ -50,6 +50,10 @@ class PureController {
     void RenderScene(std::shared_ptr<PureScene> scene);
     void EndFrame();
 
+    PureCamera& Camera() {
+        return m_Camera;
+    }
+
    private:
     void SetupGl();
     void HandleInput();
