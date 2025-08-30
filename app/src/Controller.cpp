@@ -297,7 +297,9 @@ void Controller::AddPartToScene(const io::Part& part) {
 void Controller::RebuildAllParts() {
     ClearScene();
     for (const auto& part : m_Project.parts) {
-        AddPartToScene(part);
+        if (part.visible) {
+            AddPartToScene(part);
+        }
     }
 }
 
