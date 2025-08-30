@@ -1,15 +1,29 @@
 #include <glm/gtx/transform.hpp>
+#include <iostream>
 #include <pure/PureMesh.hpp>
 #include <pure/PureScene.hpp>
 
 namespace pure {
 
-void PureScene::AddPart(const std::shared_ptr<PureMesh>& mesh, const glm::mat4& model, const glm::vec3& color) {
+void PureScene::AddPart(const std::string& id, const std::shared_ptr<PureMesh>& mesh, const glm::mat4& model,
+                        const glm::vec3& color) {
     PurePart part;
+    part.id = id;
     part.mesh = mesh;
     part.model = model;
     part.material.baseColor = color;
     m_Parts.push_back(std::move(part));
+}
+
+void PureScene::RemovePartById(const std::string& partId) {
+    std::cout << "SIZE: " << m_Parts.size() << std::endl;
+    for (auto it = m_Parts.begin(); it != m_Parts.end(); ++it) {
+        if (it->id == partId) {
+            m_Parts.erase(it);
+            break;
+        }
+    }
+    std::cout << "SIZE: " << m_Parts.size() << std::endl;
 }
 
 void PureScene::Clear() {

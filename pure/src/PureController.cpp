@@ -211,7 +211,7 @@ void PureController::Run(std::shared_ptr<PureScene> scene) {
         // Statusbar
         char fps[64];
         snprintf(fps, sizeof(fps), "FPS: %.0f", ImGui::GetIO().Framerate);
-        m_Gui.DrawStatusBar("Ready.", fps);
+        m_Gui.DrawStatusBar(m_StatusMessage, fps);
 
         Render();
 
@@ -292,10 +292,12 @@ void PureController::BuildDemoScene() {
     auto cube = PureMeshFactory::CreateCube(1.0f, 2.f);
 
     // Three colored cubes
-    m_Scene->AddPart(cube, glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, 0.0f, 0.0f)),
+    m_Scene->AddPart("cube 1", cube, glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, 0.0f, 0.0f)),
                      glm::vec3(1.0f, 0.25f, 0.25f));
-    m_Scene->AddPart(cube, glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)), glm::vec3(0.25f, 1.0f, 0.25f));
-    m_Scene->AddPart(cube, glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 0.0f)), glm::vec3(0.25f, 0.25f, 1.0f));
+    m_Scene->AddPart("cube 2", cube, glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)),
+                     glm::vec3(0.25f, 1.0f, 0.25f));
+    m_Scene->AddPart("cube 3", cube, glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 0.0f)),
+                     glm::vec3(0.25f, 0.25f, 1.0f));
 }
 
 }  // namespace pure

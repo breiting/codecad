@@ -30,7 +30,9 @@ class PureController {
     void BuildDemoScene();
 
     void ToggleWireframe();
-    void SetStatus(const std::string& msg);
+    void SetStatus(const std::string& msg) {
+        m_StatusMessage = msg;
+    }
     void SetRightDockPanel(PanelRenderer panelRenderer);
 
     using KeyPressedHandler = std::function<void(int key, int mods)>;
@@ -77,6 +79,8 @@ class PureController {
     int m_FramebufferH = 800;
 
     bool m_Wireframe = false;
+
+    std::string m_StatusMessage = "Ready!";
 };
 
 }  // namespace pure

@@ -15,9 +15,18 @@
 
 using namespace std;
 using namespace pure;
+namespace fs = std::filesystem;
 
 const std::string PROJECT_FILENAME = "project.json";
 const std::string PROJECT_OUTDIR = "generated";
+
+std::string Controller::NormalizePath(const std::string& p) {
+    try {
+        return fs::weakly_canonical(p).string();
+    } catch (...) {
+        return p;
+    }
+}
 
 static glm::vec3 ParseHexColor(const std::string& hex, glm::vec3 fallback = {0.7f, 0.7f, 0.7f}) {
     if (hex.size() != 7 || hex[0] != '#') return fallback;
@@ -146,8 +155,7 @@ void Controller::ViewProject() {
         throw std::runtime_error("No project is loaded!");
     }
 
-    PureController pureController;
-    if (!pureController.Initialize(1280, 800, "CodeCAD Viewer")) {
+    if (!m_PureController.Initialize(1280, 800, "CodeCAD Viewer")) {
         std::cerr << "Failed to initialize CodeCAD Viewer\n";
         return;
     }
@@ -155,18 +163,15 @@ void Controller::ViewProject() {
     ProjectPanel panel(m_Project);
     panel.SetOnSave([this](const io::Project& p) {
         std::cout << "CB: Saving project" << std::endl;
-        // io::SaveProject(p, m_ProjectFilePath, /*pretty*/ true);
-        // falls PARAMS relevant: m_Engine->SetParams(p.params);
-        // optional: Teile neu bauen, wenn param-getriebene Lua-Modelle sich ändern
-        // RebuildAllParts();  // oder nur wenn nötig
+        io::SaveProject(p, fs::path(m_ProjectDir) / PROJECT_FILENAME, /*pretty*/ true);
     });
 
-    pureController.SetRightDockPanel([&panel]() { panel.Draw(); });
+    m_PureController.SetRightDockPanel([&panel]() { panel.Draw(); });
 
-    pureController.SetKeyPressedHandler([this, &pureController](int key, int mods) {
+    m_PureController.SetKeyPressedHandler([this](int key, int /*mods*/) {
         switch (key) {
             case GLFW_KEY_W: {
-                pureController.ToggleWireframe();
+                m_PureController.ToggleWireframe();
             } break;
 
             default:
@@ -174,54 +179,134 @@ void Controller::ViewProject() {
         }
     });
 
-    auto scene = std::make_shared<PureScene>();
+    m_Scene = std::make_shared<PureScene>();
+
+    RebuildAllParts();
+    SetupWatchers();
+
+    m_PureController.Run(m_Scene);
+
+    // TODO: loop here with PollingWatcher
+    m_PureController.Shutdown();
+}
+
+void Controller::SetupWatchers() {
+    // Project watcher
+    m_ProjectWatcher = FileWatcher(fs::path(m_ProjectDir) / PROJECT_FILENAME);
+
+    // Lua watchers
+    ResetLuaWatchers();
+}
+
+void Controller::ResetLuaWatchers() {
+    m_LuaWatchers.clear();
+    m_LuaToPartId.clear();
+    m_LastLuaEvent.clear();
 
     for (const auto& part : m_Project.parts) {
         fs::path src = fs::path(m_ProjectDir) / part.source;
-        auto luaFile = std::filesystem::weakly_canonical(src);
+        const std::string abs = NormalizePath(src.string());
+        m_LuaWatchers.emplace(abs, FileWatcher(abs));
+        m_LuaToPartId[abs] = part.id;
+    }
+}
 
-        std::string err;
-        if (!m_Engine->RunFile(luaFile, &err)) {
-            auto errStr = std::string("Lua error in ") + luaFile.string() + ": " + err;
-            std::cerr << errStr << std::endl;
-            return;
+void Controller::PollWatchers() {
+    // project.json
+    m_ProjectWatcher.Poll([this](const std::string&) {
+        auto now = std::chrono::steady_clock::now();
+        if (m_LastProjectEvent.time_since_epoch().count() != 0) {
+            auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - m_LastProjectEvent).count();
+            if (ms < m_DebounceMs) return;
         }
+        m_LastProjectEvent = now;
+        OnProjectChanged();
+    });
 
-        auto emitted = m_Engine->GetEmitted();
-        if (!emitted) {
-            std::cerr << "Canot get shape from " << luaFile << std::endl;
-            return;
-        }
+    // Part .lua files
+    for (auto& kv : m_LuaWatchers) {
+        const std::string path = kv.first;
+        FileWatcher& fw = kv.second;
 
-        // Apply transform from project.json
-        auto shaped = ApplyProjectTransform(*emitted, part.transform);
+        fw.Poll([this, path](const std::string&) {
+            auto now = std::chrono::steady_clock::now();
+            auto it = m_LastLuaEvent.find(path);
+            if (it != m_LastLuaEvent.end()) {
+                auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - it->second).count();
+                if (ms < m_DebounceMs) return;
+            }
+            m_LastLuaEvent[path] = now;
+            OnLuaChanged(path);
+        });
+    }
+}
 
-        auto color = m_Project.materials[part.material].color;
-        if (color.empty()) color = "#cccccc";
+void Controller::ClearScene() {
+    if (m_Scene) m_Scene->Clear();
+}
 
-        geometry::TriMesh tri =
-            geometry::TriangulateShape(shaped->Get(), /*defl*/ 0.3, /*ang*/ 25.0, /*parallel*/ true);
+void Controller::AddPartToScene(const io::Part& part) {
+    fs::path src = fs::path(m_ProjectDir) / part.source;
+    auto luaFile = std::filesystem::weakly_canonical(src);
 
-        std::vector<PureVertex> vertices;
-
-        for (const auto& v : tri.positions) {
-            vertices.push_back({glm::vec3(v.x, v.y, v.z), glm::vec3(0.0, 0.0, 0.0)});  // no normals!
-        }
-
-        auto mesh = std::make_shared<PureMesh>();
-        mesh->Upload(vertices, tri.indices);
-        scene->AddPart(mesh, glm::mat4(1.0f), ParseHexColor(color));
+    std::string err;
+    if (!m_Engine->RunFile(luaFile, &err)) {
+        auto errStr = std::string("Lua error in ") + luaFile.string() + ": " + err;
+        std::cerr << errStr << std::endl;
+        return;
     }
 
-    // 6) Watcher setzen
-    // projectWatch = FileWatcher(pj);
-    // for (const auto& part : project.parts) {
-    //     std::string lp = (fs::path(rootDir) / part.source).string();
-    //     luaWatchers.emplace(lp, FileWatcher(lp));
-    // }
+    auto emitted = m_Engine->GetEmitted();
+    if (!emitted) {
+        std::cerr << "Canot get shape from " << luaFile << std::endl;
+        return;
+    }
 
-    pureController.Run(scene);
-    pureController.Shutdown();
+    // Apply transform from project.json
+    auto shaped = ApplyProjectTransform(*emitted, part.transform);
+
+    auto color = m_Project.materials[part.material].color;
+    if (color.empty()) color = "#cccccc";
+
+    geometry::TriMesh tri = geometry::TriangulateShape(shaped->Get(), /*defl*/ 0.3, /*ang*/ 25.0, /*parallel*/ true);
+
+    std::vector<PureVertex> vertices;
+
+    for (const auto& v : tri.positions) {
+        vertices.push_back({glm::vec3(v.x, v.y, v.z), glm::vec3(0.0, 0.0, 0.0)});  // no normals!
+    }
+
+    auto mesh = std::make_shared<PureMesh>();
+    mesh->Upload(vertices, tri.indices);
+    m_Scene->AddPart(part.id, mesh, glm::mat4(1.0f), ParseHexColor(color));
+}
+
+void Controller::RebuildAllParts() {
+    ClearScene();
+    for (const auto& part : m_Project.parts) {
+        AddPartToScene(part);
+    }
+}
+
+void Controller::RebuildPartByPath(const std::string& luaPath) {
+    // Part finden
+    auto it = m_LuaToPartId.find(luaPath);
+    if (it == m_LuaToPartId.end()) {
+        // Part not known? Then reload everything (fallback)
+        RebuildAllParts();
+        return;
+    }
+    const std::string& partId = it->second;
+
+    m_Scene->RemovePartById(partId);
+    const io::Part* p = nullptr;
+    for (const auto& pr : m_Project.parts)
+        if (pr.id == partId) {
+            p = &pr;
+            break;
+        }
+    if (!p) return;
+    AddPartToScene(*p);
 }
 
 void Controller::CreateBom() {
@@ -306,45 +391,33 @@ void Controller::SetupEngine() {
     }
 }
 
-// void Controller::OnProjectChanged() {
-//     try {
-//         project = io::LoadProject(rootDir + "/project.json");
-//         engine.SetParams(project.params);
-//         // Watcher neu setzen, evtl. neue Teile
-//         luaWatchers.clear();
-//         for (const auto& part : project.parts) {
-//             std::string lp = (fs::path(rootDir) / part.source).string();
-//             luaWatchers.emplace(lp, FileWatcher(lp));
-//         }
-//         // komplette Szene neu aufbauen
-//         std::string err;
-//         bridge->BuildProject(engine, project, &err);
-//         if (!err.empty()) std::cerr << err << "\n";
-//         pure->SetStatus("Project reloaded");
-//     } catch (const std::exception& e) {
-//         std::cerr << "Reload failed: " << e.what() << "\n";
-//     }
-// }
-//
-// void Controller::OnLuaChanged(const std::string& luaPath) {
-//     // finde Part
-//     for (const auto& part : project.parts) {
-//         auto src = (fs::path(rootDir) / part.source).string();
-//         if (src == luaPath) {
-//             PartVisual pv;
-//             std::string err;
-//             if (bridge->BuildPart(engine, part, &pv, &err)) {
-//                 bridge->UpsertPartNode(pv);
-//                 pure->SetStatus(("Rebuilt " + part.id).c_str());
-//             } else {
-//                 pure->SetStatus(("Error: " + err).c_str());
-//             }
-//             return;
-//         }
-//     }
-// }
-//
-//
+void Controller::OnProjectChanged() {
+    try {
+        m_PureController.SetStatus("Project changed. Reloading...");
+        m_Project = io::LoadProject(fs::path(m_ProjectDir) / PROJECT_FILENAME);
+
+        ApplyProjectParamsToLua(m_Engine->Lua(), m_Project);
+        ResetLuaWatchers();
+        RebuildAllParts();
+
+        m_PureController.SetStatus("Project reloaded.");
+    } catch (const std::exception& e) {
+        std::cerr << "Project reload failed: " << e.what() << "\n";
+        m_PureController.SetStatus("Project reload failed.");
+    }
+}
+
+void Controller::OnLuaChanged(const std::string& luaPath) {
+    try {
+        // only rebuild affected part
+        RebuildPartByPath(luaPath);
+        m_PureController.SetStatus("Part rebuilt.");
+    } catch (const std::exception& e) {
+        std::cerr << "Part rebuild failed: " << e.what() << " (" << luaPath << ")\n";
+        m_PureController.SetStatus("Part rebuild failed.");
+    }
+}
+
 void Controller::HealthCheck() {
     cout << "== CodeCAD Doctor ==\n";
     auto exe = io::ExecutablePath();
