@@ -1,5 +1,4 @@
 #include <glm/gtx/transform.hpp>
-#include <iostream>
 #include <pure/PureMesh.hpp>
 #include <pure/PureScene.hpp>
 
@@ -16,14 +15,12 @@ void PureScene::AddPart(const std::string& id, const std::shared_ptr<PureMesh>& 
 }
 
 void PureScene::RemovePartById(const std::string& partId) {
-    std::cout << "SIZE: " << m_Parts.size() << std::endl;
     for (auto it = m_Parts.begin(); it != m_Parts.end(); ++it) {
         if (it->id == partId) {
             m_Parts.erase(it);
             break;
         }
     }
-    std::cout << "SIZE: " << m_Parts.size() << std::endl;
 }
 
 void PureScene::Clear() {

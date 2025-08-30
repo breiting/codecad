@@ -162,7 +162,6 @@ void Controller::ViewProject() {
 
     ProjectPanel panel(m_Project);
     panel.SetOnSave([this](const io::Project& p) {
-        std::cout << "CB: Saving project" << std::endl;
         io::SaveProject(p, fs::path(m_ProjectDir) / PROJECT_FILENAME, /*pretty*/ true);
     });
 

@@ -31,6 +31,7 @@ class PureController {
     void ToggleWireframe();
     void SetStatus(const std::string& msg) {
         m_StatusMessage = msg;
+        m_StatusTimestamp = std::chrono::steady_clock::now();
     }
     void SetRightDockPanel(PanelRenderer panelRenderer);
 
@@ -90,6 +91,7 @@ class PureController {
     bool m_Wireframe = false;
 
     std::string m_StatusMessage = "Ready!";
+    std::chrono::steady_clock::time_point m_StatusTimestamp;
 };
 
 }  // namespace pure

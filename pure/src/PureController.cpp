@@ -16,6 +16,7 @@ namespace pure {
 
 const float NEAR_PLANE = 0.01f;
 const float FAR_PLANE = 5000.0f;
+const int STATUSBAR_TIMEOUT_MS = 3000;
 
 static void ErrorCallback(int code, const char* msg) {
     std::cerr << "GLFW error " << code << ": " << msg << "\n";
@@ -206,9 +207,18 @@ void PureController::DrawGui() {
     EndDockspace();
 
     // Statusbar
+    auto now = std::chrono::steady_clock::now();
+    bool showStatus =
+        std::chrono::duration_cast<std::chrono::milliseconds>(now - m_StatusTimestamp).count() < STATUSBAR_TIMEOUT_MS;
+
     char fps[64];
     snprintf(fps, sizeof(fps), "FPS: %.0f", ImGui::GetIO().Framerate);
-    m_Gui.DrawStatusBar(m_StatusMessage, fps);
+
+    if (showStatus && !m_StatusMessage.empty()) {
+        m_Gui.DrawStatusBar(m_StatusMessage, fps);
+    } else {
+        m_Gui.DrawStatusBar("", fps);
+    }
 }
 
 void PureController::RenderScene(std::shared_ptr<PureScene> scene) {
