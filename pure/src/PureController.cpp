@@ -14,8 +14,8 @@
 
 namespace pure {
 
-const float NEAR_PLANE = 0.01f;
-const float FAR_PLANE = 5000.0f;
+const float NEAR_PLANE = 0.1f;
+const float FAR_PLANE = 1000.0f;
 const int STATUSBAR_TIMEOUT_MS = 3000;
 
 static void ErrorCallback(int code, const char* msg) {
@@ -42,6 +42,9 @@ bool PureController::Initialize(int width, int height, const std::string& title,
 #if __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
+
+    // enable multisampling
+    glfwWindowHint(GLFW_SAMPLES, 4);
 
     m_Window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
     if (!m_Window) {
@@ -121,6 +124,9 @@ void PureController::EndDockspace() {
 
 void PureController::SetupGl() {
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_MULTISAMPLE);
+    glEnable(GL_CULL_FACE);
+
     glClearColor(0.11f, 0.12f, 0.14f, 1.0f);
 }
 
