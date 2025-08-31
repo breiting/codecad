@@ -60,9 +60,8 @@ bool PureController::Initialize(int width, int height, const std::string& title)
     // Axis
     {
         m_Axis = std::make_unique<PureAxis>();
-        std::string err;
-        if (!m_Axis->Initialize(/*axisLength=*/200.0f, /*headLen=*/20.0f, /*headWidth=*/10.0f, &err)) {
-            std::cerr << "Axis init failed: " << err << "\n";
+        if (!m_Axis->Initialize(/*axisLength=*/200.0f, /*headLen=*/20.0f, /*headWidth=*/10.0f)) {
+            std::cerr << "Axis init failed" << std::endl;
             m_Axis.reset();
         }
     }
@@ -72,11 +71,8 @@ bool PureController::Initialize(int width, int height, const std::string& title)
 
     if (!m_Gui.Initialize(m_Window, "#version 330")) return false;
 
-    std::string err;
-    if (!m_Shader.BuildPhong(&err)) {
-        std::cerr << "Shader error: " << err << "\n";
-        return false;
-    }
+    // Build Phong shader
+    m_Shader.BuildPhong();
 
     glfwGetFramebufferSize(m_Window, &m_FramebufferW, &m_FramebufferH);
     m_Camera.SetAspect((float)m_FramebufferW / std::max(1, m_FramebufferH));

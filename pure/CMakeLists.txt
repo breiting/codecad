@@ -23,11 +23,24 @@ add_library(pure STATIC
 )
 
 # -------------------------
+# Shaders (embed to headers)
+# -------------------------
+set(SHADER_SRC_DIR "${CMAKE_SOURCE_DIR}/assets")
+set(GEN_INC_DIR    "${CMAKE_BINARY_DIR}/generated")
+
+embed_text_to_header("${SHADER_SRC_DIR}/phong.vert"  "${GEN_INC_DIR}/assets/phong_vert.h"  phong_vert_glsl)
+embed_text_to_header("${SHADER_SRC_DIR}/phong.frag"  "${GEN_INC_DIR}/assets/phong_frag.h"  phong_frag_glsl)
+embed_text_to_header("${SHADER_SRC_DIR}/unlit.vert"  "${GEN_INC_DIR}/assets/unlit_vert.h"  unlit_vert_glsl)
+embed_text_to_header("${SHADER_SRC_DIR}/unlit.frag"  "${GEN_INC_DIR}/assets/unlit_frag.h"  unlit_frag_glsl)
+
+
+# -------------------------
 # Includes
 # -------------------------
 target_include_directories(pure
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/inc
+        ${GEN_INC_DIR}
     PRIVATE
         external/glad/include
         ${imgui_SOURCE_DIR}

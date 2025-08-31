@@ -1,129 +1,95 @@
 #include <glm/gtc/type_ptr.hpp>
+#include <iostream>
 #include <pure/PureShader.hpp>
-#include <vector>
+
+#include "assets/phong_frag.h"
+#include "assets/phong_vert.h"
+#include "assets/unlit_frag.h"
+#include "assets/unlit_vert.h"
 
 namespace pure {
 
-static const char* kPhongVS = R"(#version 330 core
-layout(location=0) in vec3 in_position;
-layout(location=1) in vec3 in_normal;
-
-uniform mat4 u_model;
-uniform mat4 u_view;
-uniform mat4 u_proj;
-uniform mat3 u_normalMatrix;
-
-out vec3 v_normal;
-out vec3 v_worldPos;
-
-void main() {
-  vec4 wp = u_model * vec4(in_position, 1.0);
-  v_worldPos = wp.xyz;
-  v_normal = normalize(u_normalMatrix * in_normal);
-  gl_Position = u_proj * u_view * wp;
-}
-)";
-
-static const char* kPhongFS = R"(#version 330 core
-in vec3 v_normal;
-in vec3 v_worldPos;
-
-out vec4 fragColor;
-
-uniform vec3 u_baseColor; // 0..1
-uniform vec3 u_camPos;
-uniform vec3 u_lightDir;  // Headlight: from camera view direction
-
-void main() {
-  vec3 N = normalize(v_normal);
-  vec3 L = normalize(-u_lightDir);
-
-  // Ambient
-  vec3 ambient = 0.2 * u_baseColor;
-
-  // Diffuse
-  float ndotl = max(dot(N, L), 0.0);
-  vec3 diffuse = ndotl * u_baseColor;
-
-  // Specular (Blinn-Phong)
-  vec3 V = normalize(u_camPos - v_worldPos);
-  vec3 H = normalize(L + V);
-  float nh = max(dot(N, H), 0.0);
-  float spec = pow(nh, 32.0);
-  vec3 specular = 0.2 * spec * vec3(1.0);
-
-  fragColor = vec4(ambient + diffuse + specular, 1.0);
-}
-)";
-
 PureShader::~PureShader() {
-    if (m_Program) glDeleteProgram(m_Program);
+    if (m_Id) glDeleteProgram(m_Id);
 }
 
-GLuint PureShader::Compile(GLenum type, const char* src, std::string* errorMessage) {
-    GLuint sh = glCreateShader(type);
-    glShaderSource(sh, 1, &src, nullptr);
-    glCompileShader(sh);
-    GLint ok = 0;
-    glGetShaderiv(sh, GL_COMPILE_STATUS, &ok);
-    if (!ok) {
-        GLint len = 0;
-        glGetShaderiv(sh, GL_INFO_LOG_LENGTH, &len);
-        std::vector<char> buf(len);
-        glGetShaderInfoLog(sh, len, nullptr, buf.data());
-        if (errorMessage) *errorMessage = std::string(buf.begin(), buf.end());
-        glDeleteShader(sh);
-        return 0;
+void PureShader::CompileShader(const std::string& vertexCode, const std::string& fragmentCode) {
+    const char* vShaderCode = vertexCode.c_str();
+    const char* fShaderCode = fragmentCode.c_str();
+
+    unsigned int vertex, fragment;
+    int success;
+    char infoLog[512];
+
+    // Vertex Shader
+    vertex = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertex, 1, &vShaderCode, nullptr);
+    glCompileShader(vertex);
+    glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(vertex, 512, nullptr, infoLog);
+        std::cerr << "Error compiling vertex shader: " << infoLog << std::endl;
     }
-    return sh;
-}
 
-bool PureShader::Link(GLuint vs, GLuint fs, std::string* errorMessage) {
-    m_Program = glCreateProgram();
-    glAttachShader(m_Program, vs);
-    glAttachShader(m_Program, fs);
-    glLinkProgram(m_Program);
-    GLint ok = 0;
-    glGetProgramiv(m_Program, GL_LINK_STATUS, &ok);
-    if (!ok) {
-        GLint len = 0;
-        glGetProgramiv(m_Program, GL_INFO_LOG_LENGTH, &len);
-        std::vector<char> buf(len);
-        glGetProgramInfoLog(m_Program, len, nullptr, buf.data());
-        if (errorMessage) *errorMessage = std::string(buf.begin(), buf.end());
-        glDeleteProgram(m_Program);
-        m_Program = 0;
-        return false;
+    // Fragment Shader
+    fragment = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragment, 1, &fShaderCode, nullptr);
+    glCompileShader(fragment);
+    glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(fragment, 512, nullptr, infoLog);
+        std::cerr << "Error compiling fragment shader: " << infoLog << std::endl;
     }
-    glDetachShader(m_Program, vs);
-    glDeleteShader(vs);
-    glDetachShader(m_Program, fs);
-    glDeleteShader(fs);
-    return true;
-}
 
-bool PureShader::BuildPhong(std::string* errorMessage) {
-    GLuint vs = Compile(GL_VERTEX_SHADER, kPhongVS, errorMessage);
-    if (!vs) return false;
-    GLuint fs = Compile(GL_FRAGMENT_SHADER, kPhongFS, errorMessage);
-    if (!fs) {
-        glDeleteShader(vs);
-        return false;
+    // Shader-Programm creation
+    m_Id = glCreateProgram();
+    glAttachShader(m_Id, vertex);
+    glAttachShader(m_Id, fragment);
+    glLinkProgram(m_Id);
+    glGetProgramiv(m_Id, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(m_Id, 512, nullptr, infoLog);
+        std::cerr << "Error binding shader: " << infoLog << std::endl;
     }
-    return Link(vs, fs, errorMessage);
+
+    glDeleteShader(vertex);
+    glDeleteShader(fragment);
 }
 
-void PureShader::SetMat4(const char* name, const glm::mat4& m) const {
-    GLint loc = glGetUniformLocation(m_Program, name);
-    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(m));
+void PureShader::Bind() const {
+    glUseProgram(m_Id);
 }
-void PureShader::SetMat3(const char* name, const glm::mat3& m) const {
-    GLint loc = glGetUniformLocation(m_Program, name);
-    glUniformMatrix3fv(loc, 1, GL_FALSE, glm::value_ptr(m));
+
+void PureShader::SetMat3(const std::string& name, const glm::mat3& matrix) const {
+    glUniformMatrix3fv(glGetUniformLocation(m_Id, name.c_str()), 1, GL_FALSE, &matrix[0][0]);
 }
-void PureShader::SetVec3(const char* name, const glm::vec3& v) const {
-    GLint loc = glGetUniformLocation(m_Program, name);
-    glUniform3fv(loc, 1, glm::value_ptr(v));
+
+void PureShader::SetMat4(const std::string& name, const glm::mat4& matrix) const {
+    glUniformMatrix4fv(glGetUniformLocation(m_Id, name.c_str()), 1, GL_FALSE, &matrix[0][0]);
+}
+
+void PureShader::SetVec3(const std::string& name, const glm::vec3& value) const {
+    glUniform3fv(glGetUniformLocation(m_Id, name.c_str()), 1, &value[0]);
+}
+
+void PureShader::SetFloat(const std::string& name, float value) const {
+    glUniform1f(glGetUniformLocation(m_Id, name.c_str()), value);
+}
+
+void PureShader::SetBool(const std::string& name, bool value) const {
+    glUniform1f(glGetUniformLocation(m_Id, name.c_str()), value);
+}
+
+unsigned int PureShader::GetInt(const std::string& name) const {
+    return glGetUniformLocation(m_Id, name.c_str());
+}
+
+void PureShader::BuildPhong() {
+    CompileShader(phong_vert_glsl, phong_frag_glsl);
+}
+
+void PureShader::BuildUnlit() {
+    CompileShader(unlit_vert_glsl, unlit_frag_glsl);
 }
 
 }  // namespace pure

@@ -9,7 +9,7 @@ namespace pure {
 void PureRenderer::DrawMesh(const PureMesh& mesh, const PureShader& shader, const glm::mat4& model,
                             const glm::mat4& view, const glm::mat4& proj, const glm::vec3& camPos,
                             const PureRenderParams& params) {
-    shader.Use();
+    shader.Bind();
     shader.SetMat4("u_model", model);
     shader.SetMat4("u_view", view);
     shader.SetMat4("u_proj", proj);
