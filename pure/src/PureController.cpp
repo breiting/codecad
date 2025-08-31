@@ -32,7 +32,7 @@ PureController::~PureController() {
     }
 }
 
-bool PureController::Initialize(int width, int height, const std::string& title) {
+bool PureController::Initialize(int width, int height, const std::string& title, const std::string& fontDir) {
     glfwSetErrorCallback(ErrorCallback);
     if (!glfwInit()) return false;
 
@@ -66,9 +66,10 @@ bool PureController::Initialize(int width, int height, const std::string& title)
         }
     }
 
-    // TODO: fix path
-    m_Gui.SetFontDirectory("/Users/breiting/workspace/codecad/assets/fonts");
-
+    // If a fontpath is provided add it
+    if (!fontDir.empty()) {
+        m_Gui.SetFontDirectory(fontDir);
+    }
     if (!m_Gui.Initialize(m_Window, "#version 330")) return false;
 
     // Build Phong shader

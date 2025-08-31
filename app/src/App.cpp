@@ -5,9 +5,9 @@
 #include <nlohmann/json.hpp>
 
 #include "Controller.hpp"
+#include "Utils.hpp"
 #include "assets/part_template.h"
 #include "assets/readme_template.h"
-#include "io/Paths.hpp"
 #include "io/Project.hpp"
 
 const std::string PROJECT_FILENAME = "project.json";
@@ -306,7 +306,7 @@ void App::handleLspInit() {
     std::vector<std::string> workspaceLib = {"${workspaceFolder}/types", "${workspaceFolder}/lib"};
 
     std::vector<std::string> installLibs;
-    for (const auto& p : io::DefaultInstallLuaPathsFromExe()) {
+    for (const auto& p : utils::DefaultInstallLuaPathsFromExe()) {
         auto dir = fs::path(p).parent_path();
         if (std::find(installLibs.begin(), installLibs.end(), dir.string()) == installLibs.end()) {
             installLibs.push_back(dir.string());
@@ -357,9 +357,8 @@ void App::handleLspInit() {
                                    "union",
                                    "wedge"};
 
-    std::string err;
-    if (!io::WriteTextFile(luarc, j.dump(2) + "\n", &err)) {
-        std::cerr << "Failed to write .luarc.json: " << err << "\n";
+    if (!utils::WriteTextFile(luarc, j.dump(2) + "\n")) {
+        std::cerr << "Failed to write .luarc.json: " << std::endl;
         return;
     }
     std::cout << "Wrote " << luarc << "\n";

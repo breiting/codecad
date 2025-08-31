@@ -1,4 +1,4 @@
-#include "io/Paths.hpp"
+#include "Utils.hpp"
 
 #include <fstream>
 #ifdef __APPLE__
@@ -7,7 +7,7 @@
 #include <unistd.h>
 #endif
 
-namespace io {
+namespace utils {
 
 std::filesystem::path ExecutablePath() {
     char buf[4096] = {0};
@@ -53,19 +53,19 @@ std::string DefaultInstallFontsPath() {
     return prefix / "share" / "codecad" / "fonts";
 }
 
-bool WriteTextFile(const std::filesystem::path& p, const std::string& content, std::string* err) {
+bool WriteTextFile(const std::filesystem::path& p, const std::string& content) {
     try {
         std::filesystem::create_directories(p.parent_path());
         std::ofstream f(p, std::ios::binary);
         if (!f) {
-            if (err) *err = "cannot open file for write";
             return false;
         }
         f << content;
         return true;
+
     } catch (const std::exception& e) {
-        if (err) *err = e.what();
         return false;
     }
 }
-}  // namespace io
+
+}  // namespace utils

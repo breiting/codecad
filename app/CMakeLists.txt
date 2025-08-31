@@ -1,7 +1,8 @@
 add_executable(ccad
 	src/App.cpp
-	src/ProjectPanel.cpp
 	src/Controller.cpp
+	src/ProjectPanel.cpp
+	src/Utils.cpp
     src/main.cpp
 )
 

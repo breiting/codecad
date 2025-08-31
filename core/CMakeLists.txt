@@ -8,7 +8,6 @@ add_library(core STATIC
    src/Gear.cpp
    src/LuaEngine.cpp
    src/Measure.cpp
-   src/Paths.cpp
    src/Primitives.cpp
    src/Project.cpp
    src/Sketch.cpp

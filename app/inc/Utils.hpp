@@ -3,10 +3,11 @@
 #include <string>
 #include <vector>
 
-namespace io {
+namespace utils {
 
 std::filesystem::path ExecutablePath();
 std::vector<std::string> DefaultInstallLuaPathsFromExe();
 std::string DefaultInstallFontsPath();
-bool WriteTextFile(const std::filesystem::path& p, const std::string& content, std::string* err = nullptr);
-}  // namespace io
+bool WriteTextFile(const std::filesystem::path& p, const std::string& content);
+
+}  // namespace utils

@@ -8,9 +8,9 @@
 #include <iostream>
 
 #include "ProjectPanel.hpp"
+#include "Utils.hpp"
 #include "io/Bom.hpp"
 #include "io/Export.hpp"
-#include "io/Paths.hpp"
 #include "pure/PureMesh.hpp"
 
 using namespace std;
@@ -155,7 +155,7 @@ void Controller::ViewProject() {
         throw std::runtime_error("No project is loaded!");
     }
 
-    if (!m_PureController.Initialize(1280, 800, "CodeCAD Viewer")) {
+    if (!m_PureController.Initialize(1600, 1200, "CodeCAD Viewer", utils::DefaultInstallFontsPath())) {
         std::cerr << "Failed to initialize CodeCAD Viewer\n";
         return;
     }
@@ -384,7 +384,7 @@ void Controller::SetupEngine() {
     std::vector<std::string> paths = {"./lib/?.lua", "./lib/?/init.lua", "./vendor/?.lua", "./vendor/?/init.lua"};
 
     // installed standard paths
-    auto installPaths = io::DefaultInstallLuaPathsFromExe();
+    auto installPaths = utils::DefaultInstallLuaPathsFromExe();
     paths.insert(paths.end(), installPaths.begin(), installPaths.end());
 
     // Environment-Variable LUA_PATH (optional)
@@ -435,10 +435,10 @@ void Controller::OnLuaChanged(const std::string& luaPath) {
 
 void Controller::HealthCheck() {
     cout << "== CodeCAD Doctor ==\n";
-    auto exe = io::ExecutablePath();
+    auto exe = utils::ExecutablePath();
     cout << "Executable: " << (exe.empty() ? "<unknown>" : exe.string()) << "\n";
 
-    auto installPatterns = io::DefaultInstallLuaPathsFromExe();
+    auto installPatterns = utils::DefaultInstallLuaPathsFromExe();
     cout << "Derived install search patterns:\n";
     for (auto& p : installPatterns) cout << "  " << p << "\n";
 

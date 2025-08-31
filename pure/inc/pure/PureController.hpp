@@ -23,7 +23,7 @@ class PureController {
     PureController();
     ~PureController();
 
-    bool Initialize(int width, int height, const std::string& title);
+    bool Initialize(int width, int height, const std::string& title, const std::string& fontDir = "");
     void Shutdown();
 
     void BuildDemoScene();
@@ -35,6 +35,7 @@ class PureController {
     }
     void SetRightDockPanel(PanelRenderer panelRenderer);
 
+    // Event handler which can be registered
     using KeyPressedHandler = std::function<void(int key, int mods)>;
     using MouseButtonHandler = std::function<void(int button, int action, int mods)>;
 
@@ -85,8 +86,8 @@ class PureController {
 
     std::unique_ptr<PureAxis> m_Axis;
 
-    int m_FramebufferW = 1280;
-    int m_FramebufferH = 800;
+    int m_FramebufferW = 1600;
+    int m_FramebufferH = 1200;
 
     bool m_Wireframe = false;
 
