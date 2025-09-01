@@ -1,374 +1,252 @@
 #include "mech/CoarseThread.hpp"
 
+// std
 #include <algorithm>
 #include <cmath>
-#include <sstream>
 #include <stdexcept>
 
 // OCCT
+#include <BRepAlgoAPI_Cut.hxx>
 #include <BRepAlgoAPI_Fuse.hxx>
 #include <BRepBuilderAPI_MakeEdge.hxx>
+#include <BRepBuilderAPI_MakeFace.hxx>
 #include <BRepBuilderAPI_MakeWire.hxx>
 #include <BRepBuilderAPI_Transform.hxx>
+#include <BRepLib.hxx>
 #include <BRepOffsetAPI_MakePipeShell.hxx>
 #include <BRepPrimAPI_MakeCylinder.hxx>
+#include <GC_MakeArcOfCircle.hxx>
+#include <Geom2d_Line.hxx>
+#include <GeomAPI.hxx>
 #include <GeomAPI_PointsToBSpline.hxx>
 #include <Geom_BSplineCurve.hxx>
-#include <TColgp_Array1OfPnt.hxx>
+#include <Geom_CylindricalSurface.hxx>
+#include <Geom_TrimmedCurve.hxx>
+#include <TopExp.hxx>
 #include <TopoDS.hxx>
 #include <gp_Ax1.hxx>
+#include <gp_Ax3.hxx>
 #include <gp_Dir.hxx>
+#include <gp_Pln.hxx>
 #include <gp_Pnt.hxx>
+#include <gp_Pnt2d.hxx>
 #include <gp_Trsf.hxx>
-#include <gp_Vec.hxx>
 
-#include "geometry/Shape.hpp"
+using geometry::Shape;
+using geometry::ShapePtr;
 
 namespace mech {
 
-// =============================================================================
-// PRIVATE HELPER FUNCTIONS
-// =============================================================================
+// ---------- presets ----------------------------------------------------------
 
-double CoarseThread::ClampToPositive(double value, double minValue) {
-    return std::max(value, minValue);
+ThreadPreset PresetCoarse3D() {
+    return ThreadPreset{/*depth*/ 0.9,
+                        /*clearance*/ 0.22,
+                        /*flankAngleDeg*/ 60.0,
+                        /*samplesPerTurn*/ 96,
+                        /*tipStyle*/ ThreadTip::Rounded,
+                        /*tipRadius*/ 0.18};
 }
 
-Handle(Geom_Curve) CoarseThread::CreateHelixCurve(double pitchRadius, double pitch, double length, bool leftHand,
-                                                  int segments) {
-    if (pitchRadius <= 0.0 || pitch <= 0.0 || length <= 0.0) {
-        throw std::invalid_argument("CreateHelixCurve: pitchRadius, pitch, and length must be positive");
-    }
-
-    // Calculate total angular span and number of points
-    const double totalTurns = length / pitch;
-    const double totalAngle = 2.0 * M_PI * totalTurns;
-    const int totalPoints = std::max(16, static_cast<int>(segments * totalTurns));
-
-    std::cout << "Sampled points: " << totalPoints << std::endl;
-
-    // Angular step and Z advancement per unit angle
-    const double angleStep = totalAngle / (totalPoints - 1);
-    const double zAdvancePerRadian = (leftHand ? -1.0 : 1.0) * pitch / (2.0 * M_PI);
-
-    // Generate helix points
-    TColgp_Array1OfPnt helixPoints(1, totalPoints);
-    for (int i = 0; i < totalPoints; ++i) {
-        const double angle = i * angleStep;
-        const double x = pitchRadius * std::cos(angle);
-        const double y = pitchRadius * std::sin(angle);
-        const double z = zAdvancePerRadian * angle;
-
-        helixPoints.SetValue(i + 1, gp_Pnt(x, y, z));
-    }
-
-    // Create smooth B-spline curve through the points
-    try {
-        GeomAPI_PointsToBSpline splineBuilder(helixPoints,
-                                              3,           // degree
-                                              8,           // max degree
-                                              GeomAbs_C2,  // C2 continuity
-                                              1.0e-6);     // tolerance
-
-        if (!splineBuilder.IsDone()) {
-            throw std::runtime_error("Failed to create helix B-spline curve");
-        }
-
-        return splineBuilder.Curve();
-    } catch (const std::exception& e) {
-        std::stringstream ss;
-        ss << "Error creating helix curve: " << e.what();
-        throw std::runtime_error(ss.str());
-    }
+ThreadPreset PresetFine3D() {
+    return ThreadPreset{/*depth*/ 0.6,
+                        /*clearance*/ 0.18,
+                        /*flankAngleDeg*/ 60.0,
+                        /*samplesPerTurn*/ 80,
+                        /*tipStyle*/ ThreadTip::Rounded,
+                        /*tipRadius*/ 0.12};
 }
 
-TopoDS_Wire CoarseThread::CreateTriangularProfile(double depth, double flankAngleDeg) {
-    // Clamp flank angle to reasonable range for 3D printing
-    const double clampedAngle = std::clamp(flankAngleDeg, 10.0, 120.0);
-    const double halfAngleRad = 0.5 * (clampedAngle * M_PI / 180.0);
+// ---------- small helpers ----------------------------------------------------
 
-    // Calculate base width from triangle geometry
-    const double halfBaseWidth = depth * std::tan(halfAngleRad);
-
-    // Create isosceles triangle profile in YZ plane
-    // - Triangle tip at (0, depth, 0) pointing radially outward (+Y)
-    // - Base centered on Z-axis
-    const gp_Pnt triangleTip(0.0, depth, 0.0);
-    const gp_Pnt leftBase(0.0, 0.0, -halfBaseWidth);
-    const gp_Pnt rightBase(0.0, 0.0, halfBaseWidth);
-
-    // Create triangle edges
-    const TopoDS_Edge leftFlank = BRepBuilderAPI_MakeEdge(triangleTip, leftBase);
-    const TopoDS_Edge base = BRepBuilderAPI_MakeEdge(leftBase, rightBase);
-    const TopoDS_Edge rightFlank = BRepBuilderAPI_MakeEdge(rightBase, triangleTip);
-
-    // Assemble into closed wire
-    try {
-        BRepBuilderAPI_MakeWire wireBuilder;
-        wireBuilder.Add(leftFlank);
-        wireBuilder.Add(base);
-        wireBuilder.Add(rightFlank);
-
-        if (!wireBuilder.IsDone()) {
-            throw std::runtime_error("Failed to create triangular profile wire");
-        }
-
-        return wireBuilder.Wire();
-    } catch (const std::exception& e) {
-        std::stringstream ss;
-        ss << "Error creating triangular profile: " << e.what();
-        throw std::runtime_error(ss.str());
-    }
+static double clampPos(double v, double eps = 1e-6) {
+    return (v < eps) ? eps : v;
 }
 
-TopoDS_Wire CoarseThread::TransformProfileToPosition(const TopoDS_Wire& profile, double pitchRadius,
-                                                     bool pointingInward) {
-    try {
-        // Transformation sequence:
-        // 1. Rotate profile from YZ plane to position around cylinder
-        // 2. Translate to correct radius position
+/// BSpline helix with samplesPerTurn * turns points (fast, robust for 7.9)
+static Handle(Geom_Curve)
+    makeHelixBSpline(double radius, double pitch, double length, bool leftHand, int samplesPerTurn) {
+    const double turns = length / pitch;
+    const int ptsTotal = std::max(16, samplesPerTurn * std::max(1, (int)std::ceil(turns)));
+    const double tMax = 2.0 * M_PI * turns;
+    const double dt = tMax / (ptsTotal - 1);
+    const double zStep = (leftHand ? -1.0 : +1.0) * pitch / (2.0 * M_PI);
 
-        gp_Trsf transformation;
-
-        if (pointingInward) {
-            // For internal threads: rotate +90° so +Y becomes -X (pointing inward)
-            transformation.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)), M_PI / 2.0);
-
-            // Translate outward so the profile base is positioned correctly
-            // The profile tip should point inward from pitchRadius
-            gp_Trsf translation;
-            translation.SetTranslation(gp_Vec(-pitchRadius, 0.0, 0.0));
-            transformation = translation * transformation;
-        } else {
-            // For external threads: rotate -90° so +Y becomes +X (pointing outward)
-            transformation.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)), -M_PI / 2.0);
-
-            // Translate so profile base is at correct radial position
-            // Profile tip points outward from pitchRadius
-            gp_Trsf translation;
-            translation.SetTranslation(gp_Vec(pitchRadius, 0.0, 0.0));
-            transformation = translation * transformation;
-        }
-
-        BRepBuilderAPI_Transform transformer(profile, transformation, true);
-        transformer.Build();
-
-        if (!transformer.IsDone()) {
-            throw std::runtime_error("Failed to transform profile to position");
-        }
-
-        return TopoDS::Wire(transformer.Shape());
-    } catch (const std::exception& e) {
-        std::stringstream ss;
-        ss << "Error transforming profile: " << e.what();
-        throw std::runtime_error(ss.str());
+    TColgp_Array1OfPnt pts(1, ptsTotal);
+    for (int i = 0; i < ptsTotal; ++i) {
+        const double t = i * dt;
+        pts.SetValue(i + 1, gp_Pnt(radius * std::cos(t), radius * std::sin(t), zStep * t));
     }
+
+    GeomAPI_PointsToBSpline builder(pts);  //, /*DegMin*/ 3, /*DegMax*/ 45, GeomAbs_C2, 1.0e-6);
+    if (!builder.IsDone()) throw std::runtime_error("makeHelixBSpline: BSpline build failed");
+    return builder.Curve();
 }
 
-TopoDS_Shape CoarseThread::CreateHelicalSweep(const TopoDS_Wire& helixPath, const TopoDS_Wire& profile) {
-    try {
-        // Create pipe shell along helix with Frenet frame
-        // Frenet frame ensures the profile maintains proper orientation along the curved path
-        BRepOffsetAPI_MakePipeShell pipeBuilder(helixPath);
-        pipeBuilder.SetMode(true);  // Use Frenet frame
-        pipeBuilder.Add(profile);
-        pipeBuilder.Build();
+/// Build a V profile in local YZ with optional rounded tip (fillet radius r).
+/// - Radial = +Y, axial = +Z
+static TopoDS_Wire makeVProfileYZ(double depth, double flankAngleDeg, ThreadTip tip, double rFillet) {
+    const double a = std::clamp(flankAngleDeg, 30.0, 100.0);
+    const double half = 0.5 * a * M_PI / 180.0;
+    const double base = 2.0 * depth * std::tan(half);
 
-        if (!pipeBuilder.IsDone()) {
-            throw std::runtime_error("Failed to create helical sweep - pipe build failed");
-        }
+    // Tip at (0, depth, 0); base centered at z=0 on Y=0
+    gp_Pnt tipP(0, depth, 0);
+    gp_Pnt bL(0, 0, -0.5 * base);
+    gp_Pnt bR(0, 0, 0.5 * base);
 
-        // Convert to solid if possible
-        pipeBuilder.MakeSolid();
+    // Flank direction unit vectors from tip towards bases (in YZ plane)
+    const gp_Vec tipToL(bL.XYZ() - tipP.XYZ());
+    const gp_Vec tipToR(bR.XYZ() - tipP.XYZ());
+    gp_Vec vL = tipToL;
+    vL.Normalize();
+    gp_Vec vR = tipToR;
+    vR.Normalize();
 
-        return pipeBuilder.Shape();
-    } catch (const std::exception& e) {
-        std::stringstream ss;
-        ss << "Error creating helical sweep: " << e.what();
-        throw std::runtime_error(ss.str());
-    }
-}
+    TopoDS_Edge eL, eR, eArc;
+    if (tip == ThreadTip::Rounded && rFillet > 1e-6) {
+        // Distance from tip to tangent points on flanks: t = r / tan(half)
+        const double t = rFillet / std::tan(half);
+        const gp_Pnt pL = gp_Pnt(tipP.XYZ() + vL.XYZ() * t);
+        const gp_Pnt pR = gp_Pnt(tipP.XYZ() + vR.XYZ() * t);
 
-// =============================================================================
-// PUBLIC INTERFACE IMPLEMENTATION
-// =============================================================================
+        // Lines from bases to the tangent points
+        eL = BRepBuilderAPI_MakeEdge(bL, pL);
+        eR = BRepBuilderAPI_MakeEdge(pR, bR);
 
-ThreadValidation CoarseThread::ValidateParameters(double outerOrBoreDiameter, const CoarseThreadParams& threadParams,
-                                                  bool isExternal) {
-    ThreadValidation result;
-    std::stringstream errors;
-
-    // Check basic parameter ranges
-    if (outerOrBoreDiameter <= 0.0) {
-        errors << "Diameter must be positive. ";
-        result.isValid = false;
-    }
-
-    if (threadParams.length <= 0.0) {
-        errors << "Length must be positive. ";
-        result.isValid = false;
-    }
-
-    if (threadParams.depth <= 0.0) {
-        errors << "Thread depth must be positive. ";
-        result.isValid = false;
-    }
-
-    if (threadParams.turns < 1) {
-        errors << "Number of turns must be at least 1. ";
-        result.isValid = false;
-    }
-
-    if (threadParams.flankAngleDeg < 10.0 || threadParams.flankAngleDeg > 120.0) {
-        errors << "Flank angle should be between 10° and 120° for practical threads. ";
-        result.isValid = false;
-    }
-
-    if (threadParams.clearance < 0.0) {
-        errors << "Clearance cannot be negative. ";
-        result.isValid = false;
-    }
-
-    // Check geometric compatibility
-    const double effectiveDiameter = isExternal ? (outerOrBoreDiameter - 2.0 * threadParams.clearance)
-                                                : (outerOrBoreDiameter + 2.0 * threadParams.clearance);
-
-    const double effectiveRadius = 0.5 * effectiveDiameter;
-
-    if (isExternal) {
-        // For external threads, core radius must be positive
-        const double coreRadius = effectiveRadius - threadParams.depth;
-        if (coreRadius <= 0.0) {
-            errors << "Thread depth too large for given diameter - would create negative core radius. ";
-            result.isValid = false;
-        }
+        // Arc tangent to both flanks at pL and pR.
+        // Use tangent vectors along flanks at those points (same directions as vL/vR).
+        GC_MakeArcOfCircle mkArc(pL, gp_Vec(vL), pR);  // tangent at pL and pR
+        if (!mkArc.IsDone()) throw std::runtime_error("Rounded tip arc failed");
+        eArc = BRepBuilderAPI_MakeEdge(mkArc.Value());
     } else {
-        // For internal threads, check that we have reasonable geometry
-        if (threadParams.depth >= effectiveRadius) {
-            errors << "Thread depth too large for given bore diameter. ";
-            result.isValid = false;
-        }
+        // Sharp triangle
+        eL = BRepBuilderAPI_MakeEdge(tipP, bL);
+        eR = BRepBuilderAPI_MakeEdge(bR, tipP);
+        // base edge
+        eArc = BRepBuilderAPI_MakeEdge(bL, bR);
+        BRepBuilderAPI_MakeWire mw;
+        mw.Add(eL);
+        mw.Add(eArc);
+        mw.Add(eR);
+        return mw.Wire();
     }
 
-    // Check pitch calculation
-    const double pitch = threadParams.length / threadParams.turns;
-    if (pitch <= 0.0) {
-        errors << "Calculated pitch is not positive (length/turns). ";
-        result.isValid = false;
-    }
+    // Base edge:
+    TopoDS_Edge eBase = BRepBuilderAPI_MakeEdge(bL, bR);
 
-    result.errorMessage = errors.str();
-    return result;
+    BRepBuilderAPI_MakeWire mw;
+    mw.Add(eL);
+    mw.Add(eArc);
+    mw.Add(eR);
+    mw.Add(eBase);
+    return mw.Wire();
 }
 
-double CoarseThread::CalculatePitch(const CoarseThreadParams& threadParams) {
-    if (threadParams.turns <= 0) {
-        throw std::invalid_argument("Cannot calculate pitch: turns must be positive");
-    }
-    return threadParams.length / static_cast<double>(threadParams.turns);
+static TopoDS_Wire transformWire(const TopoDS_Wire& w, const gp_Trsf& tr) {
+    BRepBuilderAPI_Transform bt(w, tr, /*copy*/ true);
+    bt.Build();
+    if (!bt.IsDone()) throw std::runtime_error("transformWire failed");
+    return TopoDS::Wire(bt.Shape());
 }
 
-geometry::ShapePtr CoarseThread::CreateExternalThread(double outerDiameter, const CoarseThreadParams& threadParams) {
-    // Validate parameters first
-    auto validation = ValidateParameters(outerDiameter, threadParams, true);
-    if (!validation) {
-        throw std::invalid_argument("Invalid external thread parameters: " + validation.errorMessage);
-    }
-
-    try {
-        // Calculate key dimensions
-        const double pitch = CalculatePitch(threadParams);
-        const double effectiveOuterDiameter = outerDiameter - 2.0 * std::max(0.0, threadParams.clearance);
-        const double outerRadius = 0.5 * effectiveOuterDiameter;
-        const double coreRadius = ClampToPositive(outerRadius - threadParams.depth);
-        const double pitchRadius = outerRadius - 0.5 * threadParams.depth;
-
-        // Create helix curve at pitch radius
-        Handle(Geom_Curve) helixCurve = CreateHelixCurve(pitchRadius, pitch, threadParams.length, threadParams.leftHand,
-                                                         threadParams.helixSegments);
-
-        TopoDS_Wire helixWire = BRepBuilderAPI_MakeWire(BRepBuilderAPI_MakeEdge(helixCurve));
-
-        // Create triangular thread profile
-        TopoDS_Wire triangleProfile = CreateTriangularProfile(threadParams.depth, threadParams.flankAngleDeg);
-
-        // Position profile at pitch radius, pointing outward
-        TopoDS_Wire positionedProfile =
-            TransformProfileToPosition(triangleProfile, pitchRadius - 0.5 * threadParams.depth, false);
-
-        // Create thread ridges by sweeping profile along helix
-        TopoDS_Shape threadRidges = CreateHelicalSweep(helixWire, positionedProfile);
-
-        // Create core cylinder
-        TopoDS_Shape coreCylinder = BRepPrimAPI_MakeCylinder(coreRadius, threadParams.length).Shape();
-
-        // Fuse core and ridges to create complete external thread
-        BRepAlgoAPI_Fuse fuseOperation(coreCylinder, threadRidges);
-        fuseOperation.Build();
-
-        if (!fuseOperation.IsDone()) {
-            throw std::runtime_error("Failed to fuse core cylinder with thread ridges");
-        }
-
-        return std::make_shared<geometry::Shape>(fuseOperation.Shape());
-    } catch (const std::exception& e) {
-        std::stringstream ss;
-        ss << "Failed to create external thread: " << e.what();
-        throw std::runtime_error(ss.str());
-    }
+static TopoDS_Shape sweepAlong(const TopoDS_Wire& spine, const TopoDS_Wire& profilePlaced, bool frenet) {
+    BRepOffsetAPI_MakePipeShell pipe(spine);
+    pipe.SetMode(frenet);
+    pipe.Add(profilePlaced);
+    pipe.Build();
+    if (!pipe.IsDone()) throw std::runtime_error("PipeShell build failed");
+    pipe.MakeSolid();
+    TopoDS_Shape s = pipe.Shape();
+    BRepLib::SameParameter(s, 1.0e-4, true);
+    return s;
 }
 
-geometry::ShapePtr CoarseThread::CreateInternalThread(double boreDiameter, const CoarseThreadParams& threadParams) {
-    // Validate parameters first
-    auto validation = ValidateParameters(boreDiameter, threadParams, false);
-    if (!validation) {
-        throw std::invalid_argument("Invalid internal thread parameters: " + validation.errorMessage);
-    }
+/// Guard: keep depth/pitch relationship in a printable, robust range.
+static void enforceDepthGuard(CoarseThreadParams& p) {
+    const double pitch = p.length / std::max(1, p.turns);
+    if (pitch <= 0) throw std::invalid_argument("pitch <= 0");
+    const double maxDepth = p.maxDepthToPitch * pitch;
+    if (p.depth > maxDepth) p.depth = maxDepth;
+}
 
-    try {
-        // Calculate key dimensions for internal thread cutter
-        const double pitch = CalculatePitch(threadParams);
-        const double effectiveBoreDiameter = boreDiameter + 2.0 * std::max(0.0, threadParams.clearance);
-        const double boreRadius = 0.5 * effectiveBoreDiameter;
+// ---------- public API -------------------------------------------------------
 
-        // For internal threads, pitch radius is outside the bore
-        const double pitchRadius = boreRadius + 0.5 * threadParams.depth;
+ShapePtr ThreadExternal(double outerDiameter, const CoarseThreadParams& in) {
+    CoarseThreadParams p = in;
+    p.length = clampPos(p.length);
+    p.depth = clampPos(p.depth);
+    p.turns = std::max(1, p.turns);
+    p.clearance = std::max(0.0, p.clearance);
+    p.samplesPerTurn = std::clamp(p.samplesPerTurn, 48, 160);
+    enforceDepthGuard(p);
 
-        // Create helix curve at pitch radius
-        Handle(Geom_Curve) helixCurve = CreateHelixCurve(pitchRadius, pitch, threadParams.length, threadParams.leftHand,
-                                                         threadParams.helixSegments);
+    const double pitch = p.length / p.turns;
 
-        TopoDS_Wire helixWire = BRepBuilderAPI_MakeWire(BRepBuilderAPI_MakeEdge(helixCurve));
+    // outer / core / pitch radii (clearance reduces OD)
+    const double Do = clampPos(outerDiameter - 2.0 * p.clearance);
+    const double Ro = 0.5 * Do;
+    const double Rcore = clampPos(Ro - p.depth);
+    const double Rpitch = clampPos(Ro - 0.5 * p.depth);
 
-        // Create triangular cutter profile
-        TopoDS_Wire triangleProfile = CreateTriangularProfile(threadParams.depth, threadParams.flankAngleDeg);
+    // helix on pitch radius
+    Handle(Geom_Curve) helix = makeHelixBSpline(Rpitch, pitch, p.length, p.leftHand, p.samplesPerTurn);
+    TopoDS_Wire spine = BRepBuilderAPI_MakeWire(BRepBuilderAPI_MakeEdge(helix));
 
-        // Position profile pointing inward (toward bore center)
-        TopoDS_Wire positionedProfile =
-            TransformProfileToPosition(triangleProfile, pitchRadius + 0.5 * threadParams.depth, true);
+    // profile in local YZ
+    TopoDS_Wire profYZ = makeVProfileYZ(p.depth, p.flankAngleDeg, p.tipStyle, p.tipRadius);
 
-        // Create thread cutter by sweeping profile along helix
-        TopoDS_Shape threadCutter = CreateHelicalSweep(helixWire, positionedProfile);
+    // map +Y(radial) -> +X(world): rotation around Z with -90°, then shift so crest hits Ro
+    gp_Trsf rotZ;
+    rotZ.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)), -M_PI / 2.0);
+    gp_Trsf shift;
+    shift.SetTranslation(gp_Vec(Rpitch - 0.5 * p.depth, 0, 0));
+    TopoDS_Wire profPlaced = transformWire(profYZ, shift * rotZ);
 
-        // Create central cylinder to remove the bore completely
-        // Make it slightly larger to ensure clean boolean operation
-        const double cutterRadius = boreRadius + threadParams.depth + 0.1;  // Extra margin for clean cut
-        TopoDS_Shape centralCylinder = BRepPrimAPI_MakeCylinder(cutterRadius, threadParams.length).Shape();
+    // sweep ridges and fuse with core
+    TopoDS_Shape ridges = sweepAlong(spine, profPlaced, /*frenet*/ true);
+    TopoDS_Shape core = BRepPrimAPI_MakeCylinder(Rcore, p.length).Shape();
 
-        // Combine the helical cutter with central cylinder
-        BRepAlgoAPI_Fuse fuseOperation(threadCutter, centralCylinder);
-        fuseOperation.Build();
+    BRepAlgoAPI_Fuse fuse(core, ridges);
+    fuse.SetRunParallel(true);
+    fuse.SetFuzzyValue(1.0e-6);
+    fuse.Build();
+    if (!fuse.IsDone()) throw std::runtime_error("Fuse(core, ridges) failed");
 
-        if (!fuseOperation.IsDone()) {
-            throw std::runtime_error("Failed to combine thread cutter with central cylinder");
-        }
+    TopoDS_Shape result = fuse.Shape();
+    return std::make_shared<Shape>(result);
+}
 
-        return std::make_shared<geometry::Shape>(fuseOperation.Shape());
-    } catch (const std::exception& e) {
-        std::stringstream ss;
-        ss << "Failed to create internal thread cutter: " << e.what();
-        throw std::runtime_error(ss.str());
-    }
+ShapePtr ThreadInternalCutter(double boreDiameter, const CoarseThreadParams& in) {
+    CoarseThreadParams p = in;
+    p.length = clampPos(p.length);
+    p.depth = clampPos(p.depth);
+    p.turns = std::max(1, p.turns);
+    p.clearance = std::max(0.0, p.clearance);
+    p.samplesPerTurn = std::clamp(p.samplesPerTurn, 48, 160);
+    enforceDepthGuard(p);
+
+    const double pitch = p.length / p.turns;
+
+    // bore (with clearance), pitch radius outside bore
+    const double Di = clampPos(boreDiameter + 2.0 * p.clearance);
+    const double Ri = 0.5 * Di;
+    const double Rpitch = clampPos(Ri + 0.5 * p.depth);
+
+    Handle(Geom_Curve) helix = makeHelixBSpline(Rpitch, pitch, p.length, p.leftHand, p.samplesPerTurn);
+    TopoDS_Wire spine = BRepBuilderAPI_MakeWire(BRepBuilderAPI_MakeEdge(helix));
+
+    TopoDS_Wire profYZ = makeVProfileYZ(p.depth, p.flankAngleDeg, p.tipStyle, p.tipRadius);
+
+    // inward: +Y -> -X (rotate +90°), then shift negative so crest lands at Ri
+    gp_Trsf rotZ;
+    rotZ.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)), +M_PI / 2.0);
+    gp_Trsf shift;
+    shift.SetTranslation(gp_Vec(-(Rpitch - 0.5 * p.depth), 0, 0));
+    TopoDS_Wire profPlaced = transformWire(profYZ, shift * rotZ);
+
+    TopoDS_Shape cutter = sweepAlong(spine, profPlaced, /*frenet*/ true);
+    return std::make_shared<Shape>(cutter);  // subtract from your part
 }
 
 }  // namespace mech
