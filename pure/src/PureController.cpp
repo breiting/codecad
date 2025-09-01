@@ -17,6 +17,7 @@ namespace pure {
 const float NEAR_PLANE = 0.1f;
 const float FAR_PLANE = 1000.0f;
 const int STATUSBAR_TIMEOUT_MS = 3000;
+const float SIDEBAR_WIDTH = 360;
 
 static void ErrorCallback(int code, const char* msg) {
     std::cerr << "GLFW error " << code << ": " << msg << "\n";
@@ -95,10 +96,8 @@ void PureController::SetRightDockPanel(PanelRenderer panelRenderer) {
 void PureController::BeginDockspace() {
     ImGuiViewport* vp = ImGui::GetMainViewport();
 
-    const float sidebarW = 360.0f;
-
-    ImVec2 pos(vp->Pos.x + vp->Size.x - sidebarW, vp->Pos.y);
-    ImVec2 size(sidebarW, vp->Size.y);
+    ImVec2 pos(vp->Pos.x + vp->Size.x - SIDEBAR_WIDTH, vp->Pos.y);
+    ImVec2 size(SIDEBAR_WIDTH, vp->Size.y);
 
     ImGui::SetNextWindowPos(pos);
     ImGui::SetNextWindowSize(size);
@@ -139,6 +138,22 @@ void PureController::InstallGlfwCallbacks() {
 
         auto* self = static_cast<PureController*>(glfwGetWindowUserPointer(w));
         if (!self) return;
+
+        // Handle internal shortcuts first
+        //
+        // FIT TO SCREEN
+        if (key == GLFW_KEY_F && action == GLFW_PRESS) {
+            glm::vec3 bmin, bmax;
+            if (self->m_Scene->ComputeBounds(bmin, bmax)) self->m_Camera.FitToBounds(bmin, bmax, 1.12f);
+        }
+        // TOGGLE RIGHT PANEL
+        else if (key == GLFW_KEY_E && action == GLFW_PRESS) {
+            self->m_ShowRightPanel = !self->m_ShowRightPanel;
+        }
+        // EXIT APPLICATION
+        else if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+            glfwSetWindowShouldClose(self->m_Window, true);
+        }
 
         if (self->m_KeyPressedHandler && action == GLFW_PRESS) {
             self->m_KeyPressedHandler(key, mods);
@@ -200,7 +215,7 @@ void PureController::BeginFrame() {
 
 void PureController::DrawGui() {
     BeginDockspace();
-    if (m_RightPanel) {
+    if (m_RightPanel && m_ShowRightPanel) {
         ImGui::SetNextWindowDockID(ImGui::GetID("MainDock"), ImGuiCond_Once);
         if (ImGui::Begin("Project", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav)) {
             m_RightPanel();
@@ -272,15 +287,6 @@ void PureController::HandleInput() {
     m_Mmb = m;
     m_LastX = x;
     m_LastY = y;
-
-    if (glfwGetKey(m_Window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-        glfwSetWindowShouldClose(m_Window, true);
-    }
-
-    if (glfwGetKey(m_Window, GLFW_KEY_F) == GLFW_PRESS) {
-        glm::vec3 bmin, bmax;
-        if (m_Scene->ComputeBounds(bmin, bmax)) m_Camera.FitToBounds(bmin, bmax, 1.12f);
-    }
 }
 
 void PureController::Render() {

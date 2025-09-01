@@ -90,6 +90,7 @@ class PureController {
     int m_FramebufferH = 1200;
 
     bool m_Wireframe = false;
+    bool m_ShowRightPanel = true;
 
     std::string m_StatusMessage = "Ready!";
     std::chrono::steady_clock::time_point m_StatusTimestamp;
