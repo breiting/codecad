@@ -1,7 +1,9 @@
 #include "runtime/BindThreads.hpp"
 
+#include <BRepPrimAPI_MakeCylinder.hxx>
 #include <gp_XY.hxx>
 
+#include "mech/CoarseThread.hpp"
 #include "mech/Thread.hpp"
 
 namespace runtime {
@@ -36,7 +38,16 @@ void RegisterThreads(sol::state& lua) {
     lua.set_function("bolt_M", [](double diameter, double pitch, double length, double head_height, double height_width,
                                   sol::optional<mech::ThreadOptions> opts) {
         mech::ThreadOptions o = opts.value_or(mech::ThreadOptions{});
-        return mech::MakeMetricBolt(diameter, pitch, length, head_height, height_width, o);
+
+        mech::CoarseThreadParams p;
+        p.length = 20.0;
+        p.depth = 2.0;       // grob!
+        p.turns = 2;         // => Pitch ~ 6.67 mm
+        p.clearance = 0.15;  // leichtes Spiel für den Druck
+
+        return mech::CoarseThread::External(/*outerDiameter*/ 16.0, p);
+
+        // return mech::CoarseThread::InternalCutter(/*outerDiameter*/ 16.0, p);
     });
 
     lua.set_function("metric_thread_external",

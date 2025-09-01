@@ -11,6 +11,7 @@ add_library(core STATIC
    src/Primitives.cpp
    src/Project.cpp
    src/Sketch.cpp
+   src/CoarseThread.cpp
    src/Thread.cpp
    src/Transform.cpp
    src/Triangulate.cpp
