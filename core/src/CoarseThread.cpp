@@ -1,12 +1,11 @@
 #include "mech/CoarseThread.hpp"
 
-// Standard library
 #include <algorithm>
 #include <cmath>
 #include <sstream>
 #include <stdexcept>
 
-// OpenCASCADE Technology
+// OCCT
 #include <BRepAlgoAPI_Fuse.hxx>
 #include <BRepBuilderAPI_MakeEdge.hxx>
 #include <BRepBuilderAPI_MakeWire.hxx>
@@ -45,6 +44,8 @@ Handle(Geom_Curve) CoarseThread::CreateHelixCurve(double pitchRadius, double pit
     const double totalTurns = length / pitch;
     const double totalAngle = 2.0 * M_PI * totalTurns;
     const int totalPoints = std::max(16, static_cast<int>(segments * totalTurns));
+
+    std::cout << "Sampled points: " << totalPoints << std::endl;
 
     // Angular step and Z advancement per unit angle
     const double angleStep = totalAngle / (totalPoints - 1);

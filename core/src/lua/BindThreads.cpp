@@ -41,12 +41,13 @@ void RegisterThreads(sol::state& lua) {
 
         // Externe Schraube (M12 x 1.5)
         mech::CoarseThreadParams params;
-        params.length = 20.0;  // 20mm lang
-        params.depth = 1.0;    // 1mm Gewindehöhe
+        params.length = 40.0;  // 20mm lang
+        params.depth = 3.0;    // 1mm Gewindehöhe
         params.turns = 10;     // 10 Umdrehungen
         params.flankAngleDeg = 60.0;
 
-        return mech::CoarseThread::CreateExternalThread(15.0, params);
+        // return mech::CoarseThread::CreateExternalThread(30.0, params);
+        return mech::CoarseThread::CreateInternalThread(30.0, params);
     });
 
     lua.set_function("metric_thread_external",
