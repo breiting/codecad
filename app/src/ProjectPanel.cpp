@@ -32,10 +32,11 @@ void ProjectPanel::Draw() {
         }
     }
 
-    if (ImGui::Button("Save")) {
-        if (m_OnSave) m_OnSave(m_Project);
-        m_Dirty = false;
-    }
+    // TODO: Currently the project is always saved
+    // if (ImGui::Button("Save")) {
+    //     if (m_OnSave) m_OnSave(m_Project);
+    //     m_Dirty = false;
+    // }
 }
 
 bool ProjectPanel::DrawMeta(io::Meta& m) {

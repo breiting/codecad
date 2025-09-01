@@ -97,7 +97,7 @@ void PureController::BeginDockspace() {
     ImGuiViewport* vp = ImGui::GetMainViewport();
 
     ImVec2 pos(vp->Pos.x + vp->Size.x - SIDEBAR_WIDTH, vp->Pos.y);
-    ImVec2 size(SIDEBAR_WIDTH, vp->Size.y);
+    ImVec2 size(SIDEBAR_WIDTH, vp->Size.y - 16.0);  // 16.0 means height of statusbar
 
     ImGui::SetNextWindowPos(pos);
     ImGui::SetNextWindowSize(size);
@@ -105,7 +105,7 @@ void PureController::BeginDockspace() {
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
                              ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
                              ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus |
-                             ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_MenuBar;
+                             ImGuiWindowFlags_NoBackground;
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
