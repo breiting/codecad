@@ -7,31 +7,19 @@
 #include <stdexcept>
 
 // OpenCASCADE Technology
-#include <BRepAlgoAPI_Cut.hxx>
 #include <BRepAlgoAPI_Fuse.hxx>
 #include <BRepBuilderAPI_MakeEdge.hxx>
-#include <BRepBuilderAPI_MakeFace.hxx>
 #include <BRepBuilderAPI_MakeWire.hxx>
 #include <BRepBuilderAPI_Transform.hxx>
 #include <BRepOffsetAPI_MakePipeShell.hxx>
-#include <BRepPrimAPI_MakeBox.hxx>
 #include <BRepPrimAPI_MakeCylinder.hxx>
-#include <Geom2d_Line.hxx>
-#include <GeomAPI.hxx>
 #include <GeomAPI_PointsToBSpline.hxx>
 #include <Geom_BSplineCurve.hxx>
-#include <Geom_CylindricalSurface.hxx>
-#include <Geom_Surface.hxx>
-#include <Geom_TrimmedCurve.hxx>
 #include <TColgp_Array1OfPnt.hxx>
-#include <TopExp.hxx>
 #include <TopoDS.hxx>
 #include <gp_Ax1.hxx>
-#include <gp_Ax3.hxx>
 #include <gp_Dir.hxx>
-#include <gp_Pln.hxx>
 #include <gp_Pnt.hxx>
-#include <gp_Pnt2d.hxx>
 #include <gp_Trsf.hxx>
 #include <gp_Vec.hxx>
 
@@ -136,26 +124,26 @@ TopoDS_Wire CoarseThread::TransformProfileToPosition(const TopoDS_Wire& profile,
                                                      bool pointingInward) {
     try {
         // Transformation sequence:
-        // 1. Rotate profile from YZ plane to XZ plane
-        // 2. Translate to pitch radius
-        // 3. Optionally flip for inward-pointing (internal thread)
+        // 1. Rotate profile from YZ plane to position around cylinder
+        // 2. Translate to correct radius position
 
         gp_Trsf transformation;
 
         if (pointingInward) {
-            // For internal threads: rotate +90° so +Y becomes +X (outward), then negate X
-            // This makes the profile point inward toward the bore
+            // For internal threads: rotate +90° so +Y becomes -X (pointing inward)
             transformation.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)), M_PI / 2.0);
 
-            // Translate so profile tip is at inner radius + depth/2
+            // Translate outward so the profile base is positioned correctly
+            // The profile tip should point inward from pitchRadius
             gp_Trsf translation;
-            translation.SetTranslation(gp_Vec(-(pitchRadius + 0.5 * pitchRadius), 0.0, 0.0));
+            translation.SetTranslation(gp_Vec(-pitchRadius, 0.0, 0.0));
             transformation = translation * transformation;
         } else {
-            // For external threads: rotate -90° so +Y becomes +X (outward)
+            // For external threads: rotate -90° so +Y becomes +X (pointing outward)
             transformation.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)), -M_PI / 2.0);
 
-            // Translate so profile tip is at pitch radius
+            // Translate so profile base is at correct radial position
+            // Profile tip points outward from pitchRadius
             gp_Trsf translation;
             translation.SetTranslation(gp_Vec(pitchRadius, 0.0, 0.0));
             transformation = translation * transformation;
@@ -292,7 +280,7 @@ geometry::ShapePtr CoarseThread::CreateExternalThread(double outerDiameter, cons
         const double effectiveOuterDiameter = outerDiameter - 2.0 * std::max(0.0, threadParams.clearance);
         const double outerRadius = 0.5 * effectiveOuterDiameter;
         const double coreRadius = ClampToPositive(outerRadius - threadParams.depth);
-        const double pitchRadius = ClampToPositive(outerRadius - 0.5 * threadParams.depth);
+        const double pitchRadius = outerRadius - 0.5 * threadParams.depth;
 
         // Create helix curve at pitch radius
         Handle(Geom_Curve) helixCurve = CreateHelixCurve(pitchRadius, pitch, threadParams.length, threadParams.leftHand,
@@ -304,7 +292,8 @@ geometry::ShapePtr CoarseThread::CreateExternalThread(double outerDiameter, cons
         TopoDS_Wire triangleProfile = CreateTriangularProfile(threadParams.depth, threadParams.flankAngleDeg);
 
         // Position profile at pitch radius, pointing outward
-        TopoDS_Wire positionedProfile = TransformProfileToPosition(triangleProfile, pitchRadius, false);
+        TopoDS_Wire positionedProfile =
+            TransformProfileToPosition(triangleProfile, pitchRadius - 0.5 * threadParams.depth, false);
 
         // Create thread ridges by sweeping profile along helix
         TopoDS_Shape threadRidges = CreateHelicalSweep(helixWire, positionedProfile);
@@ -342,7 +331,7 @@ geometry::ShapePtr CoarseThread::CreateInternalThread(double boreDiameter, const
         const double boreRadius = 0.5 * effectiveBoreDiameter;
 
         // For internal threads, pitch radius is outside the bore
-        const double pitchRadius = ClampToPositive(boreRadius + 0.5 * threadParams.depth);
+        const double pitchRadius = boreRadius + 0.5 * threadParams.depth;
 
         // Create helix curve at pitch radius
         Handle(Geom_Curve) helixCurve = CreateHelixCurve(pitchRadius, pitch, threadParams.length, threadParams.leftHand,
@@ -354,12 +343,26 @@ geometry::ShapePtr CoarseThread::CreateInternalThread(double boreDiameter, const
         TopoDS_Wire triangleProfile = CreateTriangularProfile(threadParams.depth, threadParams.flankAngleDeg);
 
         // Position profile pointing inward (toward bore center)
-        TopoDS_Wire positionedProfile = TransformProfileToPosition(triangleProfile, pitchRadius, true);
+        TopoDS_Wire positionedProfile =
+            TransformProfileToPosition(triangleProfile, pitchRadius + 0.5 * threadParams.depth, true);
 
         // Create thread cutter by sweeping profile along helix
         TopoDS_Shape threadCutter = CreateHelicalSweep(helixWire, positionedProfile);
 
-        return std::make_shared<geometry::Shape>(threadCutter);
+        // Create central cylinder to remove the bore completely
+        // Make it slightly larger to ensure clean boolean operation
+        const double cutterRadius = boreRadius + threadParams.depth + 0.1;  // Extra margin for clean cut
+        TopoDS_Shape centralCylinder = BRepPrimAPI_MakeCylinder(cutterRadius, threadParams.length).Shape();
+
+        // Combine the helical cutter with central cylinder
+        BRepAlgoAPI_Fuse fuseOperation(threadCutter, centralCylinder);
+        fuseOperation.Build();
+
+        if (!fuseOperation.IsDone()) {
+            throw std::runtime_error("Failed to combine thread cutter with central cylinder");
+        }
+
+        return std::make_shared<geometry::Shape>(fuseOperation.Shape());
     } catch (const std::exception& e) {
         std::stringstream ss;
         ss << "Failed to create internal thread cutter: " << e.what();
