@@ -302,6 +302,36 @@ function center_to(s, cx, cy, cz) end
 ---@return Shape
 function gear_involute(z, module, thickness, bore, pressure_deg) end
 
+--- Print-friendly metric thread helpers (external/internal)
+---@class ThreadOpts
+---@field left boolean?   Left-hand thread (default false)
+---@field xy number?      Radial XY compensation for printing in mm (default 0.15)
+---@field lead_in number? Lead-in chamfer length in mm (default 1.5)
+---@field segments integer? Helix tessellation density (default 96)
+
+--- Lookup coarse ISO pitch for a nominal diameter (e.g. M6 -> 1.0).
+---@param d_nominal number @Nominal diameter in mm (e.g. 6.0 for M6)
+---@return number    @Pitch in mm
+function iso_coarse_pitch(d_nominal) end
+
+--- Build a print-friendly *external* metric thread (male).
+--- The returned shape is a solid (core + thread fused).
+---@param d_major number    @Major (outside) diameter in mm
+---@param pitch number      @Pitch in mm
+---@param length number     @Threaded length along Z in mm
+---@param opts ThreadOpts?  @Optional print tuning (xy, lead_in, left, segments)
+---@return Shape
+function metric_thread_external(d_major, pitch, length, opts) end
+
+--- Build a print-friendly *internal* metric thread (female).
+--- The returned shape is a solid bore cut with thread volume.
+---@param d_nominal number  @Nominal diameter (e.g. 6.0 for M6)
+---@param pitch number      @Pitch in mm
+---@param height number     @Thread height along Z in mm
+---@param opts ThreadOpts?  @Optional print tuning (xy, lead_in, left, segments)
+---@return Shape
+function metric_thread_internal(d_nominal, pitch, height, opts) end
+
 --==============================================================
 -- PARAMETER TABLE (injected by engine)
 --==============================================================

@@ -32,13 +32,13 @@ With CodeCAD you:
 
 ```text
 ┌────────────┐      ┌────────────┐      ┌───────────────┐
-│   core     │─────▶│   cosma    │─────▶│     main      │
+│   core     │─────▶│    pure    │─────▶│     main      │
 │ LuaEngine  │      │ Viewer     │      │ CLI frontend  │
 │ OCCT, STL  │      │ GLFW+ImGui │      │ ccad commands │
 └────────────┘      └────────────┘      └───────────────┘
 
 	•	core — C++ engine with Lua bindings, geometry, triangulation & STL export
-	•	cosma — OpenGL viewer & scene graph, real-time updates, ImGui controls
+	•	pure — A simple GLFW-based render engine optimized for CodeCAD with ImGui controls
 	•	main — CLI: ccad init, ccad add, ccad live, ccad build
 ```
 
@@ -58,6 +58,7 @@ git clone https://github.com/breiting/codecad
 cd codecad
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j
+cd build && make install
 ```
 
 ### Scaffold a new project
@@ -75,7 +76,7 @@ ccad add --name "box"
 ccad live
 ```
 
-This opens a viewer: edit parts/box.lua in your editor and see geometry update live.
+This opens the viewer: edit parts/box.lua in your editor and see geometry update live.
 
 ## 📦 Project Structure
 

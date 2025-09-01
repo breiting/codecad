@@ -2,21 +2,13 @@
 
 #include <CLI/CLI.hpp>
 #include <filesystem>
-
-#include "assets/part_template.h"
-#include "assets/readme_template.h"
-#include "io/Bom.hpp"
-#include "io/Export.hpp"
-#include "io/Paths.hpp"
-#include "io/Project.hpp"
-
-#ifdef ENABLE_COSMA
-#include "CosmaMain.hpp"
-#endif
-#include <filesystem>
 #include <nlohmann/json.hpp>
 
-#include "core/LuaEngine.hpp"
+#include "Controller.hpp"
+#include "Utils.hpp"
+#include "assets/part_template.h"
+#include "assets/readme_template.h"
+#include "io/Project.hpp"
 
 const std::string PROJECT_FILENAME = "project.json";
 const std::string PROJECT_OUTDIR = "generated";
@@ -44,27 +36,6 @@ static std::string Slugify(const std::string& name) {
     return s;
 }
 
-static void ApplyProjectParamsToLua(sol::state& L, const io::Project& p) {
-    sol::table P = L["PARAMS"];
-    if (!P.valid()) P = L.create_named_table("PARAMS");
-
-    for (const auto& kv : p.params) {
-        const auto& k = kv.first;
-        const auto& v = kv.second;
-        switch (v.type) {
-            case io::ParamValue::Type::Boolean:
-                P[k] = v.boolean;
-                break;
-            case io::ParamValue::Type::Number:
-                P[k] = v.number;
-                break;
-            case io::ParamValue::Type::String:
-                P[k] = v.string;
-                break;
-        }
-    }
-}
-
 App::App() = default;
 
 void App::start(int argc, char** argv) {
@@ -81,7 +52,8 @@ reusable components, and integration with 3D printing workflows.
     app.footer("https://github.com/breiting/codecad");
 
     // ---------- global options ----------
-    app.add_option("--luapath", m_LuaPaths, "Additional Lua search paths")->take_all();
+    std::vector<std::string> luaPaths;
+    app.add_option("--luapath", luaPaths, "Additional Lua search paths")->take_all();
 
     // ---------- subcommands ----------
 
@@ -135,8 +107,8 @@ reusable components, and integration with 3D printing workflows.
         std::exit(app.exit(e));
     }
 
-    // setup the lua engine
-    setupEngine();
+    // Setup controller
+    m_Controller = std::make_unique<Controller>(luaPaths);
 
     // Dispatch manually
     if (*cmdLive) {
@@ -174,35 +146,6 @@ reusable components, and integration with 3D printing workflows.
 
     // Show help if nothing was executed
     std::cout << app.help() << "\n";
-}
-
-void App::setupEngine() {
-    m_Engine = std::make_shared<LuaEngine>();
-
-    // Standard search paths
-    std::vector<std::string> paths = {"./lib/?.lua", "./lib/?/init.lua", "./vendor/?.lua", "./vendor/?/init.lua"};
-
-    // installed standard paths
-    auto installPaths = io::DefaultInstallLuaPathsFromExe();
-    paths.insert(paths.end(), installPaths.begin(), installPaths.end());
-
-    // Environment-Variable LUA_PATH (optional)
-    if (const char* env = std::getenv("LUA_PATH")) {
-        std::stringstream ss(env);
-        std::string token;
-        while (std::getline(ss, token, ';')) {
-            if (!token.empty()) paths.push_back(token);
-        }
-    }
-
-    // CLI options
-    paths.insert(paths.end(), m_LuaPaths.begin(), m_LuaPaths.end());
-    m_Engine->SetLibraryPaths(paths);
-
-    std::string err;
-    if (!m_Engine->Initialize(&err)) {
-        throw std::runtime_error(std::string("CoreEngine init failed: ") + err);
-    }
 }
 
 static bool EnsureDirs(const fs::path& root) {
@@ -245,9 +188,9 @@ void App::handleNew(const std::string& projectName, const std::string& unit) {
               << "  - parts/\n"
               << "  - " << PROJECT_OUTDIR << "/\n\n"
               << "Next steps:\n"
-              << "  1) codecad parts add\n"
-              << "  2) codecad live\n"
-              << "  3) codecad build\n";
+              << "  1) ccad parts add\n"
+              << "  2) ccad live\n"
+              << "  3) ccad build\n";
 }
 
 void App::handlePartsAdd(const std::string& partName) {
@@ -309,46 +252,23 @@ void App::handlePartsAdd(const std::string& partName) {
 }
 
 void App::handleBuild(const std::string& rootDir) {
-    auto projectFile = fs::path(rootDir) / PROJECT_FILENAME;
-    auto project = io::LoadProject(projectFile);
-    io::PrintProject(project);
-    auto projectRoot = std::filesystem::absolute(std::filesystem::path(projectFile)).parent_path();
-
-    auto outDir = projectRoot / PROJECT_OUTDIR;
-    fs::create_directory(outDir);
-
-    for (const auto& jp : project.parts) {
-        std::filesystem::path src = projectRoot / jp.source;
-        auto luaFile = std::filesystem::weakly_canonical(src);
-
-        std::string err;
-        ApplyProjectParamsToLua(m_Engine->Lua(), project);
-
-        if (!m_Engine->RunFile(luaFile, &err)) {
-            auto errStr = std::string("Lua error in ") + luaFile.string() + ": " + err;
-            std::cerr << errStr << std::endl;
-            return;
-        }
-
-        auto emitted = m_Engine->GetEmitted();
-        if (!emitted) {
-            std::cerr << "Canot get shape from " << luaFile << std::endl;
-            return;
-        }
-        const auto stem = fs::path(luaFile).stem().string();
-        const fs::path stlFile = outDir / (stem + ".stl");
-        io::SaveSTL(emitted.value(), stlFile.string(), 0.1);
-    }
+    m_Controller->LoadProject(rootDir);
+    m_Controller->BuildProject();
 }
 
-/// Start COSMA viewer, if supported
 void App::handleLive(const std::string& rootDir) {
-    fs::path projectFile = fs::path(rootDir) / PROJECT_FILENAME;
-#ifdef ENABLE_COSMA
-    CosmaMain::StartApp(m_Engine, projectFile);
-#else
-    std::cerr << "This build does not support COSMA live viewer" << std::endl;
-#endif
+    m_Controller->LoadProject(rootDir);
+    m_Controller->ViewProject();
+}
+
+void App::handleBom() {
+    fs::path root = fs::current_path();
+    m_Controller->LoadProject(root);
+    m_Controller->CreateBom();
+}
+
+void App::handleDoctor() {
+    m_Controller->HealthCheck();
 }
 
 void App::handleParamsSet(const std::string& key, const std::string& value) {
@@ -386,7 +306,7 @@ void App::handleLspInit() {
     std::vector<std::string> workspaceLib = {"${workspaceFolder}/types", "${workspaceFolder}/lib"};
 
     std::vector<std::string> installLibs;
-    for (const auto& p : io::DefaultInstallLuaPathsFromExe()) {
+    for (const auto& p : utils::DefaultInstallLuaPathsFromExe()) {
         auto dir = fs::path(p).parent_path();
         if (std::find(installLibs.begin(), installLibs.end(), dir.string()) == installLibs.end()) {
             installLibs.push_back(dir.string());
@@ -437,154 +357,11 @@ void App::handleLspInit() {
                                    "union",
                                    "wedge"};
 
-    std::string err;
-    if (!io::WriteTextFile(luarc, j.dump(2) + "\n", &err)) {
-        std::cerr << "Failed to write .luarc.json: " << err << "\n";
+    if (!utils::WriteTextFile(luarc, j.dump(2) + "\n")) {
+        std::cerr << "Failed to write .luarc.json: " << std::endl;
         return;
     }
     std::cout << "Wrote " << luarc << "\n";
     std::cout << "Included library paths:\n";
     for (auto& s : libs) std::cout << "  - " << s << "\n";
-}
-
-void App::handleBom() {
-    try {
-        const fs::path pj = fs::current_path() / PROJECT_FILENAME;
-        if (!fs::exists(pj)) {
-            std::cerr << "Error: project.json not found in current directory. "
-                         "Run `ccad new` or `cd` into a project.\n";
-            return;
-        }
-
-        io::Project p;
-        try {
-            p = io::LoadProject(pj.string());
-        } catch (const std::exception& e) {
-            std::cerr << "Error: failed to load project.json: " << e.what() << "\n";
-            return;
-        }
-
-        std::string initErr;
-        if (!m_Engine || !m_Engine->Initialize(&initErr)) {
-            std::cerr << "Error: CoreEngine init failed: " << initErr << "\n";
-            return;
-        }
-
-        io::BomWriter bomWriter;
-
-        for (const auto& part : p.parts) {
-            fs::path src = fs::current_path() / part.source;
-            fs::path luaFile = fs::weakly_canonical(src);
-
-            try {
-                sol::state& L = m_Engine->Lua();
-                sol::table bom = L["require"]("ccad.util.bom");
-                if (bom.valid()) {
-                    sol::protected_function clear = bom["clear"];
-                    if (clear.valid()) {
-                        sol::protected_function_result r = clear();
-                        if (!r.valid()) {
-                            sol::error err = r;
-                            std::cerr << "Warning: bom.clear() failed: " << err.what() << "\n";
-                        }
-                    }
-                }
-            } catch (...) {
-                std::cerr << "Warning: could not clear BOM for part\n";
-            }
-
-            std::string err;
-            ApplyProjectParamsToLua(m_Engine->Lua(), p);
-            if (!m_Engine->RunFile(luaFile.string(), &err)) {
-                std::cerr << "Lua error in " << luaFile.string() << ": " << err << "\n";
-                return;
-            }
-
-            try {
-                bomWriter.Collect(m_Engine->Lua(), part.id.empty() ? part.name : part.id);
-            } catch (const std::exception& e) {
-                std::cerr << "Error: collecting BOM failed for part " << (part.id.empty() ? part.name : part.id) << ": "
-                          << e.what() << "\n";
-                return;
-            }
-        }
-
-        bomWriter.WriteCsv("bom.csv");
-        bomWriter.WriteMarkdown("bom.md");
-        std::cout << "BOM written: bom.csv, bom.md\n";
-
-    } catch (const std::exception& e) {
-        std::cerr << "Error: failed to generate BOM: " << e.what() << "\n";
-    }
-}
-
-void App::handleDoctor() {
-    cout << "== CodeCAD Doctor ==\n";
-    auto exe = io::ExecutablePath();
-    cout << "Executable: " << (exe.empty() ? "<unknown>" : exe.string()) << "\n";
-
-    auto installPatterns = io::DefaultInstallLuaPathsFromExe();
-    cout << "Derived install search patterns:\n";
-    for (auto& p : installPatterns) cout << "  " << p << "\n";
-
-    auto& L = m_Engine->Lua();
-    try {
-        std::string pkg_path = L["package"]["path"];
-        cout << "\nLua package.path:\n" << pkg_path << "\n";
-    } catch (...) { /* ignore */
-    }
-
-    // Minimal-Checks
-    auto try_require = [&](const char* mod) {
-        try {
-            sol::load_result lr = m_Engine->Lua().load(("return require('" + std::string(mod) + "')").c_str());
-            if (!lr.valid()) {
-                sol::error e = lr;
-                cout << "  " << mod << ": load error: " << e.what() << "\n";
-                return;
-            }
-            sol::protected_function_result r = lr();
-            if (!r.valid()) {
-                sol::error e = r;
-                cout << "  " << mod << ": runtime error: " << e.what() << "\n";
-                return;
-            }
-            cout << "  " << mod << ": OK\n";
-        } catch (const std::exception& e) {
-            cout << "  " << mod << ": exception: " << e.what() << "\n";
-        }
-    };
-
-    cout << "\nRequire checks:\n";
-    try_require("ccad.util.box");
-    try_require("ccad.util.transform");
-    try_require("ccad.util.func");
-    try_require("ccad.util.place");
-    try_require("ccad.util.shape2d");
-    try_require("ccad.util.sketch");
-
-    cout << "\nEnvironment:\n";
-#ifdef __APPLE__
-    cout << "  OS: macOS\n";
-#elif __linux__
-    cout << "  OS: Linux\n";
-#else
-    cout << "  OS: (unknown)\n";
-#endif
-
-    try {
-        auto lr = L.load(R"(
-      local ok = pcall(function() return box(1,1,1) end)
-      return ok
-    )");
-        auto r = lr();
-        bool ok = r.get<bool>();
-        cout << "  Primitive test (box): " << (ok ? "OK" : "FAILED") << "\n";
-    } catch (...) {
-        cout << "  Primitive test (box): FAILED\n";
-    }
-
-    cout << "\nGood to know:\n";
-    cout << "  - In case of neovim completion problems: 'ccad lsp' should fix it\n";
-    cout << "  - Make sure that all paths are set properly\n";
 }

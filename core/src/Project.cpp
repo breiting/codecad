@@ -198,7 +198,12 @@ bool SaveProject(const Project& p, const std::string& path, bool pretty) {
         json arr = json::array();
         for (const Part& pr : p.parts) {
             json jp;
-            if (!pr.id.empty()) jp["id"] = pr.id;
+            if (!pr.id.empty()) {
+                jp["id"] = pr.id;
+            } else {
+                // fallback use ID
+                jp["id"] = pr.name;
+            }
             jp["name"] = pr.name;
             if (!pr.source.empty()) jp["source"] = pr.source;
             if (!pr.material.empty()) jp["material"] = pr.material;

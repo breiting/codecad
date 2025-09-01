@@ -16,7 +16,7 @@ This creates the initial project file:
 The next step is to create a new part which contains shape information.
 
 ```
-> ccad parts add --name <part name>
+> ccad parts add name <part name>
 ```
 
 This creates a new part file with a dummy shape in `parts/part_name.lua` and adds the part to the `project.json` file.
@@ -26,7 +26,7 @@ This creates a new part file with a dummy shape in `parts/part_name.lua` and add
 Before getting started with modeling, you can start the live viewer to see the modelling progress.
 
 ```
-> ccad live project.json
+> ccad live
 ```
 
 This should show you the project rendered in 3D.
@@ -40,13 +40,13 @@ Open up the part file, and start to model the first part. Every time the file ge
 Once finished with modeling, you can simply generate the output files either as `.stl` or as `.step` files with the following command.
 
 ```
-> ccad build project.json
+> ccad build
 ```
 
-## Start slicer (future idea)
+## Setup LSP
 
-In case of 3D printing, you can then generate the G-Code using `PrusaSlider`.
+If you want to work with LSP support make sure to generate the according files with the following command.
 
 ```
-> ccad slice project.json
+> ccad lsp
 ```
