@@ -97,6 +97,8 @@ class CoarseThread {
      */
     static geometry::ShapePtr MakeNut(double boreDiameter, double thickness, double acrossFlats,
                                       const CoarseThreadParams& p);
+
+    static geometry::ShapePtr Test(const CoarseThreadParams& p);
 };
 
 }  // namespace mech

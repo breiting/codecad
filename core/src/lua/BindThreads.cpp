@@ -39,14 +39,16 @@ void RegisterThreads(sol::state& lua) {
         mech::ThreadOptions o = opts.value_or(mech::ThreadOptions{});
 
         mech::CoarseThreadParams p;
-        p.length = length;
-        p.turns = 10;
-        p.depth = 0.6;
-        p.clearance = 0.0;
-        p.tip = mech::ThreadTip::Cut;
+        p.length = 30.0;
+        p.turns = 2;  // exakt ~1 Umdrehung
+        p.depth = 3.5;
+        p.clearance = 0.15;
+        p.flankAngleDeg = 60.0;
+        p.leftHand = false;
+        p.tip = mech::ThreadTip::Cut;  // flache Spitze, robuster zu drucken
         p.tipFlatRatio = 0.5;
 
-        return mech::CoarseThread::MakeBolt(diameter, length, 1.6 * diameter, 0.7 * diameter, p);
+        return mech::CoarseThread::MakeBolt(24, p.length, 1.6 * 24, 0.7 * diameter, p);
     });
 
     lua.set_function("nut", [](double diameter, double length, sol::optional<mech::ThreadOptions> opts) {
@@ -60,7 +62,7 @@ void RegisterThreads(sol::state& lua) {
         p.tip = mech::ThreadTip::Cut;
         p.tipFlatRatio = 0.5;
 
-        return mech::CoarseThread::MakeNut(diameter, length, 1.6 * 10, p);
+        return mech::CoarseThread::Test(p);
     });
 
     lua.set_function("metric_thread_external",

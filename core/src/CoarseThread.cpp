@@ -234,7 +234,7 @@ ShapePtr CoarseThread::ThreadInternal(double boreDiameter, const CoarseThreadPar
 
     // Rotate -90°: local +Y -> world -X (inwards), then shift so centroid sits at Rpitch.
     gp_Trsf rotZ;
-    rotZ.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)), -M_PI / 2.0);
+    rotZ.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)), M_PI / 2.0);
     gp_Trsf shift;
     shift.SetTranslation(gp_Vec(-(Rpitch - 0.5 * d), 0, 0));
     TopoDS_Wire profilePlaced = TransformWire(profileYZ, shift * rotZ);
@@ -307,6 +307,54 @@ ShapePtr CoarseThread::MakeNut(double boreDiameter, double thickness, double acr
 
     // return std::make_shared<Shape>(Cut(nut, cutter));
     return std::make_shared<Shape>(cutter);
+}
+
+geometry::ShapePtr CoarseThread::Test(const CoarseThreadParams& p) {
+    const double bodyOuterR = 30.0;  // Außenradius des Bauteils
+    TopoDS_Shape body = BRepPrimAPI_MakeCylinder(bodyOuterR, 100).Shape();
+
+    // Innengewinde-Parameter (identisch zu außen – außer Länge)
+    double threadLen_I = 30.0;
+    double depth = 3.5;
+    double clearance = 0.15;
+    double outerD = 24.0;
+    CoarseThreadParams pI{};
+    pI.length = threadLen_I;
+    pI.turns = 2;
+    pI.depth = depth;
+    pI.clearance = clearance;  // leicht positives Spiel
+    pI.flankAngleDeg = 60.0;
+    pI.leftHand = false;
+    pI.tip = ThreadTip::Cut;
+    pI.tipFlatRatio = 0.5;
+
+    // Minor-Durchmesser ~ outerD - 2*depth (plus minimaler Sicherheitsabzug)
+    const double minorD = std::max(1e-3, outerD - 2.0 * depth);
+
+    TopoDS_Shape bore = BRepPrimAPI_MakeCylinder(0.5 * minorD, threadLen_I).Shape();
+    BRepAlgoAPI_Cut opBore(body, bore);
+    opBore.SetFuzzyValue(1.0e-5);
+    opBore.Build();
+    if (!opBore.IsDone()) throw std::runtime_error("Pre-bore boolean failed");
+    body = opBore.Shape();
+
+    // (b) Gewindecutter generieren (mit gleichen Parametern, gleicher Steigung)
+    auto cutterPtr = CoarseThread::ThreadInternal(minorD, pI);
+    const TopoDS_Shape cutter = cutterPtr->Get();
+
+    // Cutter in den Körper schneiden
+    BRepAlgoAPI_Cut opCut(body, cutter);
+    opCut.SetFuzzyValue(2.0e-5);  // etwas größerer Fuzzy-Wert für robuste Schnitte
+    opCut.Build();
+    if (!opCut.IsDone()) throw std::runtime_error("Thread cut boolean failed");
+    TopoDS_Shape bodyThreaded = opCut.Shape();
+
+    gp_Trsf up;
+    up.SetTranslation(gp_Vec(50, 0, 0));
+    bodyThreaded = BRepBuilderAPI_Transform(bodyThreaded, up, true).Shape();
+
+    return std::make_shared<Shape>(cutter);
+    // return std::make_shared<Shape>(bodyThreaded);
 }
 
 }  // namespace mech
