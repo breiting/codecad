@@ -35,22 +35,32 @@ void RegisterThreads(sol::state& lua) {
     //
     // lua.set_function("iso_coarse_pitch", &mech::IsoCoarsePitch);
 
-    lua.set_function("thread_external", [](double diameter, double length, sol::optional<mech::ThreadOptions> opts) {
+    lua.set_function("bolt", [](double diameter, double length, sol::optional<mech::ThreadOptions> opts) {
         mech::ThreadOptions o = opts.value_or(mech::ThreadOptions{});
 
-        mech::CoarseThreadParams params;
-        params.length = length;
+        mech::CoarseThreadParams p;
+        p.length = length;
+        p.turns = 10;
+        p.depth = 0.6;
+        p.clearance = 0.0;
+        p.tip = mech::ThreadTip::Cut;
+        p.tipFlatRatio = 0.5;
 
-        return mech::ThreadExternal(diameter, params);
+        return mech::CoarseThread::MakeBolt(diameter, length, 1.6 * diameter, 0.7 * diameter, p);
     });
 
-    lua.set_function("thread_internal", [](double diameter, double length, sol::optional<mech::ThreadOptions> opts) {
+    lua.set_function("nut", [](double diameter, double length, sol::optional<mech::ThreadOptions> opts) {
         mech::ThreadOptions o = opts.value_or(mech::ThreadOptions{});
 
-        mech::CoarseThreadParams params;
-        params.length = length;
+        mech::CoarseThreadParams p;
+        p.length = length;
+        p.turns = 10;
+        p.depth = 0.6;
+        p.clearance = 0.0;
+        p.tip = mech::ThreadTip::Cut;
+        p.tipFlatRatio = 0.5;
 
-        return mech::ThreadInternalCutter(diameter, params);
+        return mech::CoarseThread::MakeNut(diameter, length, 1.6 * 10, p);
     });
 
     lua.set_function("metric_thread_external",
