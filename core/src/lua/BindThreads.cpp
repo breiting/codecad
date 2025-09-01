@@ -39,15 +39,14 @@ void RegisterThreads(sol::state& lua) {
                                   sol::optional<mech::ThreadOptions> opts) {
         mech::ThreadOptions o = opts.value_or(mech::ThreadOptions{});
 
-        mech::CoarseThreadParams p;
-        p.length = 20.0;
-        p.depth = 2.0;       // grob!
-        p.turns = 2;         // => Pitch ~ 6.67 mm
-        p.clearance = 0.15;  // leichtes Spiel für den Druck
+        // Externe Schraube (M12 x 1.5)
+        mech::CoarseThreadParams params;
+        params.length = 20.0;  // 20mm lang
+        params.depth = 2.0;    // 1mm Gewindehöhe
+        params.turns = 10;     // 10 Umdrehungen
+        params.flankAngleDeg = 70.0;
 
-        return mech::CoarseThread::External(/*outerDiameter*/ 16.0, p);
-
-        // return mech::CoarseThread::InternalCutter(/*outerDiameter*/ 16.0, p);
+        return mech::CoarseThread::CreateExternalThread(15.0, params);
     });
 
     lua.set_function("metric_thread_external",
