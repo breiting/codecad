@@ -310,8 +310,8 @@ ShapePtr CoarseThread::MakeNut(double boreDiameter, double thickness, double acr
 }
 
 geometry::ShapePtr CoarseThread::Test(const CoarseThreadParams& p) {
-    const double bodyOuterR = 30.0;  // Außenradius des Bauteils
-    TopoDS_Shape body = BRepPrimAPI_MakeCylinder(bodyOuterR, 100).Shape();
+    const double bodyOuterR = 15.0;  // Außenradius des Bauteils
+    TopoDS_Shape body = BRepPrimAPI_MakeCylinder(bodyOuterR, 30).Shape();
 
     // Innengewinde-Parameter (identisch zu außen – außer Länge)
     double threadLen_I = 30.0;
@@ -331,7 +331,7 @@ geometry::ShapePtr CoarseThread::Test(const CoarseThreadParams& p) {
     // Minor-Durchmesser ~ outerD - 2*depth (plus minimaler Sicherheitsabzug)
     const double minorD = std::max(1e-3, outerD - 2.0 * depth);
 
-    TopoDS_Shape bore = BRepPrimAPI_MakeCylinder(0.5 * minorD, threadLen_I).Shape();
+    TopoDS_Shape bore = BRepPrimAPI_MakeCylinder(0.5 * minorD + clearance, threadLen_I).Shape();
     BRepAlgoAPI_Cut opBore(body, bore);
     opBore.SetFuzzyValue(1.0e-5);
     opBore.Build();
@@ -340,7 +340,11 @@ geometry::ShapePtr CoarseThread::Test(const CoarseThreadParams& p) {
 
     // (b) Gewindecutter generieren (mit gleichen Parametern, gleicher Steigung)
     auto cutterPtr = CoarseThread::ThreadInternal(minorD, pI);
-    const TopoDS_Shape cutter = cutterPtr->Get();
+    TopoDS_Shape cutter = cutterPtr->Get();
+
+    gp_Trsf tr;
+    tr.SetTranslation(gp_Vec(0, 0, -5));
+    cutter = BRepBuilderAPI_Transform(cutter, tr, true).Shape();
 
     // Cutter in den Körper schneiden
     BRepAlgoAPI_Cut opCut(body, cutter);
@@ -353,8 +357,8 @@ geometry::ShapePtr CoarseThread::Test(const CoarseThreadParams& p) {
     up.SetTranslation(gp_Vec(50, 0, 0));
     bodyThreaded = BRepBuilderAPI_Transform(bodyThreaded, up, true).Shape();
 
-    return std::make_shared<Shape>(cutter);
-    // return std::make_shared<Shape>(bodyThreaded);
+    // return std::make_shared<Shape>(cutter);
+    return std::make_shared<Shape>(bodyThreaded);
 }
 
 }  // namespace mech
