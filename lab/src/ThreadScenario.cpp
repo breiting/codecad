@@ -80,8 +80,12 @@ geometry::ShapePtr BuildCanTop(double lidHandleHeight, double threadLength, doub
 
     TopoDS_Shape fused = Fuse(lid->Get(), handle);
 
-    return std::make_shared<Shape>(fused);
-    // return lid;
+    const double holeDiameter = 35.0;
+    auto hole = BRepPrimAPI_MakeCylinder(0.5 * holeDiameter, threadLength).Shape();
+
+    TopoDS_Shape lidFinal = Cut(fused, hole);
+
+    return std::make_shared<Shape>(lidFinal);
 }
 
 void ThreadScenario::Build(std::shared_ptr<PureScene> scene) {
