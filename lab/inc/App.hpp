@@ -26,6 +26,7 @@ class App {
 
    private:
     void Rebuild();
+    void SaveSTL();
     void SwitchTo(size_t index);
 
    private:

@@ -27,7 +27,7 @@ TopoDS_Shape Cut(const TopoDS_Shape& a, const TopoDS_Shape& b) {
     return op.Shape();
 }
 
-TopoDS_Shape BuildJarBox(const ThreadSpec& spec) {
+geometry::ShapePtr BuildJarBox(const ThreadSpec& spec) {
     const double height = 92.0;
     const double wall = 2.5;
     const double boreDiameter = spec.majorDiameter - 2 * wall;  // inner hole
@@ -40,7 +40,7 @@ TopoDS_Shape BuildJarBox(const ThreadSpec& spec) {
     auto cutter = mech::ThreadOps::ThreadInternalCutter(spec, boreDiameter, /*threadLength*/ 20.0);
     TopoDS_Shape jarWithThread = BRepAlgoAPI_Cut(jarHollow, cutter->Get()).Shape();
 
-    return jarWithThread;
+    return std::make_shared<Shape>(jarWithThread);
 }
 
 void ThreadScenario::Build(std::shared_ptr<PureScene> scene) {
@@ -58,7 +58,9 @@ void ThreadScenario::Build(std::shared_ptr<PureScene> scene) {
     spec.segmentsPerTurn = 96;
 
     auto part = BuildJarBox(spec);
-    scene->AddPart("Box", ShapeToMesh(part), glm::mat4{1.0f}, Hex("#d2d2d2"));
+    scene->AddPart("Box", ShapeToMesh(part->Get()), glm::mat4{1.0f}, Hex("#d2d2d2"));
+
+    m_Shapes.push_back(part);
 
     const double lidHeight = 15.0;
     const double chamferAngle = 30.0;
@@ -69,6 +71,7 @@ void ThreadScenario::Build(std::shared_ptr<PureScene> scene) {
 
     glm::mat4 T = glm::translate(glm::mat4(1.0f), glm::vec3(60.f, 0.f, 0.f));
     scene->AddPart("Lid", ShapeToMesh(lid->Get()), T, Hex("#d2d2d2"));
+    m_Shapes.push_back(lid);
 
 #if 0
     double majorD = 24;

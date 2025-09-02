@@ -24,6 +24,9 @@ bool App::Initialize(int width, int height, const std::string& title) {
             case GLFW_KEY_W:
                 m_Controller->ToggleWireframe();
                 break;
+            case GLFW_KEY_S:
+                SaveSTL();
+                break;
             case GLFW_KEY_R:
                 Rebuild();
                 break;
@@ -70,6 +73,11 @@ void App::Rebuild() {
     if (m_Scenarios.empty()) return;
     m_Scene->Clear();
     m_Scenarios[m_Current]->Build(m_Scene);
+}
+
+void App::SaveSTL() {
+    if (m_Scenarios.empty()) return;
+    m_Scenarios[m_Current]->SaveSTL("model");
 }
 
 void App::SwitchTo(size_t index) {
