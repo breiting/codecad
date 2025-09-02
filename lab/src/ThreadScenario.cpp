@@ -48,7 +48,7 @@ TopoDS_Shape Cut(const TopoDS_Shape& a, const TopoDS_Shape& b) {
 
 geometry::ShapePtr BuildCanBottom(double canHeight, double canDiameter, double canWallThickness,
                                   const ThreadSpec& spec) {
-    const double threadLength = 20.0;
+    const double threadLength = 15.0;
 
     const double R_outer = 0.5 * canDiameter;
     const double R_inner = R_outer - canWallThickness - spec.clearance;
@@ -84,7 +84,7 @@ geometry::ShapePtr BuildCanTop(double lidHandleHeight, double threadLength, doub
 
     TopoDS_Shape fused = Fuse(lid->Get(), handle);
 
-    const double holeDiameter = canDiameter - 10.0;
+    const double holeDiameter = canDiameter - 15.0;
     auto hole = BRepPrimAPI_MakeCylinder(0.5 * holeDiameter, threadLength).Shape();
 
     TopoDS_Shape lidFinal = Cut(fused, hole);
@@ -99,12 +99,12 @@ void ThreadScenario::Build(std::shared_ptr<PureScene> scene) {
     const double lidHandleHeight = 5.0;   // Handle height
     const double canHeight = 25;
     const double canDiameter = 60.0;  // Aussendurchmesser Dose
-    const double canWallThickness = 2.5;
+    const double canWallThickness = 3;
 
     ThreadSpec spec;
     spec.fitDiameter = canDiameter - 2 * canWallThickness;  // 40mm
-    spec.pitch = 6.0;                                       // coarse, 1 turn per 4mm
-    spec.depth = 3;                                         // chunky ridges for print strength
+    spec.pitch = 8.0;                                       // coarse, 1 turn per 4mm
+    spec.depth = 5;                                         // chunky ridges for print strength
     spec.flankAngleDeg = 60.0;
     spec.clearance = 0.1;  // print fit
     spec.handedness = mech::Handedness::Right;
