@@ -2,12 +2,18 @@
 
 #include <BRepAlgoAPI_Cut.hxx>
 #include <BRepAlgoAPI_Fuse.hxx>
+#include <BRepAlgoAPI_Section.hxx>
 #include <BRepBuilderAPI_Transform.hxx>
 #include <BRepPrimAPI_MakeCylinder.hxx>
+#include <BRep_Builder.hxx>
+#include <TopoDS_Compound.hxx>
+#include <TopoDS_Shape.hxx>
 #include <geometry/Shape.hpp>
 #include <geometry/Triangulate.hpp>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/glm.hpp>
+#include <gp_Ax2.hxx>
+#include <gp_Pln.hxx>
 #include <mech/ThreadChamfer.hpp>
 #include <mech/ThreadOps.hpp>
 #include <mech/ThreadSpec.hpp>
@@ -69,14 +75,14 @@ void ThreadScenario::Build(std::shared_ptr<PureScene> scene) {
     spec.pitch = 8.0;           // coarse, 1 turn per 4mm
     spec.depth = 3;             // chunky ridges for print strength
     spec.flankAngleDeg = 60.0;
-    spec.clearance = 0.25;  // print fit
+    spec.clearance = 0.3;  // print fit
     spec.handedness = mech::Handedness::Right;
     spec.tip = mech::TipStyle::Cut;
     spec.tipCutRatio = 0.4;
-    spec.segmentsPerTurn = 96;
+    spec.segmentsPerTurn = 64;
 
     auto part = BuildJarBox(spec);
-    scene->AddPart("Box", ShapeToMesh(part->Get()), glm::mat4{1.0f}, Hex("#d2d2d2"));
+    scene->AddPart("Box", ShapeToMesh(part->Get()), glm::mat4{1.0f}, Hex("#d2ffd2"));
 
     m_Shapes.push_back(part);
 
@@ -88,15 +94,24 @@ void ThreadScenario::Build(std::shared_ptr<PureScene> scene) {
     //     mech::ChamferThreadEndsExternal(lid->Get(), spec.majorDiameter / 2, chamferHeight, chamferAngle, lidHeight);
 
     // Griff
-    TopoDS_Shape deckel = BRepPrimAPI_MakeCylinder(0.5 * spec.majorDiameter, 5).Shape();
+    const double deckelHeight = 5.0;
+    TopoDS_Shape deckel = BRepPrimAPI_MakeCylinder(0.5 * spec.majorDiameter, deckelHeight).Shape();
     gp_Trsf tr;
-    tr.SetTranslation(gp_Vec(0, 0, lidHeight));
+    tr.SetTranslation(gp_Vec(0, 0, -deckelHeight));
     deckel = BRepBuilderAPI_Transform(deckel, tr, true).Shape();
 
     auto top = Fuse(lid->Get(), deckel);
 
+    // gp_Ax2 ax2(gp_Pnt(0, 0, 0), gp_Dir(0, 1, 0));  // Y-Achse als Normal -> Ebene XZ
+    // gp_Pln xzPlane(ax2);
+    // BRepAlgoAPI_Section sectionAlgo(top, xzPlane, Standard_True);
+    // sectionAlgo.ComputePCurveOn1(Standard_True);
+    // sectionAlgo.Approximation(Standard_True);
+    // sectionAlgo.Build();
+    // TopoDS_Shape sectionResult = sectionAlgo.Shape();
+
     glm::mat4 T = glm::translate(glm::mat4(1.0f), glm::vec3(60.f, 0.f, 0.f));
-    scene->AddPart("Lid", ShapeToMesh(top), T, Hex("#d2d2d2"));
+    scene->AddPart("Lid", ShapeToMesh(top), T, Hex("#ffd2d2"));
     m_Shapes.push_back(std::make_shared<Shape>(top));
 
 #if 0

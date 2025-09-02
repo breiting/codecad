@@ -180,19 +180,21 @@ ShapePtr ThreadOps::ThreadExternalRod(const ThreadSpec& inSpec, double rodLength
     if (rodLength <= 0.0 || threadLength <= 0.0 || threadLength > rodLength)
         throw std::invalid_argument("ThreadExternalRod: invalid lengths");
 
-    const bool left = IsLeft(spec);
     const double L = threadLength;
 
     // Outer radius (ridges): major/2 (optionally minus tiny clearance for print reality)
     const double R_outer = 0.5 * std::max(0.0, spec.majorDiameter - spec.clearance);
     const double R_core = ClampPositive(R_outer - spec.depth);  // core cylinder radius
-    const double R_pitch = ClampPositive(R_outer - 0.5 * spec.depth);
+    const double R_pitch = R_core + 0.5 * spec.depth;
+
+    // for robust boolean operations
+    const double epsEmbed = std::max(1e-3, 0.01);
 
     // Base rod (full rodLength)
     TopoDS_Shape rod = BRepPrimAPI_MakeCylinder(R_core, rodLength).Shape();
 
     // Helix for threaded section (0..L)
-    Handle(Geom_Curve) helix = MakeHelixCurve(R_pitch, spec.pitch, L, left, spec.segmentsPerTurn);
+    Handle(Geom_Curve) helix = MakeHelixCurve(R_pitch, spec.pitch, L, IsLeft(spec), spec.segmentsPerTurn);
     TopoDS_Wire helixWire = BRepBuilderAPI_MakeWire(BRepBuilderAPI_MakeEdge(helix));
 
     // Profile in local YZ, then rotate/translate into world so that local +Y -> +X (radial)
@@ -201,7 +203,7 @@ ShapePtr ThreadOps::ThreadExternalRod(const ThreadSpec& inSpec, double rodLength
     gp_Trsf rotZ;
     rotZ.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)), -M_PI / 2.0);
     gp_Trsf shift;
-    shift.SetTranslation(gp_Vec(R_pitch - 0.5 * spec.depth, 0, 0));  // centroid ~ d/2 from base
+    shift.SetTranslation(gp_Vec(R_pitch - 0.5 * spec.depth - epsEmbed, 0, 0));
     TopoDS_Wire profilePlaced = TransformWire(profileYZ, shift * rotZ);
 
     // Sweep → ridge volume for 0..L
@@ -224,19 +226,23 @@ ShapePtr ThreadOps::ThreadInternalCutter(const ThreadSpec& inSpec, double boreDi
     ThreadSpec spec = inSpec;
     spec.Normalize();
 
-    if (boreDiameter <= 0.0 || threadLength <= 0.0) throw std::invalid_argument("ThreadInternalCutter: invalid params");
+    if (boreDiameter <= 0.0 || threadLength <= 0.0) {
+        throw std::invalid_argument("ThreadInternalCutter: invalid params");
+    }
 
-    const bool left = IsLeft(spec);
     const double L = threadLength;
 
     // Pre-hole radius
     const double R_bore = 0.5 * boreDiameter;
 
-    // For internal cutter we sweep OUTSIDE the bore, i.e. pitch radius just above the bore:
-    const double R_pitch = ClampPositive(R_bore + 0.5 * spec.depth + 0.5 * spec.clearance);
+    // required for table boolean cuttings
+    const double overlap = std::max(0.02, 0.03 * spec.pitch);
+
+    const double R_base = R_bore - overlap;
+    const double R_helix = R_base + 0.5 * spec.depth;
 
     // Build helix and inward-pointing profile (rotate −90° so +Y→−X, then shift −X to R_pitch)
-    Handle(Geom_Curve) helix = MakeHelixCurve(R_pitch, spec.pitch, L, left, spec.segmentsPerTurn);
+    Handle(Geom_Curve) helix = MakeHelixCurve(R_helix, spec.pitch, L, IsLeft(spec), spec.segmentsPerTurn);
     TopoDS_Wire helixWire = BRepBuilderAPI_MakeWire(BRepBuilderAPI_MakeEdge(helix));
 
     // Profile in local YZ, then rotate/translate into world so that local +Y -> +X (radial)
@@ -245,8 +251,7 @@ ShapePtr ThreadOps::ThreadInternalCutter(const ThreadSpec& inSpec, double boreDi
     gp_Trsf rotZ;
     rotZ.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)), M_PI / 2.0);
     gp_Trsf shift;
-    shift.SetTranslation(gp_Vec(-(R_pitch - 0.5 * spec.depth - spec.clearance), 0, 0));
-    // shift.SetTranslation(gp_Vec(R_pitch - 0.5 * spec.depth, 0, 0));  // centroid ~ d/2 from base
+    shift.SetTranslation(gp_Vec(-R_base, 0, 0));
     TopoDS_Wire profilePlaced = TransformWire(profileYZ, shift * rotZ);
 
     TopoDS_Shape cutter = SweepAlongHelix(helixWire, profilePlaced);
