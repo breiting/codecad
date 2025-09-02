@@ -47,7 +47,7 @@ TopoDS_Shape Cut(const TopoDS_Shape& a, const TopoDS_Shape& b) {
 }
 
 geometry::ShapePtr BuildJarBox(const ThreadSpec& spec) {
-    const double height = 30.0;
+    const double height = 20.0;
     const double wall = 2.5;
     const double boreDiameter = spec.majorDiameter - 2 * wall;  // inner hole
 
@@ -55,7 +55,7 @@ geometry::ShapePtr BuildJarBox(const ThreadSpec& spec) {
     TopoDS_Shape jarBore = BRepPrimAPI_MakeCylinder(0.5 * boreDiameter, height).Shape();
 
     gp_Trsf tr;
-    tr.SetTranslation(gp_Vec(0, 0, -5));
+    tr.SetTranslation(gp_Vec(0, 0, -2));
     jarBore = BRepBuilderAPI_Transform(jarBore, tr, true).Shape();
 
     TopoDS_Shape jarHollow = Cut(jarOuter, jarBore);
@@ -86,7 +86,7 @@ void ThreadScenario::Build(std::shared_ptr<PureScene> scene) {
 
     m_Shapes.push_back(part);
 
-    const double lidHeight = 15.0;
+    const double lidHeight = 10.0;
     const double chamferAngle = 30.0;
     const double chamferHeight = 1.5;
     auto lid = mech::ThreadOps::ThreadExternalRod(spec, /*rodLength*/ lidHeight, /*threadLength*/ lidHeight);
