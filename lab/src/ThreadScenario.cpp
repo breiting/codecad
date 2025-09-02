@@ -51,10 +51,13 @@ geometry::ShapePtr BuildCanBottom(double canHeight, double canDiameter, double c
     const double threadLength = 15.0;
 
     const double R_outer = 0.5 * canDiameter;
-    const double R_inner = R_outer - canWallThickness + spec.tipCutRatio * spec.depth;  // attention because of cut!
+
+    // Create the internal cutter
+    double boreHoleDiameter;
+    auto cutter = mech::ThreadOps::ThreadInternalCutter(spec, threadLength, boreHoleDiameter);
 
     TopoDS_Shape canOuter = BRepPrimAPI_MakeCylinder(R_outer, canHeight).Shape();
-    TopoDS_Shape canBore = BRepPrimAPI_MakeCylinder(R_inner, canHeight).Shape();
+    TopoDS_Shape canBore = BRepPrimAPI_MakeCylinder(boreHoleDiameter * 0.5, canHeight).Shape();
 
     // keep a closed floor
     gp_Trsf tr;
@@ -62,9 +65,6 @@ geometry::ShapePtr BuildCanBottom(double canHeight, double canDiameter, double c
     canBore = BRepBuilderAPI_Transform(canBore, tr, true).Shape();
 
     TopoDS_Shape canHollow = Cut(canOuter, canBore);
-
-    // Create the internal cutter
-    auto cutter = mech::ThreadOps::ThreadInternalCutter(spec, threadLength);
 
     TopoDS_Shape canWithThread = BRepAlgoAPI_Cut(canHollow, cutter->Get()).Shape();
 
@@ -100,7 +100,7 @@ void ThreadScenario::Build(std::shared_ptr<PureScene> scene) {
     const double lidHandleHeight = 5.0;   // Handle height
     const double canHeight = 25;
     const double canDiameter = 60.0;  // Aussendurchmesser Dose
-    const double canWallThickness = 3;
+    const double canWallThickness = 4;
 
     ThreadSpec spec;
     spec.fitDiameter = canDiameter - 2 * canWallThickness;  // 40mm

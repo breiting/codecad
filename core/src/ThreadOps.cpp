@@ -213,7 +213,7 @@ ShapePtr ThreadOps::ThreadExternalRod(const ThreadSpec& inSpec, double rodLength
     return std::make_shared<Shape>(threaded);
 }
 
-ShapePtr ThreadOps::ThreadInternalCutter(const ThreadSpec& inSpec, double threadLength) {
+ShapePtr ThreadOps::ThreadInternalCutter(const ThreadSpec& inSpec, double threadLength, double& boreHoleDiameter) {
     ThreadSpec spec = inSpec;
     spec.Normalize();
 
@@ -223,34 +223,27 @@ ShapePtr ThreadOps::ThreadInternalCutter(const ThreadSpec& inSpec, double thread
 
     const double L = threadLength;
 
-    // Pitch-Radius aus Nennmaß
-    const double R_pitch = 0.5 * spec.fitDiameter;
     const double halfDepth = 0.5 * spec.depth;
-    const double clearance = std::max(0.0, spec.clearance);
+    const double R_pitch = 0.5 * spec.fitDiameter + halfDepth;
+    const double eps = std::max({1e-3, 0.002 * spec.pitch, 0.05 * spec.depth});
 
-    // Kleiner Einbettungs-Offset für robuste Booleans (nur Geometrik, NICHT im Bore-Radius verwenden)
-    const double epsEmbed = std::max({1e-3, 0.002 * spec.pitch, 0.05 * spec.depth});
+    // Make sure to return proper cut shape, depending on the Tip form!
+    boreHoleDiameter = spec.fitDiameter + eps * 2.0;
+    if (spec.tip == TipStyle::Cut) {
+        boreHoleDiameter += spec.tipCutRatio * spec.depth * 2.0;
+    }
 
-    // Helix auf Pitch-Radius
     Handle(Geom_Curve) helix = MakeHelixCurve(R_pitch, spec.pitch, L, IsLeft(spec), spec.segmentsPerTurn);
     TopoDS_Wire helixWire = BRepBuilderAPI_MakeWire(BRepBuilderAPI_MakeEdge(helix));
 
-    // Dreiecksprofil (lokal YZ, radial = +Y, axial = +Z)
     TopoDS_Wire profileYZ = MakeVProfileYZ(spec.depth, spec.flankAngleDeg, spec.tip, spec.tipCutRatio);
 
-    // Für INNEN: lokale +Y -> -X (inwärts)  => Rotation um Z: -90°
     gp_Trsf rotZ;
-    rotZ.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)), M_PI / 2.0);
-
-    const double R_base = ClampPositive(R_pitch + halfDepth - epsEmbed);
-
+    rotZ.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)), -M_PI / 2.0);
     gp_Trsf shift;
-    shift.SetTranslation(gp_Vec(+R_base, 0, 0));
-
-    // Reihenfolge: erst rotieren, dann verschieben
+    shift.SetTranslation(gp_Vec(-R_pitch - halfDepth, 0, 0));
     TopoDS_Wire profilePlaced = TransformWire(profileYZ, shift * rotZ);
 
-    // Entlang Helix sweepen -> Cutter
     TopoDS_Shape cutter = SweepAlongHelix(helixWire, profilePlaced);
 
     return std::make_shared<Shape>(cutter);
