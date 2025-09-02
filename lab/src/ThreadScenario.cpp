@@ -50,13 +50,11 @@ geometry::ShapePtr BuildCanBottom(double canHeight, double canDiameter, double c
                                   const ThreadSpec& spec) {
     const double threadLength = 20.0;
 
-    // Create the internal cutter
-    double boreRadius;
-    auto cutter = mech::ThreadOps::ThreadInternalCutter(spec, threadLength, boreRadius);
-    printf("Boreradius: %5.2f\n", boreRadius);
+    const double R_outer = 0.5 * canDiameter;
+    const double R_inner = R_outer - canWallThickness - spec.clearance;
 
-    TopoDS_Shape canOuter = BRepPrimAPI_MakeCylinder(0.5 * canDiameter, canHeight).Shape();
-    TopoDS_Shape canBore = BRepPrimAPI_MakeCylinder(boreRadius, canHeight).Shape();
+    TopoDS_Shape canOuter = BRepPrimAPI_MakeCylinder(R_outer, canHeight).Shape();
+    TopoDS_Shape canBore = BRepPrimAPI_MakeCylinder(R_inner, canHeight).Shape();
 
     gp_Trsf tr;
     tr.SetTranslation(gp_Vec(0, 0, -canWallThickness));
@@ -64,9 +62,20 @@ geometry::ShapePtr BuildCanBottom(double canHeight, double canDiameter, double c
 
     TopoDS_Shape canHollow = Cut(canOuter, canBore);
 
+    // Create the internal cutter
+    auto cutter = mech::ThreadOps::ThreadInternalCutter(spec, threadLength);
+
     TopoDS_Shape canWithThread = BRepAlgoAPI_Cut(canHollow, cutter->Get()).Shape();
 
+    // double rod2Dmaj = 20;
+    // double rod2Dmin = 15;
+    // double rod2H = 30;
+    // auto chamfered =
+    //     mech::ChamferThreadEndsInternal(canWithThread, rod2Dmin / 2, 1.5, 30.0, rod2H, true /*start*/, false
+    //     /*end*/);
+
     return std::make_shared<Shape>(canWithThread);
+    // return std::make_shared<Shape>(chamfered);
 }
 
 geometry::ShapePtr BuildCanTop(double lidHandleHeight, double threadLength, double canDiameter,
@@ -102,7 +111,7 @@ void ThreadScenario::Build(std::shared_ptr<PureScene> scene) {
     spec.pitch = 8.0;                                       // coarse, 1 turn per 4mm
     spec.depth = 3;                                         // chunky ridges for print strength
     spec.flankAngleDeg = 60.0;
-    spec.clearance = 0.2;  // print fit
+    spec.clearance = 0.1;  // print fit
     spec.handedness = mech::Handedness::Right;
     spec.tip = mech::TipStyle::Cut;
     spec.tipCutRatio = 0.4;
@@ -118,7 +127,7 @@ void ThreadScenario::Build(std::shared_ptr<PureScene> scene) {
     glm::mat4 T = glm::translate(glm::mat4(1.0f), glm::vec3(60.f, 0.f, 0.0f));
     scene->AddPart("Top", ShapeToMesh(canTop->Get()), T, Hex("#ffd2d2"));
     m_Shapes.push_back(canTop);
-
+}
 #if 0
     double majorD = 24;
     double length = 30;
@@ -141,4 +150,3 @@ void ThreadScenario::Build(std::shared_ptr<PureScene> scene) {
     glm::mat4 T = glm::translate(glm::mat4(1.0f), glm::vec3(40.f, 0.f, 0.f));
     scene->AddPart("Thread", ShapeToMesh(rod2_chamf), T, Hex("#d2d2d2"));
 #endif
-}

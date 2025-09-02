@@ -35,7 +35,7 @@ class ThreadOps {
      * @param threadLength Length of threaded section carved into the bore.
      * @return geometry::ShapePtr Cutter (solid) that you subtract from your body.
      */
-    static geometry::ShapePtr ThreadInternalCutter(const ThreadSpec& spec, double threadLength, double& boreRadius);
+    static geometry::ShapePtr ThreadInternalCutter(const ThreadSpec& spec, double threadLength);
 
     /**
      * @brief Convenience: make a coarse bolt (hex head + threaded rod).

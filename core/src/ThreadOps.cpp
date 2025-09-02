@@ -182,12 +182,11 @@ ShapePtr ThreadOps::ThreadExternalRod(const ThreadSpec& inSpec, double rodLength
 
     const double L = threadLength;
 
-    const double Rp = 0.5 * spec.fitDiameter;
-    const double halfH = 0.5 * spec.depth;
-    const double clrRad = 0.5 * std::max(0.0, spec.clearance);
+    const double R_pitch = 0.5 * spec.fitDiameter;
+    const double halfDepth = 0.5 * spec.depth;
+    const double clearance = std::max(0.0, spec.clearance);
 
-    const double R_pitch = Rp;
-    const double R_outer = ClampPositive(Rp + halfH - clrRad);
+    const double R_outer = ClampPositive(R_pitch + halfDepth - clearance);
     const double R_core = ClampPositive(R_outer - spec.depth);
 
     const double eps = std::max({1e-3, 0.002 * spec.pitch, 0.05 * spec.depth});
@@ -224,41 +223,44 @@ ShapePtr ThreadOps::ThreadExternalRod(const ThreadSpec& inSpec, double rodLength
     return std::make_shared<Shape>(threaded);
 }
 
-ShapePtr ThreadOps::ThreadInternalCutter(const ThreadSpec& inSpec, double threadLength, double& boreRadius) {
+ShapePtr ThreadOps::ThreadInternalCutter(const ThreadSpec& inSpec, double threadLength) {
     ThreadSpec spec = inSpec;
     spec.Normalize();
 
     if (threadLength <= 0.0) {
-        throw std::invalid_argument("ThreadInternalCutter: invalid params");
+        throw std::invalid_argument("ThreadInternalCutter: invalid threadLength");
     }
 
     const double L = threadLength;
 
-    const double Rp = 0.5 * spec.fitDiameter;  // Pitch radius
-    const double halfH = 0.5 * spec.depth;
-    const double clrRad = 0.5 * std::max(0.0, spec.clearance);
+    // Pitch-Radius aus Nennmaß
+    const double R_pitch = 0.5 * spec.fitDiameter;
+    const double halfDepth = 0.5 * spec.depth;
+    const double clearance = std::max(0.0, spec.clearance);
 
-    // returns the proper bore radius
-    boreRadius = ClampPositive(Rp - halfH + clrRad);
+    // Kleiner Einbettungs-Offset für robuste Booleans (nur Geometrik, NICHT im Bore-Radius verwenden)
+    const double epsEmbed = std::max({1e-3, 0.002 * spec.pitch, 0.05 * spec.depth});
 
-    // Cutter-Helix:
-    const double R_pitch = Rp;
-
-    const double eps = std::max({1e-3, 0.002 * spec.pitch, 0.05 * spec.depth});
-
-    // Build helix and inward-pointing profile (rotate −90° so +Y→−X, then shift −X to R_pitch)
+    // Helix auf Pitch-Radius
     Handle(Geom_Curve) helix = MakeHelixCurve(R_pitch, spec.pitch, L, IsLeft(spec), spec.segmentsPerTurn);
     TopoDS_Wire helixWire = BRepBuilderAPI_MakeWire(BRepBuilderAPI_MakeEdge(helix));
 
-    // Profile in local YZ, then rotate/translate into world so that local +Y -> +X (radial)
+    // Dreiecksprofil (lokal YZ, radial = +Y, axial = +Z)
     TopoDS_Wire profileYZ = MakeVProfileYZ(spec.depth, spec.flankAngleDeg, spec.tip, spec.tipCutRatio);
 
+    // Für INNEN: lokale +Y -> -X (inwärts)  => Rotation um Z: -90°
     gp_Trsf rotZ;
     rotZ.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)), M_PI / 2.0);
+
+    const double R_base = ClampPositive(R_pitch + halfDepth - epsEmbed);
+
     gp_Trsf shift;
-    shift.SetTranslation(gp_Vec(-(R_pitch - 0.5 * spec.depth - eps), 0, 0));
+    shift.SetTranslation(gp_Vec(+R_base, 0, 0));
+
+    // Reihenfolge: erst rotieren, dann verschieben
     TopoDS_Wire profilePlaced = TransformWire(profileYZ, shift * rotZ);
 
+    // Entlang Helix sweepen -> Cutter
     TopoDS_Shape cutter = SweepAlongHelix(helixWire, profilePlaced);
 
     return std::make_shared<Shape>(cutter);
