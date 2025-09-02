@@ -13,6 +13,7 @@ add_library(core STATIC
    src/Sketch.cpp
    src/CoarseThread.cpp
    src/Thread.cpp
+   src/ThreadChamfer.cpp
    src/Transform.cpp
    src/Triangulate.cpp
    src/lua/BindBooleans.cpp

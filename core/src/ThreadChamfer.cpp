@@ -6,16 +6,19 @@
 
 // OCCT
 #include <BRepAlgoAPI_Cut.hxx>
+#include <BRepBndLib.hxx>
 #include <BRepBuilderAPI_MakeEdge.hxx>
 #include <BRepBuilderAPI_MakeFace.hxx>
 #include <BRepBuilderAPI_MakeWire.hxx>
 #include <BRepBuilderAPI_Transform.hxx>
 #include <BRepPrimAPI_MakeRevol.hxx>
+#include <Bnd_Box.hxx>
 #include <TopExp.hxx>
 #include <TopoDS.hxx>
 #include <TopoDS_Face.hxx>
 #include <TopoDS_Wire.hxx>
 #include <gp_Ax1.hxx>
+#include <gp_Ax2.hxx>
 #include <gp_Dir.hxx>
 #include <gp_Pnt.hxx>
 #include <gp_Trsf.hxx>
@@ -97,7 +100,23 @@ static TopoDS_Shape BuildInternalChamferCutter(double innerR, double chamferLenZ
 // Apply CUT with a cutter positioned at the start end (z near 0)
 static TopoDS_Shape CutStart(const TopoDS_Shape& solid, const TopoDS_Shape& baseCutter) {
     // baseCutter is already located at z ∈ [0, Lz] (triangle built with z from 0..Lz)
-    BRepAlgoAPI_Cut cut(solid, baseCutter);
+    // but needs to be flipped upside down
+
+    Bnd_Box bb;
+    BRepBndLib::Add(baseCutter, bb);
+    Standard_Real xmin, ymin, zmin, xmax, ymax, zmax;
+    bb.Get(xmin, ymin, zmin, xmax, ymax, zmax);
+    const Standard_Real Lz = std::max<Standard_Real>(0.0, zmax - zmin);
+
+    gp_Trsf mirror;
+    mirror.SetMirror(gp_Ax2(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)));
+    TopoDS_Shape flipped = BRepBuilderAPI_Transform(baseCutter, mirror, /*copy*/ true).Shape();
+
+    gp_Trsf shift;
+    shift.SetTranslation(gp_Vec(0, 0, Lz));
+    TopoDS_Shape cutterStart = BRepBuilderAPI_Transform(flipped, shift, /*copy*/ true).Shape();
+
+    BRepAlgoAPI_Cut cut(solid, cutterStart);
     cut.Build();
     if (!cut.IsDone()) throw std::runtime_error("Chamfer CUT (start) failed");
     return cut.Shape();
