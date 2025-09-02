@@ -32,11 +32,10 @@ class ThreadOps {
      * @param spec Shared thread definition. majorDiameter is interpreted as the mating external major diameter.
      *             The cutter will be constructed around boreDiameter (your pre-hole) with pitch radius adjusted
      *             by spec.depth and spec.clearance so the pair mates.
-     * @param boreDiameter Inner cylindrical hole diameter of your part BEFORE threading (pre-hole).
      * @param threadLength Length of threaded section carved into the bore.
      * @return geometry::ShapePtr Cutter (solid) that you subtract from your body.
      */
-    static geometry::ShapePtr ThreadInternalCutter(const ThreadSpec& spec, double boreDiameter, double threadLength);
+    static geometry::ShapePtr ThreadInternalCutter(const ThreadSpec& spec, double threadLength, double& boreRadius);
 
     /**
      * @brief Convenience: make a coarse bolt (hex head + threaded rod).

@@ -22,8 +22,9 @@ enum class TipStyle { Sharp, Cut };
  * and reuse it for both the male (rod/bolt) and female (nut/housing) parts.
  */
 struct ThreadSpec {
-    /// Major diameter for external threads (outer ridge-to-ridge). For internal, use with bore logic (see ops).
-    double majorDiameter = 20.0;
+    /// The requested bore hole diameter which would work with a smooth bolt (will be corrected by clearance)
+    /// This can also be seen as the pitch diameter where the nut and the bolt meet
+    double fitDiameter = 20.0;
 
     /// Thread pitch (distance between ridges along Z).
     double pitch = 2.0;

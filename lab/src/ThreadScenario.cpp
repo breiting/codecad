@@ -46,73 +46,74 @@ TopoDS_Shape Cut(const TopoDS_Shape& a, const TopoDS_Shape& b) {
     return op.Shape();
 }
 
-geometry::ShapePtr BuildJarBox(const ThreadSpec& spec) {
-    const double height = 20.0;
-    const double wall = 2.5;
-    const double boreDiameter = spec.majorDiameter - 2 * wall;  // inner hole
+geometry::ShapePtr BuildCanBottom(double canHeight, double canDiameter, double canWallThickness,
+                                  const ThreadSpec& spec) {
+    const double threadLength = 20.0;
 
-    TopoDS_Shape jarOuter = BRepPrimAPI_MakeCylinder(0.5 * spec.majorDiameter, height).Shape();
-    TopoDS_Shape jarBore = BRepPrimAPI_MakeCylinder(0.5 * boreDiameter, height).Shape();
+    // Create the internal cutter
+    double boreRadius;
+    auto cutter = mech::ThreadOps::ThreadInternalCutter(spec, threadLength, boreRadius);
+    printf("Boreradius: %5.2f\n", boreRadius);
+
+    TopoDS_Shape canOuter = BRepPrimAPI_MakeCylinder(0.5 * canDiameter, canHeight).Shape();
+    TopoDS_Shape canBore = BRepPrimAPI_MakeCylinder(boreRadius, canHeight).Shape();
 
     gp_Trsf tr;
-    tr.SetTranslation(gp_Vec(0, 0, -2));
-    jarBore = BRepBuilderAPI_Transform(jarBore, tr, true).Shape();
+    tr.SetTranslation(gp_Vec(0, 0, -canWallThickness));
+    canBore = BRepBuilderAPI_Transform(canBore, tr, true).Shape();
 
-    TopoDS_Shape jarHollow = Cut(jarOuter, jarBore);
+    TopoDS_Shape canHollow = Cut(canOuter, canBore);
 
-    // Internal thread cutter (20 mm deep)
-    auto cutter = mech::ThreadOps::ThreadInternalCutter(spec, boreDiameter, /*threadLength*/ 20.0);
-    TopoDS_Shape jarWithThread = BRepAlgoAPI_Cut(jarHollow, cutter->Get()).Shape();
+    TopoDS_Shape canWithThread = BRepAlgoAPI_Cut(canHollow, cutter->Get()).Shape();
 
-    return std::make_shared<Shape>(jarWithThread);
+    return std::make_shared<Shape>(canWithThread);
+}
+
+geometry::ShapePtr BuildCanTop(double lidHandleHeight, double threadLength, double canDiameter,
+                               const ThreadSpec& spec) {
+    auto lid = mech::ThreadOps::ThreadExternalRod(spec, threadLength, threadLength);
+
+    auto handle = BRepPrimAPI_MakeCylinder(0.5 * canDiameter, lidHandleHeight).Shape();
+    gp_Trsf tr;
+    tr.SetTranslation(gp_Vec(0, 0, -lidHandleHeight));
+    handle = BRepBuilderAPI_Transform(handle, tr, true).Shape();
+
+    TopoDS_Shape fused = Fuse(lid->Get(), handle);
+
+    return std::make_shared<Shape>(fused);
+    // return lid;
 }
 
 void ThreadScenario::Build(std::shared_ptr<PureScene> scene) {
     scene->Clear();
 
+    const double lidThreadLength = 10.0;  // Thread length for lid
+    const double lidHandleHeight = 5.0;   // Handle height
+    const double canHeight = 25;
+    const double canDiameter = 45.0;  // Aussendurchmesser Dose
+    const double canWallThickness = 2.5;
+
     ThreadSpec spec;
-    spec.majorDiameter = 45.0;  // major diameter (outer of male)
-    spec.pitch = 8.0;           // coarse, 1 turn per 4mm
-    spec.depth = 3;             // chunky ridges for print strength
+    spec.fitDiameter = canDiameter - 2 * canWallThickness;  // 40mm
+    spec.pitch = 8.0;                                       // coarse, 1 turn per 4mm
+    spec.depth = 3;                                         // chunky ridges for print strength
     spec.flankAngleDeg = 60.0;
-    spec.clearance = 0.3;  // print fit
+    spec.clearance = 0.2;  // print fit
     spec.handedness = mech::Handedness::Right;
     spec.tip = mech::TipStyle::Cut;
     spec.tipCutRatio = 0.4;
     spec.segmentsPerTurn = 64;
 
-    auto part = BuildJarBox(spec);
-    scene->AddPart("Box", ShapeToMesh(part->Get()), glm::mat4{1.0f}, Hex("#d2ffd2"));
+    // Bottom
+    auto canBottom = BuildCanBottom(canHeight, canDiameter, canWallThickness, spec);
+    scene->AddPart("Bottom", ShapeToMesh(canBottom->Get()), glm::mat4{1.0f}, Hex("#d2ffd2"));
+    m_Shapes.push_back(canBottom);
 
-    m_Shapes.push_back(part);
-
-    const double lidHeight = 10.0;
-    const double chamferAngle = 30.0;
-    const double chamferHeight = 1.5;
-    auto lid = mech::ThreadOps::ThreadExternalRod(spec, /*rodLength*/ lidHeight, /*threadLength*/ lidHeight);
-    // auto lid_chamfered =
-    //     mech::ChamferThreadEndsExternal(lid->Get(), spec.majorDiameter / 2, chamferHeight, chamferAngle, lidHeight);
-
-    // Griff
-    const double deckelHeight = 5.0;
-    TopoDS_Shape deckel = BRepPrimAPI_MakeCylinder(0.5 * spec.majorDiameter, deckelHeight).Shape();
-    gp_Trsf tr;
-    tr.SetTranslation(gp_Vec(0, 0, -deckelHeight));
-    deckel = BRepBuilderAPI_Transform(deckel, tr, true).Shape();
-
-    auto top = Fuse(lid->Get(), deckel);
-
-    // gp_Ax2 ax2(gp_Pnt(0, 0, 0), gp_Dir(0, 1, 0));  // Y-Achse als Normal -> Ebene XZ
-    // gp_Pln xzPlane(ax2);
-    // BRepAlgoAPI_Section sectionAlgo(top, xzPlane, Standard_True);
-    // sectionAlgo.ComputePCurveOn1(Standard_True);
-    // sectionAlgo.Approximation(Standard_True);
-    // sectionAlgo.Build();
-    // TopoDS_Shape sectionResult = sectionAlgo.Shape();
-
-    glm::mat4 T = glm::translate(glm::mat4(1.0f), glm::vec3(60.f, 0.f, 0.f));
-    scene->AddPart("Lid", ShapeToMesh(top), T, Hex("#ffd2d2"));
-    m_Shapes.push_back(std::make_shared<Shape>(top));
+    // Top
+    auto canTop = BuildCanTop(lidHandleHeight, lidThreadLength, canDiameter, spec);
+    glm::mat4 T = glm::translate(glm::mat4(1.0f), glm::vec3(60.f, 0.f, 0.0f));
+    scene->AddPart("Top", ShapeToMesh(canTop->Get()), T, Hex("#ffd2d2"));
+    m_Shapes.push_back(canTop);
 
 #if 0
     double majorD = 24;
