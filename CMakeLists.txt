@@ -93,6 +93,7 @@ if(ENABLE_PURE)
 endif()
 
 add_subdirectory(app)
+add_subdirectory(lab)
 
 # ---------------------------------------------------------------
 # INSTALL
