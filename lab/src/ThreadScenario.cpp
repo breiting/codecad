@@ -2,6 +2,7 @@
 
 #include <BRepAlgoAPI_Cut.hxx>
 #include <BRepAlgoAPI_Fuse.hxx>
+#include <BRepBuilderAPI_Transform.hxx>
 #include <BRepPrimAPI_MakeCylinder.hxx>
 #include <geometry/Shape.hpp>
 #include <geometry/Triangulate.hpp>
@@ -19,6 +20,18 @@ using namespace mech;
 using namespace pure;
 using namespace geometry;
 
+TopoDS_Shape Fuse(const TopoDS_Shape& a, const TopoDS_Shape& b) {
+    BRepAlgoAPI_Fuse op(a, b);
+    op.SetRunParallel(true);
+    op.SetFuzzyValue(0.001);
+    op.Build();
+    if (!op.IsDone()) {
+        op.DumpErrors(std::cerr);
+        throw std::runtime_error("Fuse failed");
+    }
+    return op.Shape();
+}
+
 TopoDS_Shape Cut(const TopoDS_Shape& a, const TopoDS_Shape& b) {
     BRepAlgoAPI_Cut op(a, b);
     op.SetRunParallel(true);
@@ -28,12 +41,17 @@ TopoDS_Shape Cut(const TopoDS_Shape& a, const TopoDS_Shape& b) {
 }
 
 geometry::ShapePtr BuildJarBox(const ThreadSpec& spec) {
-    const double height = 92.0;
+    const double height = 30.0;
     const double wall = 2.5;
     const double boreDiameter = spec.majorDiameter - 2 * wall;  // inner hole
 
     TopoDS_Shape jarOuter = BRepPrimAPI_MakeCylinder(0.5 * spec.majorDiameter, height).Shape();
     TopoDS_Shape jarBore = BRepPrimAPI_MakeCylinder(0.5 * boreDiameter, height).Shape();
+
+    gp_Trsf tr;
+    tr.SetTranslation(gp_Vec(0, 0, -5));
+    jarBore = BRepBuilderAPI_Transform(jarBore, tr, true).Shape();
+
     TopoDS_Shape jarHollow = Cut(jarOuter, jarBore);
 
     // Internal thread cutter (20 mm deep)
@@ -69,9 +87,17 @@ void ThreadScenario::Build(std::shared_ptr<PureScene> scene) {
     // auto lid_chamfered =
     //     mech::ChamferThreadEndsExternal(lid->Get(), spec.majorDiameter / 2, chamferHeight, chamferAngle, lidHeight);
 
+    // Griff
+    TopoDS_Shape deckel = BRepPrimAPI_MakeCylinder(0.5 * spec.majorDiameter, 5).Shape();
+    gp_Trsf tr;
+    tr.SetTranslation(gp_Vec(0, 0, lidHeight));
+    deckel = BRepBuilderAPI_Transform(deckel, tr, true).Shape();
+
+    auto top = Fuse(lid->Get(), deckel);
+
     glm::mat4 T = glm::translate(glm::mat4(1.0f), glm::vec3(60.f, 0.f, 0.f));
-    scene->AddPart("Lid", ShapeToMesh(lid->Get()), T, Hex("#d2d2d2"));
-    m_Shapes.push_back(lid);
+    scene->AddPart("Lid", ShapeToMesh(top), T, Hex("#d2d2d2"));
+    m_Shapes.push_back(std::make_shared<Shape>(top));
 
 #if 0
     double majorD = 24;
