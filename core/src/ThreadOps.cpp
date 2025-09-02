@@ -245,7 +245,8 @@ ShapePtr ThreadOps::ThreadInternalCutter(const ThreadSpec& inSpec, double boreDi
     gp_Trsf rotZ;
     rotZ.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)), M_PI / 2.0);
     gp_Trsf shift;
-    shift.SetTranslation(gp_Vec(R_pitch - 0.5 * spec.depth, 0, 0));  // centroid ~ d/2 from base
+    shift.SetTranslation(gp_Vec(-(R_pitch - 0.5 * spec.depth - spec.clearance), 0, 0));
+    // shift.SetTranslation(gp_Vec(R_pitch - 0.5 * spec.depth, 0, 0));  // centroid ~ d/2 from base
     TopoDS_Wire profilePlaced = TransformWire(profileYZ, shift * rotZ);
 
     TopoDS_Shape cutter = SweepAlongHelix(helixWire, profilePlaced);
