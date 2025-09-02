@@ -36,33 +36,6 @@ class ThreadOps {
      * @return geometry::ShapePtr Cutter (solid) that you subtract from your body.
      */
     static geometry::ShapePtr ThreadInternalCutter(const ThreadSpec& spec, double threadLength);
-
-    /**
-     * @brief Convenience: make a coarse bolt (hex head + threaded rod).
-     *
-     * @param spec ThreadSpec shared with the matching nut.
-     * @param rodLength Total rod length
-     * @param threadLength Threaded section length (<= rodLength)
-     * @param acrossFlats Hex head across flats (default = 1.5 * majorDiameter)
-     * @param headHeight Hex head height (default = 0.6 * acrossFlats)
-     * @return geometry::ShapePtr bolt solid
-     */
-    // static geometry::ShapePtr MakeBolt(const ThreadSpec& spec, double rodLength, double threadLength,
-    //                                    double acrossFlats = 0.0, double headHeight = 0.0);
-
-    /**
-     * @brief Convenience: make a coarse nut (hex prism with internal thread).
-     *
-     * @param spec ThreadSpec shared with the matching bolt.
-     * @param nutThickness Height of the nut (Z)
-     * @param acrossFlats Hex across flats (default = 1.5 * majorDiameter)
-     * @param boreDiameter Initial bore diameter (pre-hole); by default derived from
-     * spec.majorDiameter-depth*2-clearance.
-     * @param threadLength Threaded section length inside the nut (<= nutThickness)
-     * @return geometry::ShapePtr nut solid
-     */
-    // static geometry::ShapePtr MakeNut(const ThreadSpec& spec, double nutThickness, double acrossFlats = 0.0,
-    //                                   double boreDiameter = 0.0, double threadLength = 0.0);
 };
 
 }  // namespace mech

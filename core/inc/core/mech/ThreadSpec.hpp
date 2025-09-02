@@ -23,7 +23,6 @@ enum class TipStyle { Sharp, Cut };
  */
 struct ThreadSpec {
     /// The requested bore hole diameter which would work with a smooth bolt (will be corrected by clearance)
-    /// This can also be seen as the pitch diameter where the nut and the bolt meet
     double fitDiameter = 20.0;
 
     /// Thread pitch (distance between ridges along Z).
