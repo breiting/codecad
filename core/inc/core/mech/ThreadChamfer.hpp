@@ -21,7 +21,7 @@ namespace mech {
  * @note This performs boolean CUTs. Use modest deflection/angles when meshing afterwards.
  */
 TopoDS_Shape ChamferThreadEndsExternal(const TopoDS_Shape& threaded, double outerRadius, double lengthZ,
-                                       double angleDeg, double totalLengthZ, bool start, bool end);
+                                       double angleDeg, double totalLengthZ, bool start = true, bool end = true);
 
 /**
  * @brief Apply internal entry chamfers to a Z-aligned nut
@@ -39,5 +39,5 @@ TopoDS_Shape ChamferThreadEndsExternal(const TopoDS_Shape& threaded, double oute
  * @return TopoDS_Shape Chamfered nut solid.
  */
 TopoDS_Shape ChamferThreadEndsInternal(const TopoDS_Shape& nut, double innerRadius, double lengthZ, double angleDeg,
-                                       double totalLengthZ, bool start, bool end);
+                                       double totalLengthZ, bool start = true, bool end = true);
 }  // namespace mech

@@ -5,38 +5,74 @@
 #include <BRepPrimAPI_MakeCylinder.hxx>
 #include <geometry/Shape.hpp>
 #include <geometry/Triangulate.hpp>
+#include <glm/ext/matrix_transform.hpp>
 #include <glm/glm.hpp>
-#include <mech/CoarseThread.hpp>
 #include <mech/ThreadChamfer.hpp>
+#include <mech/ThreadOps.hpp>
+#include <mech/ThreadSpec.hpp>
 #include <memory>
 #include <pure/PureMesh.hpp>
 #include <pure/PureMeshFactory.hpp>
 #include <pure/PureScene.hpp>
 
-#include "geometry/Boolean.hpp"
-#include "geometry/Primitives.hpp"
-#include "glm/ext/matrix_transform.hpp"
-
+using namespace mech;
 using namespace pure;
 using namespace geometry;
+
+TopoDS_Shape Cut(const TopoDS_Shape& a, const TopoDS_Shape& b) {
+    BRepAlgoAPI_Cut op(a, b);
+    op.SetRunParallel(true);
+    op.SetFuzzyValue(0.001);
+    if (!op.IsDone()) throw std::runtime_error("Cut failed");
+    return op.Shape();
+}
+
+TopoDS_Shape BuildJarBox(const ThreadSpec& spec) {
+    const double height = 92.0;
+    const double wall = 2.5;
+    const double boreDiameter = spec.majorDiameter - 2 * wall;  // inner hole
+
+    TopoDS_Shape jarOuter = BRepPrimAPI_MakeCylinder(0.5 * spec.majorDiameter, height).Shape();
+    TopoDS_Shape jarBore = BRepPrimAPI_MakeCylinder(0.5 * boreDiameter, height).Shape();
+    TopoDS_Shape jarHollow = Cut(jarOuter, jarBore);
+
+    // Internal thread cutter (20 mm deep)
+    auto cutter = mech::ThreadOps::ThreadInternalCutter(spec, boreDiameter, /*threadLength*/ 20.0);
+    TopoDS_Shape jarWithThread = BRepAlgoAPI_Cut(jarHollow, cutter->Get()).Shape();
+
+    return jarWithThread;
+}
 
 void ThreadScenario::Build(std::shared_ptr<PureScene> scene) {
     scene->Clear();
 
-    // --- Parameters for a chunky 1-turn bolt + matching nut ---
-    const double length = 50.0;     // bolt thread length
-    const double turns = 1.0;       // one revolution
-    const double depth = 2.5;       // thread radial height
-    const double majorD = 24.0;     // outer diameter of thread crest
-    const double clearance = 0.25;  // add a bit for 3D print fit
+    ThreadSpec spec;
+    spec.majorDiameter = 45.0;  // major diameter (outer of male)
+    spec.pitch = 8.0;           // coarse, 1 turn per 4mm
+    spec.depth = 3;             // chunky ridges for print strength
+    spec.flankAngleDeg = 60.0;
+    spec.clearance = 0.25;  // print fit
+    spec.handedness = mech::Handedness::Right;
+    spec.tip = mech::TipStyle::Cut;
+    spec.tipCutRatio = 0.4;
+    spec.segmentsPerTurn = 96;
 
-    mech::CoarseThreadParams tp;
-    tp.length = length;
-    tp.turns = (int)turns;
-    tp.depth = depth;
-    tp.leftHand = false;
-    tp.flankAngleDeg = 60.0;
-    tp.clearance = 0.0;  // external thread itself: zero; nut will add clearance
+    auto part = BuildJarBox(spec);
+    scene->AddPart("Box", ShapeToMesh(part), glm::mat4{1.0f}, Hex("#d2d2d2"));
+
+    const double lidHeight = 15.0;
+    const double chamferAngle = 30.0;
+    const double chamferHeight = 1.5;
+    auto lid = mech::ThreadOps::ThreadExternalRod(spec, /*rodLength*/ lidHeight, /*threadLength*/ lidHeight);
+    // auto lid_chamfered =
+    //     mech::ChamferThreadEndsExternal(lid->Get(), spec.majorDiameter / 2, chamferHeight, chamferAngle, lidHeight);
+
+    glm::mat4 T = glm::translate(glm::mat4(1.0f), glm::vec3(60.f, 0.f, 0.f));
+    scene->AddPart("Lid", ShapeToMesh(lid->Get()), T, Hex("#d2d2d2"));
+
+#if 0
+    double majorD = 24;
+    double length = 30;
 
     auto rod1 = MakeCylinder(majorD, length);
     auto rod1_chamf =
@@ -55,4 +91,5 @@ void ThreadScenario::Build(std::shared_ptr<PureScene> scene) {
 
     glm::mat4 T = glm::translate(glm::mat4(1.0f), glm::vec3(40.f, 0.f, 0.f));
     scene->AddPart("Thread", ShapeToMesh(rod2_chamf), T, Hex("#d2d2d2"));
+#endif
 }

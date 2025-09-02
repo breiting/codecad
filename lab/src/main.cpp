@@ -3,7 +3,7 @@
 
 int main() {
     App app;
-    if (!app.Initialize(1280, 800, "ccad-lab")) return 1;
+    if (!app.Initialize(1600, 1200, "CodeCAD Lab Prototyping")) return 1;
 
     app.AddScenario(std::make_shared<ThreadScenario>());
 
