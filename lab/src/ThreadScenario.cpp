@@ -67,12 +67,7 @@ geometry::ShapePtr BuildCanBottom(double canHeight, double canDiameter, double c
 
     TopoDS_Shape canWithThread = BRepAlgoAPI_Cut(canHollow, cutter->Get()).Shape();
 
-    // double rod2Dmaj = 20;
-    // double rod2Dmin = 15;
-    // double rod2H = 30;
-    // auto chamfered =
-    //     mech::ChamferThreadEndsInternal(canWithThread, rod2Dmin / 2, 1.5, 30.0, rod2H, true /*start*/, false
-    //     /*end*/);
+    // auto chamfered = mech::ChamferThreadEndsInternal(canWithThread, R_inner, 5.0, 45.0, 0, true, true);
 
     return std::make_shared<Shape>(canWithThread);
     // return std::make_shared<Shape>(chamfered);
@@ -89,7 +84,7 @@ geometry::ShapePtr BuildCanTop(double lidHandleHeight, double threadLength, doub
 
     TopoDS_Shape fused = Fuse(lid->Get(), handle);
 
-    const double holeDiameter = 35.0;
+    const double holeDiameter = canDiameter - 10.0;
     auto hole = BRepPrimAPI_MakeCylinder(0.5 * holeDiameter, threadLength).Shape();
 
     TopoDS_Shape lidFinal = Cut(fused, hole);
@@ -103,19 +98,19 @@ void ThreadScenario::Build(std::shared_ptr<PureScene> scene) {
     const double lidThreadLength = 10.0;  // Thread length for lid
     const double lidHandleHeight = 5.0;   // Handle height
     const double canHeight = 25;
-    const double canDiameter = 45.0;  // Aussendurchmesser Dose
+    const double canDiameter = 60.0;  // Aussendurchmesser Dose
     const double canWallThickness = 2.5;
 
     ThreadSpec spec;
     spec.fitDiameter = canDiameter - 2 * canWallThickness;  // 40mm
-    spec.pitch = 8.0;                                       // coarse, 1 turn per 4mm
+    spec.pitch = 6.0;                                       // coarse, 1 turn per 4mm
     spec.depth = 3;                                         // chunky ridges for print strength
     spec.flankAngleDeg = 60.0;
     spec.clearance = 0.1;  // print fit
     spec.handedness = mech::Handedness::Right;
     spec.tip = mech::TipStyle::Cut;
     spec.tipCutRatio = 0.4;
-    spec.segmentsPerTurn = 64;
+    spec.segmentsPerTurn = 96;
 
     // Bottom
     auto canBottom = BuildCanBottom(canHeight, canDiameter, canWallThickness, spec);
@@ -124,7 +119,7 @@ void ThreadScenario::Build(std::shared_ptr<PureScene> scene) {
 
     // Top
     auto canTop = BuildCanTop(lidHandleHeight, lidThreadLength, canDiameter, spec);
-    glm::mat4 T = glm::translate(glm::mat4(1.0f), glm::vec3(60.f, 0.f, 0.0f));
+    glm::mat4 T = glm::translate(glm::mat4(1.0f), glm::vec3(80.f, 0.f, 0.0f));
     scene->AddPart("Top", ShapeToMesh(canTop->Get()), T, Hex("#ffd2d2"));
     m_Shapes.push_back(canTop);
 }

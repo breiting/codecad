@@ -184,9 +184,8 @@ ShapePtr ThreadOps::ThreadExternalRod(const ThreadSpec& inSpec, double rodLength
 
     const double R_pitch = 0.5 * spec.fitDiameter;
     const double halfDepth = 0.5 * spec.depth;
-    const double clearance = std::max(0.0, spec.clearance);
 
-    const double R_outer = ClampPositive(R_pitch + halfDepth - clearance);
+    const double R_outer = ClampPositive(R_pitch + halfDepth);
     const double R_core = ClampPositive(R_outer - spec.depth);
 
     const double eps = std::max({1e-3, 0.002 * spec.pitch, 0.05 * spec.depth});
