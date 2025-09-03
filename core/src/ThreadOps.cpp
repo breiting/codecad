@@ -27,6 +27,7 @@
 #include <gp_Pnt.hxx>
 #include <gp_Pnt2d.hxx>
 #include <gp_Trsf.hxx>
+#include <map>
 #include <stdexcept>
 
 #include "mech/ThreadSpec.hpp"
@@ -83,6 +84,61 @@ void PrintWireCoordinates(const TopoDS_Wire& wire) {
         printf("Vertex %d: X = %.6f, Y = %.6f, Z = %.6f\n", i, p.X(), p.Y(), p.Z());
     }
 }
+
+namespace iso {
+/**
+ * @brief Standard metric thread pitch table (ISO 262).
+ *
+ * Provides standard coarse and fine pitches for common metric thread sizes.
+ * Based on ISO 262 standard.
+ */
+const std::map<double, std::vector<double>> METRIC_PITCHES = {{1.0, {0.25}},
+                                                              {1.2, {0.25}},
+                                                              {1.6, {0.35}},
+                                                              {2.0, {0.4, 0.25}},
+                                                              {2.5, {0.45, 0.35}},
+                                                              {3.0, {0.5, 0.35}},
+                                                              {4.0, {0.7, 0.5}},
+                                                              {5.0, {0.8, 0.5}},
+                                                              {6.0, {1.0, 0.75, 0.5}},
+                                                              {8.0, {1.25, 1.0, 0.75}},
+                                                              {10.0, {1.5, 1.25, 1.0, 0.75}},
+                                                              {12.0, {1.75, 1.5, 1.25, 1.0}},
+                                                              {16.0, {2.0, 1.5, 1.0}},
+                                                              {20.0, {2.5, 2.0, 1.5, 1.0}},
+                                                              {24.0, {3.0, 2.5, 2.0, 1.5}},
+                                                              {30.0, {3.5, 3.0, 2.0, 1.5}},
+                                                              {36.0, {4.0, 3.0, 2.0, 1.5}},
+                                                              {42.0, {4.5, 4.0, 3.0, 2.0}},
+                                                              {48.0, {5.0, 4.0, 3.0, 2.0}}};
+
+double MetricStandard::GetCoarsePitch(double nominalDiameter) {
+    auto it = METRIC_PITCHES.find(nominalDiameter);
+    if (it != METRIC_PITCHES.end() && !it->second.empty()) {
+        return it->second[0];  // First entry is coarse pitch
+    }
+
+    // Fallback calculation for non-standard sizes
+    if (nominalDiameter <= 2.0) return 0.4;
+    if (nominalDiameter <= 3.0) return 0.5;
+    if (nominalDiameter <= 5.0) return 0.8;
+    if (nominalDiameter <= 8.0) return 1.25;
+    if (nominalDiameter <= 12.0) return 1.75;
+    if (nominalDiameter <= 18.0) return 2.5;
+    if (nominalDiameter <= 24.0) return 3.0;
+
+    return 3.5;  // Default for large threads
+}
+
+std::vector<double> MetricStandard::GetFinePitches(double nominalDiameter) {
+    auto it = METRIC_PITCHES.find(nominalDiameter);
+    if (it != METRIC_PITCHES.end() && it->second.size() > 1) {
+        return std::vector<double>(it->second.begin() + 1, it->second.end());
+    }
+    return {};  // No fine pitches available
+}
+
+}  // namespace iso
 
 /**
  * @brief Create a C2 B-spline helix sampled from param t in [0, 2π*turns].

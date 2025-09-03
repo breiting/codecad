@@ -5,6 +5,52 @@
 namespace mech {
 
 /**
+ * @brief Namespace for ISO 262 standard
+ */
+namespace iso {
+
+/**
+ * @brief Calculate the fundamental triangle height for ISO threads.
+ *
+ * For 60° threads, H = (√3/2) × pitch
+ * This is the theoretical height of the equilateral triangle that forms
+ * the basis of the thread profile.
+ */
+constexpr double CalculateFundamentalHeight(double pitch) {
+    return 0.86602540378443864676 * pitch;  // √3/2
+}
+
+/**
+ * @brief Standard metric thread specifications.
+ *
+ * Provides standard pitch values for common metric thread sizes
+ * according to ISO 262 standard.
+ */
+class MetricStandard {
+   public:
+    /**
+     * @brief Get standard coarse pitch for metric thread diameter.
+     *
+     * Returns the standard coarse pitch (largest pitch) for a given
+     * metric thread diameter according to ISO 262.
+     *
+     * @param nominalDiameter Thread diameter in mm (e.g., 6.0 for M6)
+     * @return Standard coarse pitch in mm
+     */
+    static double GetCoarsePitch(double nominalDiameter);
+
+    /**
+     * @brief Get standard fine pitch options for metric thread diameter.
+     *
+     * @param nominalDiameter Thread diameter in mm
+     * @return Vector of available fine pitches in mm (may be empty)
+     */
+    static std::vector<double> GetFinePitches(double nominalDiameter);
+};
+
+}  // namespace iso
+
+/**
  * @brief Operations to generate threaded geometry (external ridge volume, internal cutter),
  * and convenience builders for rod/nut bodies using a given ThreadSpec.
  *

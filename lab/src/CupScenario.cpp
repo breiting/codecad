@@ -68,8 +68,6 @@ geometry::ShapePtr BuildCanBottom(double canHeight, double canDiameter, double c
 
     TopoDS_Shape canWithThread = BRepAlgoAPI_Cut(canHollow, cutter->Get()).Shape();
 
-    // auto chamfered = mech::ChamferThreadEndsInternal(canWithThread, R_inner, 5.0, 45.0, 0, true, true);
-
     return std::make_shared<Shape>(canWithThread);
     // return std::make_shared<Shape>(cutter->Get());
 }

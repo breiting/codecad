@@ -1,386 +1,241 @@
 #include "mech/Gear.hpp"
 
-// Standard library
-#include <algorithm>
-#include <cmath>
-#include <stdexcept>
-#include <vector>
-
-// OpenCASCADE includes
 #include <BRepAlgoAPI_Cut.hxx>
 #include <BRepAlgoAPI_Fuse.hxx>
 #include <BRepBuilderAPI_MakeEdge.hxx>
 #include <BRepBuilderAPI_MakeFace.hxx>
 #include <BRepBuilderAPI_MakeWire.hxx>
 #include <BRepBuilderAPI_Transform.hxx>
-#include <BRepFilletAPI_MakeFillet.hxx>
+#include <BRepFilletAPI_MakeFillet2d.hxx>
+#include <BRepOffsetAPI_MakeOffset.hxx>
 #include <BRepPrimAPI_MakeCylinder.hxx>
 #include <BRepPrimAPI_MakePrism.hxx>
+#include <BRepTools.hxx>
 #include <GC_MakeArcOfCircle.hxx>
-#include <GC_MakeSegment.hxx>
-#include <GeomAPI_PointsToBSpline.hxx>
-#include <Geom_BSplineCurve.hxx>
+#include <Geom2dAPI_PointsToBSpline.hxx>
+#include <Geom2d_Curve.hxx>
+#include <Geom2d_Line.hxx>
 #include <Geom_Circle.hxx>
-#include <TColgp_Array1OfPnt.hxx>
+#include <Geom_CylindricalSurface.hxx>
+#include <Geom_Plane.hxx>
+#include <Geom_TrimmedCurve.hxx>
+#include <TopExp.hxx>
 #include <TopExp_Explorer.hxx>
 #include <TopoDS.hxx>
+#include <TopoDS_Compound.hxx>
+#include <TopoDS_Edge.hxx>
+#include <TopoDS_Face.hxx>
+#include <TopoDS_Wire.hxx>
+#include <cmath>
+#include <gp_Ax2.hxx>
 #include <gp_Circ.hxx>
-#include <gp_Pnt.hxx>
+#include <gp_Pln.hxx>
 #include <gp_Trsf.hxx>
-#include <gp_Vec.hxx>
+#include <stdexcept>
+#include <vector>
+
+using geometry::Shape;
+using geometry::ShapePtr;
 
 namespace mech {
 
-namespace {
-
-/**
- * @brief Complete geometric parameters for an involute gear
- *
- * This structure contains all the calculated dimensions needed to generate
- * a proper involute spur gear according to standard gear theory.
- */
-struct GearGeometry {
-    // Input parameters
-    double module;              ///< Module (mm)
-    double pressure_angle_rad;  ///< Pressure angle (radians)
-    int teeth;                  ///< Number of teeth
-    double thickness;           ///< Gear thickness (mm)
-
-    // Calculated radii
-    double pitch_radius;     ///< Pitch circle radius (mm)
-    double base_radius;      ///< Base circle radius (mm)
-    double addendum_radius;  ///< Addendum (tip) circle radius (mm)
-    double dedendum_radius;  ///< Dedendum (root) circle radius (mm)
-
-    // Tooth geometry
-    double tooth_angle;            ///< Angular pitch per tooth (radians)
-    double base_tooth_thickness;   ///< Tooth thickness at base circle (radians)
-    double pitch_tooth_thickness;  ///< Tooth thickness at pitch circle (radians)
-
-    // Manufacturing adjustments
-    double backlash_angle;      ///< Angular backlash compensation (radians)
-    double root_fillet_radius;  ///< Root fillet radius (mm)
-
-    /**
-     * @brief Calculate all gear geometry from basic parameters
-     */
-    static GearGeometry calculate(const GearParams& params) {
-        GearGeometry geom = {};
-
-        // Validate input parameters
-        if (params.teeth < 6) {
-            throw std::invalid_argument("Gear must have at least 6 teeth");
-        }
-        if (params.module <= 0) {
-            throw std::invalid_argument("Module must be positive");
-        }
-        if (params.thickness <= 0) {
-            throw std::invalid_argument("Thickness must be positive");
-        }
-
-        // Basic parameters
-        geom.module = params.module;
-        geom.pressure_angle_rad = params.pressure_angle_deg * M_PI / 180.0;
-        geom.teeth = params.teeth;
-        geom.thickness = params.thickness;
-
-        // Standard gear calculations
-        geom.pitch_radius = 0.5 * params.teeth * params.module;
-        geom.base_radius = geom.pitch_radius * std::cos(geom.pressure_angle_rad);
-        geom.addendum_radius = geom.pitch_radius + params.addendum_coeff * params.module;
-        geom.dedendum_radius = geom.pitch_radius - params.dedendum_coeff * params.module;
-
-        // Ensure dedendum doesn't go negative or too small
-        double min_dedendum = std::max(0.1 * params.module, geom.base_radius * 0.8);
-        geom.dedendum_radius = std::max(geom.dedendum_radius, min_dedendum);
-
-        // Tooth spacing and thickness
-        geom.tooth_angle = 2.0 * M_PI / params.teeth;
-        geom.pitch_tooth_thickness = M_PI * params.module;  // Circular pitch at pitch circle
-
-        // Convert backlash compensation to angular
-        geom.backlash_angle = params.backlash_compensation / geom.pitch_radius;
-
-        // Root fillet
-        geom.root_fillet_radius = params.root_fillet_factor * params.module;
-
-        return geom;
-    }
-};
-
-/**
- * @brief Generate points along an involute curve
- *
- * The involute of a circle is the curve traced by a point on a taut string
- * as it unwinds from the circle. This forms the working profile of gear teeth.
- *
- * Parametric equations for involute:
- * x = r * (cos(t) + t * sin(t))
- * y = r * (sin(t) - t * cos(t))
- *
- * where r is the base circle radius and t is the parameter.
- *
- * @param base_radius Base circle radius
- * @param start_radius Starting radius for involute
- * @param end_radius Ending radius for involute
- * @param samples Number of points to generate
- * @param mirror_y If true, mirror the curve about x-axis
- * @return Vector of points on the involute curve
- */
-std::vector<gp_Pnt> generateInvolutePoints(double base_radius, double start_radius, double end_radius, int samples,
-                                           bool mirror_y = false) {
-    std::vector<gp_Pnt> points;
-    points.reserve(samples + 1);
-
-    if (start_radius < base_radius) start_radius = base_radius;
-    if (end_radius < start_radius) end_radius = start_radius;
-
-    // Calculate parameter range
-    double t_start = (start_radius <= base_radius)
-                         ? 0.0
-                         : std::sqrt((start_radius * start_radius) / (base_radius * base_radius) - 1.0);
-    double t_end = std::sqrt((end_radius * end_radius) / (base_radius * base_radius) - 1.0);
-
-    for (int i = 0; i <= samples; ++i) {
-        double t = t_start + (t_end - t_start) * double(i) / samples;
-
-        double x = base_radius * (std::cos(t) + t * std::sin(t));
-        double y = base_radius * (std::sin(t) - t * std::cos(t));
-
-        if (mirror_y) y = -y;
-
-        points.emplace_back(x, y, 0.0);
-    }
-
-    return points;
+static inline double deg2rad(double d) {
+    return d * M_PI / 180.0;
 }
 
-/**
- * @brief Create a B-spline curve from a set of points
- *
- * @param points Vector of 3D points
- * @return Handle to B-spline curve
- */
-Handle(Geom_BSplineCurve) createBSplineFromPoints(const std::vector<gp_Pnt>& points) {
-    if (points.size() < 2) {
-        throw std::invalid_argument("Need at least 2 points for B-spline");
-    }
-
-    TColgp_Array1OfPnt pointArray(1, static_cast<Standard_Integer>(points.size()));
-    for (size_t i = 0; i < points.size(); ++i) {
-        pointArray.SetValue(static_cast<Standard_Integer>(i + 1), points[i]);
-    }
-
-    GeomAPI_PointsToBSpline splineBuilder(pointArray, 3, 8, GeomAbs_C2, 1.0e-6);
-    if (!splineBuilder.IsDone()) {
-        throw std::runtime_error("Failed to create B-spline curve");
-    }
-
-    return splineBuilder.Curve();
+/// Sample involute (param t) on base circle: r_b, returns (x,y)
+static inline gp_Pnt InvoluteXY(double rb, double t) {
+    const double ct = std::cos(t), st = std::sin(t);
+    const double x = rb * (ct + t * st);
+    const double y = rb * (st - t * ct);
+    return gp_Pnt(x, y, 0);
 }
 
-/**
- * @brief Create a single gear tooth profile as a closed wire
- *
- * The tooth profile consists of:
- * 1. Root circle arc (between teeth)
- * 2. Right involute curve (pressure side)
- * 3. Tip circle arc (tooth tip)
- * 4. Left involute curve (coast side)
- *
- * @param geom Calculated gear geometry
- * @param params Original parameters for fine control
- * @return Closed wire representing one tooth profile
- */
-TopoDS_Wire createToothProfile(const GearGeometry& geom, const GearParams& params) {
-    BRepBuilderAPI_MakeWire wireBuilder;
+/// Find t for which radius == target (numeric)
+static double SolveTForRadius(double rb, double targetR) {
+    // radius along involute: r(t) = rb * sqrt(1 + t^2)
+    // => t = sqrt( (r/ rb)^2 - 1 )
+    const double ratio = targetR / rb;
+    if (ratio <= 1.0) return 0.0;
+    return std::sqrt(ratio * ratio - 1.0);
+}
 
-    // Calculate half tooth thickness angle at pitch circle (with backlash)
-    double half_tooth_angle = (M_PI / geom.teeth) - 0.5 * geom.backlash_angle;
+/// Make single tooth 2D face in XY plane (origin at gear center)
+static TopoDS_Face MakeTooth2D(const GearSpec& g) {
+    if (g.teeth < 6) throw std::invalid_argument("teeth must be >= 6");
 
-    // Generate involute curves for both sides of the tooth
-    auto rightInvolute = generateInvolutePoints(geom.base_radius, geom.base_radius, geom.addendum_radius,
-                                                params.involute_samples, false);
+    const double z = (double)g.teeth;
+    const double m = g.module;
+    const double pa = deg2rad(g.pressureDeg);
+    const double rp = 0.5 * m * z;        // pitch radius
+    const double ra = rp + m;             // addendum radius
+    const double rf = rp - 1.25 * m;      // dedendum radius (ISO-ish)
+    const double rb = rp * std::cos(pa);  // base radius for involute
 
-    auto leftInvolute =
-        generateInvolutePoints(geom.base_radius, geom.base_radius, geom.addendum_radius, params.involute_samples, true);
+    // Backlash as small angular trim on each flank at pitch:
+    // Convert diametral backlash (mm) to angular reduction around pitch circle.
+    const double arcAtPitch = g.backlash / rp;  // radians removed symmetrically
 
-    // Apply rotation to position the involutes correctly
-    auto rotatePoint = [](gp_Pnt& point, double angle) {
-        double cos_a = std::cos(angle);
-        double sin_a = std::sin(angle);
-        double x = point.X();
-        double y = point.Y();
-        point.SetX(cos_a * x - sin_a * y);
-        point.SetY(sin_a * x + cos_a * y);
+    // Half tooth angle at center:
+    const double toothAngle = 2.0 * M_PI / z;
+    const double halfTooth = 0.5 * toothAngle;
+
+    // Involute from base to addendum:
+    const double t_add = SolveTForRadius(rb, ra);
+    const int N = std::max(8, (int)std::ceil(30 * (t_add + 0.1)));  // samples
+
+    std::vector<gp_Pnt> flank;
+    flank.reserve(N);
+    for (int i = 0; i <= N; ++i) {
+        double t = (double)i / (double)N * t_add;
+        flank.push_back(InvoluteXY(rb, t));
+    }
+
+    // Rotate flanks to center tooth and apply backlash trim near pitch:
+    // We construct ONE tooth by:
+    //  - left flank rotated by +(halfTooth - delta)
+    //  - right flank mirrored & rotated by -(halfTooth - delta)
+    const double delta = 0.5 * arcAtPitch;  // small angular trim per flank
+
+    auto rotPoint = [](const gp_Pnt& p, double ang) {
+        double c = std::cos(ang), s = std::sin(ang);
+        return gp_Pnt(c * p.X() - s * p.Y(), s * p.X() + c * p.Y(), 0);
     };
 
-    // Rotate involutes to create proper tooth thickness
-    for (auto& point : rightInvolute) {
-        rotatePoint(point, +half_tooth_angle);
+    std::vector<gp_Pnt> leftFlank, rightFlank;
+    leftFlank.reserve(flank.size());
+    rightFlank.reserve(flank.size());
+
+    // left = CCW side
+    for (auto& p : flank) {
+        leftFlank.push_back(rotPoint(p, +(halfTooth - delta)));
     }
-    for (auto& point : leftInvolute) {
-        rotatePoint(point, -half_tooth_angle);
+    // right = mirror (x, -y) then rotate negative
+    for (int i = (int)flank.size() - 1; i >= 0; --i) {
+        gp_Pnt q(flank[i].X(), -flank[i].Y(), 0);
+        rightFlank.push_back(rotPoint(q, -(halfTooth - delta)));
     }
 
-    // Get key points for connecting arcs
-    gp_Pnt baseRight = rightInvolute.front();
-    gp_Pnt tipRight = rightInvolute.back();
-    gp_Pnt tipLeft = leftInvolute.back();
-    gp_Pnt baseLeft = leftInvolute.front();
+    // Root arc between the two flanks at radius rf
+    // Compute intersection points where involutes cross root circle (if rb < rf)
+    auto onCircle = [](double r, double ang) { return gp_Pnt(r * std::cos(ang), r * std::sin(ang), 0); };
 
-    // 1. Root arc (if there's space between base circle and dedendum)
-    if (geom.dedendum_radius < geom.base_radius - 1e-6) {
-        double angleLeft = std::atan2(baseLeft.Y(), baseLeft.X());
-        double angleRight = std::atan2(baseRight.Y(), baseRight.X());
-
-        // Ensure proper arc direction
-        if (angleRight > angleLeft) angleRight -= 2.0 * M_PI;
-
-        gp_Circ rootCircle(gp_Ax2(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)), geom.dedendum_radius);
-        Handle(Geom_Circle) rootGeom = new Geom_Circle(rootCircle);
-
-        // Create arc from right to left (counter-clockwise)
-        gp_Pnt rootStart(geom.dedendum_radius * std::cos(angleRight), geom.dedendum_radius * std::sin(angleRight), 0);
-        gp_Pnt rootEnd(geom.dedendum_radius * std::cos(angleLeft), geom.dedendum_radius * std::sin(angleLeft), 0);
-
-        GC_MakeArcOfCircle arcBuilder(rootCircle, rootStart, rootEnd, Standard_False);
-        if (arcBuilder.IsDone()) {
-            wireBuilder.Add(BRepBuilderAPI_MakeEdge(arcBuilder.Value()));
+    // Angles of flank endpoints at root (approx by looking at first valid > rf)
+    auto firstAboveR = [&](const std::vector<gp_Pnt>& pts, bool leftSide) -> int {
+        for (int i = 0; i < (int)pts.size(); ++i) {
+            double r = std::hypot(pts[i].X(), pts[i].Y());
+            if (r > rf + 1e-6) return i;
         }
+        return (int)pts.size() - 1;  // fallback
+    };
 
-        // Connect root to base circle
-        wireBuilder.Add(BRepBuilderAPI_MakeEdge(rootEnd, baseLeft));
+    int iL = firstAboveR(leftFlank, true);
+    int iR = firstAboveR(rightFlank, false);
+
+    gp_Pnt pL = leftFlank[iL];
+    gp_Pnt pR = rightFlank[iR];
+
+    double angL = std::atan2(pL.Y(), pL.X());
+    double angR = std::atan2(pR.Y(), pR.X());
+
+    // Ensure angR < angL for root arc direction (CW from left to right)
+    while (angR > angL) angR -= 2 * M_PI;
+
+    // --- Build wire: left flank up to addendum, addendum arc, right flank down, root arc back to left ---
+
+    BRepBuilderAPI_MakeWire w;
+
+    auto addPolyline = [&](const std::vector<gp_Pnt>& pts) {
+        for (size_t i = 1; i < pts.size(); ++i) {
+            w.Add(BRepBuilderAPI_MakeEdge(pts[i - 1], pts[i]));
+        }
+    };
+
+    // 1) left flank
+    addPolyline(leftFlank);
+
+    // 2) small tip relief (optional), else add addendum arc between left/right at ra
+    gp_Pnt tipL = leftFlank.back();
+    gp_Pnt tipR = rightFlank.front();
+
+    if (g.tipRelief > 0.0) {
+        // Create tiny flat at the top (clip a small chord)
+        const double tr = std::min(g.tipRelief, 0.3 * m);  // keep modest
+        gp_Pnt dir(std::cos(+halfTooth), std::sin(+halfTooth), 0);
+        gp_Pnt tipA = tipL;
+        tipA.Translate(gp_Vec(-dir.X() * tr, -dir.Y() * tr, 0));
+        gp_Pnt tipB = tipR;
+        tipB.Translate(gp_Vec(+dir.X() * tr, +dir.Y() * tr, 0));
+        w.Add(BRepBuilderAPI_MakeEdge(tipA, tipB));
+    } else {
+        // circular arc at addendum
+        //
+        gp_Circ addCirc(gp_Ax2(gp_Pnt(0, 0, 0), gp::DZ()), ra);
+        Handle(Geom_TrimmedCurve) addArc = GC_MakeArcOfCircle(addCirc, tipL, tipR, Standard_True).Value();
+        w.Add(BRepBuilderAPI_MakeEdge(addArc));
     }
 
-    // 2. Left involute curve
-    Handle(Geom_BSplineCurve) leftSpline = createBSplineFromPoints(leftInvolute);
-    wireBuilder.Add(BRepBuilderAPI_MakeEdge(leftSpline));
+    // 3) right flank back to root
+    addPolyline(rightFlank);
 
-    // 3. Tip arc
-    double tipAngleLeft = std::atan2(tipLeft.Y(), tipLeft.X());
-    double tipAngleRight = std::atan2(tipRight.Y(), tipRight.X());
+    // 4) root arc from right to left along rf
+    Handle(Geom_Circle) rootCircle = new Geom_Circle(gp_Ax2(gp_Pnt(0, 0, 0), gp::DZ()), rf);
+    Handle(Geom_TrimmedCurve) rootArc = new Geom_TrimmedCurve(rootCircle, angR, angL, false);
+    w.Add(BRepBuilderAPI_MakeEdge(rootArc));
 
-    if (tipAngleRight < tipAngleLeft) tipAngleRight += 2.0 * M_PI;
+    TopoDS_Wire toothWire = w.Wire();
 
-    gp_Circ tipCircle(gp_Ax2(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)), geom.addendum_radius);
-    GC_MakeArcOfCircle tipArcBuilder(tipCircle, tipLeft, tipRight, Standard_False);
-    if (tipArcBuilder.IsDone()) {
-        wireBuilder.Add(BRepBuilderAPI_MakeEdge(tipArcBuilder.Value()));
+    TopoDS_Face toothFace = BRepBuilderAPI_MakeFace(toothWire);
+
+    if (g.rootFillet > 0.0) {
+        BRepFilletAPI_MakeFillet2d mkf(toothFace);
+        for (TopExp_Explorer ex(toothFace, TopAbs_VERTEX); ex.More(); ex.Next()) {
+            mkf.AddFillet(TopoDS::Vertex(ex.Current()), g.rootFillet);
+        }
+        mkf.Build();
+        if (mkf.IsDone()) {
+            toothFace = TopoDS::Face(mkf.Shape());  // <-- statt direktem '=' auf Face
+        }
     }
 
-    // 4. Right involute curve (reversed)
-    std::reverse(rightInvolute.begin(), rightInvolute.end());
-    Handle(Geom_BSplineCurve) rightSpline = createBSplineFromPoints(rightInvolute);
-    wireBuilder.Add(BRepBuilderAPI_MakeEdge(rightSpline));
-
-    // 5. Connect back to start if needed
-    if (geom.dedendum_radius < geom.base_radius - 1e-6) {
-        gp_Pnt rootStart(geom.dedendum_radius * std::atan2(baseRight.Y(), baseRight.X()),
-                         geom.dedendum_radius * std::sin(std::atan2(baseRight.Y(), baseRight.X())), 0);
-        wireBuilder.Add(BRepBuilderAPI_MakeEdge(baseRight, rootStart));
-    }
-
-    wireBuilder.Build();
-    if (!wireBuilder.IsDone()) {
-        throw std::runtime_error("Failed to create tooth profile wire");
-    }
-
-    return wireBuilder.Wire();
+    return toothFace;
 }
 
-}  // anonymous namespace
-
-// Public API implementation
-
-geometry::ShapePtr MakeInvoluteGear(const GearParams& params) {
-    try {
-        // Calculate all gear geometry
-        GearGeometry geom = GearGeometry::calculate(params);
-
-        // Create the tooth profile as a wire
-        TopoDS_Wire toothWire = createToothProfile(geom, params);
-
-        // Create face from wire
-        BRepBuilderAPI_MakeFace faceBuilder(toothWire);
-        if (!faceBuilder.IsDone()) {
-            throw std::runtime_error("Failed to create tooth face");
-        }
-        TopoDS_Face toothFace = faceBuilder.Face();
-
-        // Extrude to create 3D tooth
-        gp_Vec extrudeVector(0, 0, geom.thickness);
-        BRepPrimAPI_MakePrism prismBuilder(toothFace, extrudeVector);
-        TopoDS_Shape toothSolid = prismBuilder.Shape();
-
-        // Create gear by copying and rotating the tooth
-        TopoDS_Shape gearSolid = toothSolid;
-
-        for (int i = 1; i < geom.teeth; ++i) {
-            gp_Trsf rotation;
-            rotation.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)), i * geom.tooth_angle);
-
-            BRepBuilderAPI_Transform transformer(toothSolid, rotation, Standard_True);
-            TopoDS_Shape rotatedTooth = transformer.Shape();
-
-            BRepAlgoAPI_Fuse fuseOp(gearSolid, rotatedTooth);
-            if (!fuseOp.IsDone()) {
-                throw std::runtime_error("Failed to fuse gear teeth");
-            }
-            gearSolid = fuseOp.Shape();
-        }
-
-        // Add center hub if dedendum radius is significantly larger than needed
-        double hubRadius = geom.dedendum_radius;
-        if (hubRadius > geom.base_radius * 0.9) {
-            BRepPrimAPI_MakeCylinder hubBuilder(hubRadius, geom.thickness);
-            TopoDS_Shape hub = hubBuilder.Shape();
-
-            BRepAlgoAPI_Fuse hubFuse(gearSolid, hub);
-            if (hubFuse.IsDone()) {
-                gearSolid = hubFuse.Shape();
-            }
-        }
-
-        // Create center bore if specified
-        if (params.bore_diameter > 0) {
-            double boreRadius = params.bore_diameter * 0.5;
-
-            // Make bore slightly longer to ensure clean cut
-            BRepPrimAPI_MakeCylinder boreBuilder(boreRadius, geom.thickness + 0.2);
-            TopoDS_Shape bore = boreBuilder.Shape();
-
-            // Translate bore to center it properly
-            gp_Trsf translation;
-            translation.SetTranslation(gp_Vec(0, 0, -0.1));
-            BRepBuilderAPI_Transform boreTransformer(bore, translation, Standard_True);
-            bore = boreTransformer.Shape();
-
-            // Cut the bore
-            BRepAlgoAPI_Cut cutOp(gearSolid, bore);
-            if (!cutOp.IsDone()) {
-                throw std::runtime_error("Failed to create center bore");
-            }
-            gearSolid = cutOp.Shape();
-        }
-
-        return std::make_shared<geometry::Shape>(gearSolid);
-
-    } catch (const std::exception& e) {
-        throw std::runtime_error(std::string("Gear generation failed: ") + e.what());
-    }
+/// Rotate a shape around Z by angle (rad)
+static TopoDS_Shape RotZ(const TopoDS_Shape& s, double ang) {
+    gp_Trsf t;
+    t.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp::DZ()), ang);
+    return BRepBuilderAPI_Transform(s, t, /*copy*/ true).Shape();
 }
 
-// Legacy interface implementation
-geometry::ShapePtr MakeInvoluteGear(int z, double m, double th, double bore, double pressureDeg) {
-    GearParams params;
-    params.teeth = z;
-    params.module = m;
-    params.thickness = th;
-    params.bore_diameter = bore;
-    params.pressure_angle_deg = pressureDeg;
+ShapePtr SimpleGear::MakeSpur(const GearSpec& g) {
+    if (g.teeth < 6 || g.module <= 0.0 || g.thickness <= 0.0) {
+        throw std::invalid_argument("SimpleGear::MakeSpur: invalid parameters");
+    }
 
-    return MakeInvoluteGear(params);
+    // 1) build one tooth 2D face
+    TopoDS_Face tooth = MakeTooth2D(g);
+
+    // 2) polar array & fuse (2D)
+    TopoDS_Shape acc = tooth;
+    const double step = 2.0 * M_PI / (double)g.teeth;
+    for (int i = 1; i < g.teeth; ++i) {
+        TopoDS_Shape ti = RotZ(tooth, step * i);
+        acc = BRepAlgoAPI_Fuse(acc, ti).Shape();
+    }
+
+    // 3) extrude to thickness
+    gp_Vec dir(0, 0, g.thickness);
+    TopoDS_Shape solid = BRepPrimAPI_MakePrism(TopoDS::Face(acc), dir, false, true).Shape();
+
+    // 4) drill bore
+    if (g.bore > 0.0) {
+        TopoDS_Shape bore = BRepPrimAPI_MakeCylinder(0.5 * g.bore, g.thickness * 1.2).Shape();
+        // center through thickness: cut
+        solid = BRepAlgoAPI_Cut(solid, bore).Shape();
+    }
+
+    return std::make_shared<Shape>(solid);
 }
 
 }  // namespace mech

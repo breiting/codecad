@@ -1,6 +1,7 @@
 add_library(core STATIC
    src/Bom.cpp
    src/Boolean.cpp
+   src/CoarseThread.cpp
    src/Draft.cpp
    src/Export.cpp
    src/Extrude.cpp
@@ -11,21 +12,20 @@ add_library(core STATIC
    src/Primitives.cpp
    src/Project.cpp
    src/Sketch.cpp
-   src/CoarseThread.cpp
-   src/Thread.cpp
    src/ThreadChamfer.cpp
+   src/ThreadOps.cpp
    src/Transform.cpp
    src/Triangulate.cpp
    src/lua/BindBooleans.cpp
    src/lua/BindConstruct.cpp
    src/lua/BindDraft.cpp
    src/lua/BindFeatures.cpp
-   src/lua/BindGears.cpp
+   # src/lua/BindGears.cpp
    src/lua/BindIO.cpp
    src/lua/BindMeasure.cpp
    src/lua/BindPrimitives.cpp
    src/lua/BindSketch.cpp
-   src/lua/BindThreads.cpp
+   # src/lua/BindThreads.cpp
    src/lua/BindTransforms.cpp
    src/lua/BindingUtils.cpp
 )
