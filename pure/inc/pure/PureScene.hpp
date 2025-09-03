@@ -3,6 +3,8 @@
 #include <memory>
 #include <vector>
 
+#include "pure/PureBounds.hpp"
+
 namespace pure {
 
 class PureMesh;
@@ -30,7 +32,7 @@ class PureScene {
     }
 
     // Compute bounding box over all Parts (using Mesh bounds transformed)
-    bool ComputeBounds(glm::vec3& outMin, glm::vec3& outMax) const;
+    bool ComputeBounds(PureBounds& bounds) const;
 
    private:
     std::vector<PurePart> m_Parts;

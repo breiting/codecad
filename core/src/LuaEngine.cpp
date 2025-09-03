@@ -12,7 +12,7 @@
 #include "runtime/BindMeasure.hpp"
 #include "runtime/BindPrimitives.hpp"
 #include "runtime/BindSketch.hpp"
-#include "runtime/BindThreads.hpp"
+// #include "runtime/BindThreads.hpp"
 #include "runtime/BindTransforms.hpp"
 
 LuaEngine::LuaEngine() : m_Emitted(nullptr) {
@@ -90,8 +90,8 @@ bool LuaEngine::Initialize(std::string* errorMsg) {
         runtime::RegisterFeatures(m_Lua);
         runtime::RegisterSketch(m_Lua);
         runtime::RegisterConstruct(m_Lua);
-        runtime::RegisterGears(m_Lua);
-        runtime::RegisterThreads(m_Lua);
+        // runtime::RegisterGears(m_Lua);
+        // runtime::RegisterThreads(m_Lua);
         runtime::RegisterDraft(m_Lua);
         runtime::RegisterMeasure(m_Lua);
         runtime::RegisterIO(m_Lua, this);  // dein IO-Binding, das save_text etc. anbietet

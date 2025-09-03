@@ -1,19 +1,19 @@
 #version 330 core
 
-layout(location=0) in vec3 in_position;
-layout(location=1) in vec3 in_normal;
+layout(location=0) in vec3 inPosition;
+layout(location=1) in vec3 inNormal;
 
-uniform mat4 u_model;
-uniform mat4 u_view;
-uniform mat4 u_proj;
-uniform mat3 u_normalMatrix;
+uniform mat4 uModel;
+uniform mat4 uView;
+uniform mat4 uProj;
+uniform mat3 uNormalMatrix;
 
-out vec3 v_normal;
-out vec3 v_worldPos;
+out vec3 vNormal;
+out vec3 vWorldPos;
 
 void main() {
-  vec4 wp = u_model * vec4(in_position, 1.0);
-  v_worldPos = wp.xyz;
-  v_normal = normalize(u_normalMatrix * in_normal);
-  gl_Position = u_proj * u_view * wp;
+  vec4 wp = uModel * vec4(inPosition, 1.0);
+  vWorldPos = wp.xyz;
+  vNormal = normalize(uNormalMatrix * inNormal);
+  gl_Position = uProj * uView * wp;
 }

@@ -10,13 +10,15 @@ void PureRenderer::DrawMesh(const PureMesh& mesh, const PureShader& shader, cons
                             const glm::mat4& view, const glm::mat4& proj, const glm::vec3& camPos,
                             const PureRenderParams& params) {
     shader.Bind();
-    shader.SetMat4("u_model", model);
-    shader.SetMat4("u_view", view);
-    shader.SetMat4("u_proj", proj);
-    shader.SetMat3("u_normalMatrix", glm::mat3(glm::transpose(glm::inverse(model))));
-    shader.SetVec3("u_camPos", camPos);
-    shader.SetVec3("u_lightDir", glm::normalize(params.lightDir));
-    shader.SetVec3("u_baseColor", params.baseColor);
+    shader.SetMat4("uModel", model);
+    shader.SetMat4("uView", view);
+    shader.SetMat4("uProj", proj);
+    shader.SetMat3("uNormalMatrix", glm::mat3(glm::transpose(glm::inverse(model))));
+
+    shader.SetVec3("uCamPos", camPos);
+
+    shader.SetVec3("uLightDir", glm::normalize(params.lightDir));
+    shader.SetVec3("uBaseColor", params.baseColor);
     mesh.Draw();
 }
 

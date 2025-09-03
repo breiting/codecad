@@ -129,6 +129,10 @@ You are welcome to contribute to this project. I am developing under MacOS and L
 
 Any feature requests should be filed directly in Github.
 
+## Links
+
+- https://github.com/Open-Cascade-SAS/OCCT
+
 ## 📜 License
 
 [MIT License](LICENSE)
