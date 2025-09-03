@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 4.1)
 
 project(codecad LANGUAGES CXX)
 
@@ -108,7 +108,6 @@ add_subdirectory(lab)
 
 enable_testing()
 add_subdirectory(tests)
-
 
 # ---------------------------------------------------------------
 # INSTALL

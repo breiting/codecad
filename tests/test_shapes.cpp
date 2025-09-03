@@ -1,14 +1,16 @@
 #include <gtest/gtest.h>
 
-// #include <ccad/backend/occt/OcctKernel.hpp>
-// #include <ccad/foundation/Types.hpp>
-// #include <ccad/geometry/Modeler.hpp>
-// #include <memory>
+#include <ccad/geom/Primitives.hpp>
 
-// using namespace ccad;
+using namespace ccad;
 
-TEST(Shapes, Box) {
-    EXPECT_TRUE(1 == 1);
+TEST(TestShapes, Shape_Create) {
+    auto box = Box(10, 10, 10);
+    auto bbox = box.BBox();
+    EXPECT_NEAR(bbox.size().x, 10, 1e-6);
+
+    EXPECT_ANY_THROW(Cylinder(0, 10));
+
     // auto kernel = std::make_shared<backend::occt::OcctKernel>();
     // geometry::Modeler mdl{kernel};
     //

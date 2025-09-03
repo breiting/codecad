@@ -1,22 +1,19 @@
-add_executable(ccad_tests
+add_executable(test_ccad
 	test_main.cpp
 	test_shapes.cpp
 )
 
-target_include_directories(ccad_tests PUBLIC
-				${CMAKE_CURRENT_SOURCE_DIR}/../core/inc
+target_include_directories(test_ccad PUBLIC
+	${CMAKE_CURRENT_SOURCE_DIR}/../core/inc
 )
 
-
-
-target_link_libraries(ccad_tests PRIVATE
+target_link_libraries(test_ccad PRIVATE
 	GTest::gtest
-	GTest::gtest_main
 	project_settings
 	core
 )
 
-include(GoogleTest)
-gtest_discover_tests(ccad_tests
-		DISCOVERY_TIMEOUT 60
+add_test(
+	NAME test_ccad
+	COMMAND $<TARGET_FILE:test_ccad>
 )
