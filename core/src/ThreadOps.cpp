@@ -212,7 +212,7 @@ ShapePtr ThreadOps::ThreadExternalRod(const ThreadSpec& inSpec, double rodLength
     gp_Trsf shift;
     const double base = CalculateBase(spec.flankAngleDeg, spec.depth);
 
-    shift.SetTranslation(gp_Vec(R_pitch - 0.5 * spec.depth, 0, base * 0.5));
+    shift.SetTranslation(gp_Vec(R_pitch - 0.5 * spec.depth, 0, -base * 0.5));
     TopoDS_Wire profilePlaced = TransformWire(profileYZ, shift * rotZ);
 
     // Sweep → ridge volume for 0..L

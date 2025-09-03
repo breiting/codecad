@@ -1,6 +1,8 @@
 add_executable(clab
 	src/App.cpp
 	src/Scenario.cpp
+	src/GearScenario.cpp
+	src/CupScenario.cpp
 	src/ThreadScenario.cpp
     src/main.cpp
 )
