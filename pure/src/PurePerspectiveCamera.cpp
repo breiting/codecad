@@ -59,8 +59,8 @@ glm::mat4 PurePerspectiveCamera::View() const {
     return glm::lookAt(m_Position, m_Target, glm::vec3(0, 0, 1));
 }
 
-glm::mat4 PurePerspectiveCamera::Projection(float nearZ, float farZ) const {
-    return glm::perspective(glm::radians(m_FovDeg), m_Aspect, nearZ, farZ);
+glm::mat4 PurePerspectiveCamera::Projection() const {
+    return glm::perspective(glm::radians(m_FovDeg), m_Aspect, m_Near, m_Far);
 }
 
 void PurePerspectiveCamera::OnScrollWheel(float yoff) {

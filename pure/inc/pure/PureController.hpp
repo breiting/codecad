@@ -13,7 +13,6 @@
 #include "pure/IPureCamera.hpp"
 #include "pure/PureAxis.hpp"
 #include "pure/PureGui.hpp"
-#include "pure/PureOrthoCamera.hpp"
 #include "pure/PurePerspectiveCamera.hpp"
 #include "pure/PureRenderer.hpp"
 
@@ -82,10 +81,8 @@ class PureController {
     bool m_Lmb = false, m_Rmb = false, m_Mmb = false;
     double m_LastX = 0.0, m_LastY = 0.0;
 
-    // Camera
+    // Camera (currently only perspective camera)
     std::unique_ptr<PurePerspectiveCamera> m_CameraPerspective;
-    std::unique_ptr<PureOrthoCamera> m_CameraOrtho;
-    // Active camera
     IPureCamera* m_Camera = nullptr;
     void SetCameraMode(CameraMode mode);
 

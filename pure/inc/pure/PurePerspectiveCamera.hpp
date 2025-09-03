@@ -25,7 +25,7 @@ class PurePerspectiveCamera : public IPureCamera {
 
     // Matrices
     glm::mat4 View() const override;  // Z-up
-    glm::mat4 Projection(float nearZ, float farZ) const override;
+    glm::mat4 Projection() const override;
 
     // Getter
     glm::vec3 Position() const override {
@@ -69,6 +69,9 @@ class PurePerspectiveCamera : public IPureCamera {
     float m_Radius = 3.0f;
     float m_Aspect = 16.0f / 9.0f;
     float m_FovDeg = 45.0f;
+
+    float m_Near = 0.01f;
+    float m_Far = 1000.0f;
 
     // Maus-Skalierung
     float m_YawScale = -0.2f;  // invert for left-drag = left=rotation

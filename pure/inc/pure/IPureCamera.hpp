@@ -32,7 +32,7 @@ class IPureCamera {
     virtual glm::mat4 View() const = 0;
 
     /// Get the 4×4 projection matrix (view → clip).
-    virtual glm::mat4 Projection(float near, float far) const = 0;
+    virtual glm::mat4 Projection() const = 0;
 
     /// Current eye position in world space.
     virtual glm::vec3 Position() const = 0;

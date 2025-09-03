@@ -13,10 +13,10 @@
 #include "pure/IPureCamera.hpp"
 #include "pure/PureBounds.hpp"
 
+using namespace std;
+
 namespace pure {
 
-const float NEAR_PLANE = 0.1f;
-const float FAR_PLANE = 1000.0f;
 const int STATUSBAR_TIMEOUT_MS = 3000;
 const float SIDEBAR_WIDTH = 360;
 
@@ -82,13 +82,9 @@ bool PureController::Initialize(int width, int height, const std::string& title,
 
     glfwGetFramebufferSize(m_Window, &m_FramebufferW, &m_FramebufferH);
 
-    // Setup Cameras
+    // Setup Cameras (currently only perspective camera)
     m_CameraPerspective = std::make_unique<PurePerspectiveCamera>();
     m_CameraPerspective->SetAspect((float)m_FramebufferW / std::max(1, m_FramebufferH));
-    m_CameraOrtho = std::make_unique<PureOrthoCamera>();
-    m_CameraOrtho->SetAspect((float)m_FramebufferW / std::max(1, m_FramebufferH));
-
-    // Perspective camera is default
     m_Camera = m_CameraPerspective.get();
 
     InstallGlfwCallbacks();
@@ -102,7 +98,7 @@ void PureController::SetCameraMode(CameraMode mode) {
     if (mode == CameraMode::Perspective) {
         m_Camera = m_CameraPerspective.get();
     } else {
-        m_Camera = m_CameraOrtho.get();
+        cerr << "Other cameras are currently not supported yet!" << endl;
     }
     glfwGetFramebufferSize(m_Window, &m_FramebufferW, &m_FramebufferH);
     m_Camera->SetAspect((float)m_FramebufferW / std::max(1, m_FramebufferH));
@@ -312,7 +308,9 @@ void PureController::HandleInput() {
     bool r = glfwGetMouseButton(m_Window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
     bool m = glfwGetMouseButton(m_Window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS;
 
-    if (l && m_Lmb) m_Camera->Orbit((float)(x - m_LastX), (float)(y - m_LastY));
+    if (l && m_Lmb) {
+        m_Camera->Orbit((float)(x - m_LastX), (float)(y - m_LastY));
+    }
     if ((r || m) && (m_Rmb || m_Mmb)) {
         m_Camera->Pan((float)(x - m_LastX), (float)(y - m_LastY));
     }
@@ -332,12 +330,12 @@ void PureController::Render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glm::mat4 view = m_Camera->View();
-    glm::mat4 proj = m_Camera->Projection(NEAR_PLANE, FAR_PLANE);
+    glm::mat4 proj = m_Camera->Projection();
 
     m_Renderer->DrawScene(m_Scene, m_Shader, view, proj, m_Camera->Position(), m_Camera->ViewDirection());
 
     if (m_Axis) {
-        m_Axis->Render(m_Camera->View(), m_Camera->Projection(NEAR_PLANE, FAR_PLANE));
+        m_Axis->Render(m_Camera->View(), m_Camera->Projection());
     }
 }
 

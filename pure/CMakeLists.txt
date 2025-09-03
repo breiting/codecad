@@ -7,7 +7,6 @@ add_library(pure STATIC
   src/PureGui.cpp
   src/PureMesh.cpp
   src/PureMeshFactory.cpp
-  src/PureOrthoCamera.cpp
   src/PurePerspectiveCamera.cpp
   src/PureRenderArea.cpp
   src/PureRenderer.cpp
