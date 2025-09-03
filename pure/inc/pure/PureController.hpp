@@ -6,15 +6,19 @@
 // clang-format on
 
 #include <functional>
-#include <pure/PureCamera.hpp>
+#include <pure/IPureCamera.hpp>
 #include <pure/PureScene.hpp>
 #include <pure/PureShader.hpp>
 
+#include "pure/IPureCamera.hpp"
 #include "pure/PureAxis.hpp"
 #include "pure/PureGui.hpp"
+#include "pure/PurePerspectiveCamera.hpp"
 #include "pure/PureRenderer.hpp"
 
 namespace pure {
+
+enum class CameraMode { Perspective, Ortho };
 
 class PureController {
    public:
@@ -52,7 +56,7 @@ class PureController {
     void RenderScene(std::shared_ptr<PureScene> scene);
     void EndFrame();
 
-    PureCamera& Camera() {
+    IPureCamera* Camera() {
         return m_Camera;
     }
 
@@ -77,7 +81,12 @@ class PureController {
     bool m_Lmb = false, m_Rmb = false, m_Mmb = false;
     double m_LastX = 0.0, m_LastY = 0.0;
 
-    PureCamera m_Camera;
+    // Camera
+    std::unique_ptr<PurePerspectiveCamera> m_CameraPerspective;
+    // Active camera
+    IPureCamera* m_Camera = nullptr;
+    CameraMode m_CameraMode = CameraMode::Perspective;
+
     PureShader m_Shader;
     std::shared_ptr<PureScene> m_Scene;
     std::shared_ptr<PureRenderer> m_Renderer;

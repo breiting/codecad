@@ -1,5 +1,7 @@
 #include "App.hpp"
 
+#include "pure/PureBounds.hpp"
+
 using namespace pure;
 
 App::App() = default;
@@ -48,9 +50,9 @@ void App::Run() {
     }
 
     // Set camera only upon first load
-    glm::vec3 bmin, bmax;
-    if (m_Scene->ComputeBounds(bmin, bmax)) {
-        m_Controller->Camera().FitToBounds(bmin, bmax, 1.12f);
+    PureBounds bounds;
+    if (m_Scene->ComputeBounds(bounds)) {
+        m_Controller->Camera()->FitToBounds(bounds, 1.12f);
     }
 
     while (!m_Controller->ShouldClose()) {

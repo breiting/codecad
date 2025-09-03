@@ -2,6 +2,8 @@
 #include <pure/PureMesh.hpp>
 #include <pure/PureScene.hpp>
 
+#include "pure/PureBounds.hpp"
+
 namespace pure {
 
 void PureScene::AddPart(const std::string& id, const std::shared_ptr<PureMesh>& mesh, const glm::mat4& model,
@@ -27,7 +29,7 @@ void PureScene::Clear() {
     m_Parts.clear();
 }
 
-bool PureScene::ComputeBounds(glm::vec3& outMin, glm::vec3& outMax) const {
+bool PureScene::ComputeBounds(PureBounds& bounds) const {
     bool any = false;
     glm::vec3 minAll{0}, maxAll{0};
 
@@ -68,8 +70,8 @@ bool PureScene::ComputeBounds(glm::vec3& outMin, glm::vec3& outMax) const {
     }
 
     if (any) {
-        outMin = minAll;
-        outMax = maxAll;
+        bounds.min = minAll;
+        bounds.max = maxAll;
     }
     return any;
 }

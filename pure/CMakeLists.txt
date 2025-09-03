@@ -2,7 +2,7 @@
 # Pure library
 # -------------------------
 add_library(pure STATIC
-  src/PureCamera.cpp
+  src/PurePerspectiveCamera.cpp
   src/PureController.cpp
   src/PureGui.cpp
   src/PureAxis.cpp

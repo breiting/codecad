@@ -11,6 +11,7 @@
 #include "Utils.hpp"
 #include "io/Bom.hpp"
 #include "io/Export.hpp"
+#include "pure/PureBounds.hpp"
 #include "pure/PureMesh.hpp"
 
 using namespace std;
@@ -184,9 +185,9 @@ void Controller::ViewProject() {
     SetupWatchers();
 
     // Set camera only upon first load
-    glm::vec3 bmin, bmax;
-    if (m_Scene->ComputeBounds(bmin, bmax)) {
-        m_PureController.Camera().FitToBounds(bmin, bmax, 1.12f);
+    PureBounds bounds;
+    if (m_Scene->ComputeBounds(bounds)) {
+        m_PureController.Camera()->FitToBounds(bounds, 1.12f);
     }
 
     while (!m_PureController.ShouldClose()) {

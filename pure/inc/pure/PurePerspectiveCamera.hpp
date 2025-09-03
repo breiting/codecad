@@ -2,39 +2,39 @@
 #include <glm/glm.hpp>
 #include <glm/mat4x4.hpp>
 
-namespace pure {
-class PureCamera {
-   public:
-    PureCamera();
+#include "pure/IPureCamera.hpp"
 
-    void SetAspect(float aspect);
+namespace pure {
+class PurePerspectiveCamera : public IPureCamera {
+   public:
+    PurePerspectiveCamera();
+
+    void SetAspect(float aspect) override;
     void SetFovDegrees(float degrees);
     void SetTarget(const glm::vec3& target);
     void SetRadius(float radius);
 
     // Mouse control
-    void Orbit(float deltaX, float deltaY);  // Pixel
-    void Pan(float deltaX, float deltaY);    // Pixel
-    void Dolly(float wheelSteps);            // Mouse wheel steps
+    void Orbit(float deltaX, float deltaY) override;
+    void Pan(float deltaX, float deltaY) override;
 
-    void OnScrollWheel(double yoff);
+    void OnScrollWheel(float yoff) override;
 
     // BBox-Utilities
-    void FitToBounds(const glm::vec3& boundsMin, const glm::vec3& boundsMax, float padding = 1.12f);
-    void FocusBounds(const glm::vec3& boundsMin, const glm::vec3& boundsMax);
+    void FitToBounds(const PureBounds& bounds, float padding = 1.1f) override;
 
     // Matrices
-    glm::mat4 View() const;  // Z-up
-    glm::mat4 Projection(float nearZ, float farZ) const;
+    glm::mat4 View() const override;  // Z-up
+    glm::mat4 Projection(float nearZ, float farZ) const override;
 
     // Getter
-    glm::vec3 Position() const {
+    glm::vec3 Position() const override {
         return m_Position;
     }
     glm::vec3 Target() const {
         return m_Target;
     }
-    glm::vec3 ViewDirection() const {
+    glm::vec3 ViewDirection() const override {
         return glm::normalize(m_Target - m_Position);
     }
     float Aspect() const {
