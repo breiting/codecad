@@ -228,7 +228,7 @@ ShapePtr ThreadOps::ThreadInternalCutter(const ThreadSpec& inSpec, double thread
     const double eps = std::max({1e-3, 0.002 * spec.pitch, 0.05 * spec.depth});
 
     // Make sure to return proper cut shape, depending on the Tip form!
-    boreHoleDiameter = spec.fitDiameter + eps * 2.0;
+    boreHoleDiameter = spec.fitDiameter;
     if (spec.tip == TipStyle::Cut) {
         boreHoleDiameter += spec.tipCutRatio * spec.depth * 2.0;
     }
@@ -239,9 +239,9 @@ ShapePtr ThreadOps::ThreadInternalCutter(const ThreadSpec& inSpec, double thread
     TopoDS_Wire profileYZ = MakeVProfileYZ(spec.depth, spec.flankAngleDeg, spec.tip, spec.tipCutRatio);
 
     gp_Trsf rotZ;
-    rotZ.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)), -M_PI / 2.0);
+    rotZ.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)), M_PI / 2.0);
     gp_Trsf shift;
-    shift.SetTranslation(gp_Vec(-R_pitch - halfDepth, 0, 0));
+    shift.SetTranslation(gp_Vec(-R_pitch + spec.tipCutRatio * spec.depth * 0.5 - eps, 0, 0));
     TopoDS_Wire profilePlaced = TransformWire(profileYZ, shift * rotZ);
 
     TopoDS_Shape cutter = SweepAlongHelix(helixWire, profilePlaced);

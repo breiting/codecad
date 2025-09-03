@@ -107,7 +107,7 @@ void ThreadScenario::Build(std::shared_ptr<PureScene> scene) {
     spec.pitch = 8.0;                                       // coarse, 1 turn per 4mm
     spec.depth = 3;                                         // chunky ridges for print strength
     spec.flankAngleDeg = 60.0;
-    spec.clearance = 0.1;  // print fit only for external thread!
+    spec.clearance = 0.2;  // print fit only for external thread!
     spec.handedness = mech::Handedness::Right;
     spec.tip = mech::TipStyle::Cut;
     spec.tipCutRatio = 0.4;
