@@ -8,6 +8,7 @@ add_library(core STATIC
    src/Gear.cpp
    src/LuaEngine.cpp
    src/Measure.cpp
+   src/PipeTransition.cpp
    src/Primitives.cpp
    src/Project.cpp
    src/Sketch.cpp
@@ -19,7 +20,7 @@ add_library(core STATIC
    src/lua/BindConstruct.cpp
    src/lua/BindDraft.cpp
    src/lua/BindFeatures.cpp
-   # src/lua/BindGears.cpp
+   src/lua/BindPipes.cpp
    src/lua/BindIO.cpp
    src/lua/BindMeasure.cpp
    src/lua/BindPrimitives.cpp

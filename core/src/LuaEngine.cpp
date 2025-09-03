@@ -7,9 +7,9 @@
 #include "runtime/BindConstruct.hpp"
 #include "runtime/BindDraft.hpp"
 #include "runtime/BindFeatures.hpp"
-#include "runtime/BindGears.hpp"
 #include "runtime/BindIO.hpp"
 #include "runtime/BindMeasure.hpp"
+#include "runtime/BindPipes.hpp"
 #include "runtime/BindPrimitives.hpp"
 #include "runtime/BindSketch.hpp"
 // #include "runtime/BindThreads.hpp"
@@ -90,7 +90,7 @@ bool LuaEngine::Initialize(std::string* errorMsg) {
         runtime::RegisterFeatures(m_Lua);
         runtime::RegisterSketch(m_Lua);
         runtime::RegisterConstruct(m_Lua);
-        // runtime::RegisterGears(m_Lua);
+        runtime::RegisterPipes(m_Lua);
         // runtime::RegisterThreads(m_Lua);
         runtime::RegisterDraft(m_Lua);
         runtime::RegisterMeasure(m_Lua);
