@@ -1,7 +1,6 @@
 add_library(core STATIC
    src/Bom.cpp
    src/Boolean.cpp
-   src/CoarseThread.cpp
    src/Draft.cpp
    src/Export.cpp
    src/Extrude.cpp
