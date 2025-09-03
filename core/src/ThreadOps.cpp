@@ -15,6 +15,7 @@
 #include <GeomAPI_PointsToBSpline.hxx>
 #include <Geom_BSplineCurve.hxx>
 #include <TopExp.hxx>
+#include <TopExp_Explorer.hxx>
 #include <TopoDS.hxx>
 #include <algorithm>
 #include <cmath>
@@ -32,6 +33,7 @@
 
 using geometry::Shape;
 using geometry::ShapePtr;
+using namespace std;
 
 const double TOLERANCE = 1e-3;
 
@@ -45,6 +47,11 @@ static inline double ClampPositive(double v, double eps = 1e-9) {
 
 static inline double DegToRad(double d) {
     return d * M_PI / 180.0;
+}
+
+static inline double CalculateBase(double flankAngleDeg, double depth) {
+    const double half = DegToRad(0.5 * flankAngleDeg);
+    return 2.0 * depth * std::tan(half);
 }
 
 TopoDS_Shape Fuse(const TopoDS_Shape& a, const TopoDS_Shape& b) {
@@ -65,6 +72,16 @@ TopoDS_Shape Cut(const TopoDS_Shape& a, const TopoDS_Shape& b) {
     op.SetFuzzyValue(TOLERANCE);
     if (!op.IsDone()) throw std::runtime_error("Cut failed");
     return op.Shape();
+}
+
+void PrintWireCoordinates(const TopoDS_Wire& wire) {
+    TopExp_Explorer exp(wire, TopAbs_VERTEX);
+    for (int i = 0; exp.More(); exp.Next(), ++i) {
+        TopoDS_Vertex v = TopoDS::Vertex(exp.Current());
+        gp_Pnt p = BRep_Tool::Pnt(v);
+
+        printf("Vertex %d: X = %.6f, Y = %.6f, Z = %.6f\n", i, p.X(), p.Y(), p.Z());
+    }
 }
 
 /**
@@ -105,8 +122,7 @@ TopoDS_Wire MakeVProfileYZ(double depth, double flankDeg, TipStyle tip, double t
     depth = ClampPositive(depth);
     flankDeg = std::max(5.0, flankDeg);
 
-    const double half = DegToRad(0.5 * flankDeg);
-    const double base = 2.0 * depth * std::tan(half);  // base width on Z
+    const double base = CalculateBase(flankDeg, depth);
 
     // Base corners on Y=0
     const gp_Pnt bL(0, 0, -0.5 * base);
@@ -194,7 +210,9 @@ ShapePtr ThreadOps::ThreadExternalRod(const ThreadSpec& inSpec, double rodLength
     gp_Trsf rotZ;
     rotZ.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)), -M_PI / 2.0);
     gp_Trsf shift;
-    shift.SetTranslation(gp_Vec(R_pitch - 0.5 * spec.depth, 0, halfDepth));
+    const double base = CalculateBase(spec.flankAngleDeg, spec.depth);
+
+    shift.SetTranslation(gp_Vec(R_pitch - 0.5 * spec.depth, 0, base * 0.5));
     TopoDS_Wire profilePlaced = TransformWire(profileYZ, shift * rotZ);
 
     // Sweep → ridge volume for 0..L
@@ -241,7 +259,9 @@ ShapePtr ThreadOps::ThreadInternalCutter(const ThreadSpec& inSpec, double thread
     gp_Trsf rotZ;
     rotZ.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)), M_PI / 2.0);
     gp_Trsf shift;
-    shift.SetTranslation(gp_Vec(-R_pitch + spec.tipCutRatio * spec.depth * 0.5 - eps, 0, 0));
+    const double base = CalculateBase(spec.flankAngleDeg, spec.depth);
+    shift.SetTranslation(
+        gp_Vec(-R_pitch + spec.tipCutRatio * spec.depth * 0.5 - eps, 0, spec.pitch * 0.5 - base * 0.5));
     TopoDS_Wire profilePlaced = TransformWire(profileYZ, shift * rotZ);
 
     TopoDS_Shape cutter = SweepAlongHelix(helixWire, profilePlaced);

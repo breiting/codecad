@@ -48,7 +48,7 @@ TopoDS_Shape Cut(const TopoDS_Shape& a, const TopoDS_Shape& b) {
 
 geometry::ShapePtr BuildCanBottom(double canHeight, double canDiameter, double canWallThickness,
                                   const ThreadSpec& spec) {
-    const double threadLength = 15.0;
+    const double threadLength = 16.0;
 
     const double R_outer = 0.5 * canDiameter;
 
@@ -71,7 +71,7 @@ geometry::ShapePtr BuildCanBottom(double canHeight, double canDiameter, double c
     // auto chamfered = mech::ChamferThreadEndsInternal(canWithThread, R_inner, 5.0, 45.0, 0, true, true);
 
     return std::make_shared<Shape>(canWithThread);
-    // return std::make_shared<Shape>(chamfered);
+    // return std::make_shared<Shape>(cutter->Get());
 }
 
 geometry::ShapePtr BuildCanTop(double lidHandleHeight, double threadLength, double canDiameter, double canWallThickness,
@@ -99,15 +99,15 @@ void ThreadScenario::Build(std::shared_ptr<PureScene> scene) {
     const double lidThreadLength = 10.0;  // Thread length for lid
     const double lidHandleHeight = 5.0;   // Handle height
     const double canHeight = 25;
-    const double canDiameter = 60.0;  // Aussendurchmesser Dose
+    const double canDiameter = 62.0;  // Aussendurchmesser Dose
     const double canWallThickness = 4;
 
     ThreadSpec spec;
     spec.fitDiameter = canDiameter - 2 * canWallThickness;  // 40mm
-    spec.pitch = 8.0;                                       // coarse, 1 turn per 4mm
+    spec.pitch = 8.0;                                       // coarse, 1 turn per pitch [mm]
     spec.depth = 3;                                         // chunky ridges for print strength
     spec.flankAngleDeg = 60.0;
-    spec.clearance = 0.2;  // print fit only for external thread!
+    spec.clearance = 0.15;  // print fit only for external thread!
     spec.handedness = mech::Handedness::Right;
     spec.tip = mech::TipStyle::Cut;
     spec.tipCutRatio = 0.4;
