@@ -85,7 +85,10 @@ bool PureController::Initialize(int width, int height, const std::string& title,
     // Setup Cameras
     m_CameraPerspective = std::make_unique<PurePerspectiveCamera>();
     m_CameraPerspective->SetAspect((float)m_FramebufferW / std::max(1, m_FramebufferH));
+    m_CameraOrtho = std::make_unique<PureOrthoCamera>();
+    m_CameraOrtho->SetAspect((float)m_FramebufferW / std::max(1, m_FramebufferH));
 
+    // Perspective camera is default
     m_Camera = m_CameraPerspective.get();
 
     InstallGlfwCallbacks();
@@ -93,6 +96,16 @@ bool PureController::Initialize(int width, int height, const std::string& title,
     m_Renderer = std::make_shared<PureRenderer>();
 
     return true;
+}
+
+void PureController::SetCameraMode(CameraMode mode) {
+    if (mode == CameraMode::Perspective) {
+        m_Camera = m_CameraPerspective.get();
+    } else {
+        m_Camera = m_CameraOrtho.get();
+    }
+    glfwGetFramebufferSize(m_Window, &m_FramebufferW, &m_FramebufferH);
+    m_Camera->SetAspect((float)m_FramebufferW / std::max(1, m_FramebufferH));
 }
 
 void PureController::SetRightDockPanel(PanelRenderer panelRenderer) {
@@ -155,6 +168,18 @@ void PureController::InstallGlfwCallbacks() {
             }
         }
         // TOGGLE RIGHT PANEL
+        else if (key == GLFW_KEY_E && action == GLFW_PRESS) {
+            self->m_ShowRightPanel = !self->m_ShowRightPanel;
+        }
+        // Perspective camera
+        else if (key == GLFW_KEY_HOME && action == GLFW_PRESS) {
+            self->SetCameraMode(CameraMode::Perspective);
+        }
+        // Ortho camera
+        else if (key == GLFW_KEY_END && action == GLFW_PRESS) {
+            self->SetCameraMode(CameraMode::Ortho);
+        }
+        // Ortho camera
         else if (key == GLFW_KEY_E && action == GLFW_PRESS) {
             self->m_ShowRightPanel = !self->m_ShowRightPanel;
         }

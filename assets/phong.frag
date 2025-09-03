@@ -1,31 +1,33 @@
 #version 330 core
 
-in vec3 v_normal;
-in vec3 v_worldPos;
+in vec3 vNormal;
+in vec3 vWorldPos;
 
 out vec4 fragColor;
 
-uniform vec3 u_baseColor; // 0..1
-uniform vec3 u_camPos;
-uniform vec3 u_lightDir;  // Headlight: from camera view direction
+uniform vec3 uBaseColor; // 0..1
+uniform vec3 uCamPos;
+uniform vec3 uLightDir;  // Headlight: from camera view direction
 
 void main() {
-  vec3 N = normalize(v_normal);
-  vec3 L = normalize(-u_lightDir);
-
-  // Ambient
-  vec3 ambient = 0.2 * u_baseColor;
-
-  // Diffuse
-  float ndotl = max(dot(N, L), 0.0);
-  vec3 diffuse = ndotl * u_baseColor;
-
-  // Specular (Blinn-Phong)
-  vec3 V = normalize(u_camPos - v_worldPos);
+  vec3 N = normalize(vNormal);
+  vec3 L = normalize(-uLightDir);
+  vec3 V = normalize(uCamPos - vWorldPos);
   vec3 H = normalize(L + V);
-  float nh = max(dot(N, H), 0.0);
-  float spec = pow(nh, 32.0);
-  vec3 specular = 0.2 * spec * vec3(1.0);
 
-  fragColor = vec4(ambient + diffuse + specular, 1.0);
+  vec3 ambient = 0.08 * uBaseColor;
+
+  // Half-Lambert / Wrap Diffuse
+  float wrap = 0.5;   
+  float ndotl = dot(N, L);
+  float diff = clamp(ndotl * 0.5 + wrap * 0.5, 0.0, 1.0);
+  vec3 diffuse = 0.9 * diff * uBaseColor;
+
+  float nh = max(dot(N, H), 0.0);
+  float spec = (diff > 0.0) ? pow(nh, 24.0) : 0.0; 
+  vec3 specular = 0.05 * spec * vec3(1.0);       
+
+  vec3 color = ambient + diffuse + specular;
+
+  fragColor = vec4(color, 1.0);
 }

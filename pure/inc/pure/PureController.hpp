@@ -13,6 +13,7 @@
 #include "pure/IPureCamera.hpp"
 #include "pure/PureAxis.hpp"
 #include "pure/PureGui.hpp"
+#include "pure/PureOrthoCamera.hpp"
 #include "pure/PurePerspectiveCamera.hpp"
 #include "pure/PureRenderer.hpp"
 
@@ -83,9 +84,10 @@ class PureController {
 
     // Camera
     std::unique_ptr<PurePerspectiveCamera> m_CameraPerspective;
+    std::unique_ptr<PureOrthoCamera> m_CameraOrtho;
     // Active camera
     IPureCamera* m_Camera = nullptr;
-    CameraMode m_CameraMode = CameraMode::Perspective;
+    void SetCameraMode(CameraMode mode);
 
     PureShader m_Shader;
     std::shared_ptr<PureScene> m_Scene;
