@@ -8,7 +8,11 @@ constexpr double DegToRad(double d) {
 }
 
 /** \brief Lightweight 2D vector (double precision) for the public API. */
-struct Vec2 {
+class Vec2 {
+   public:
+    Vec2() = default;
+    Vec2(double x, double y) : x(x), y(y) {
+    }
     double x{0}, y{0};
 
     friend std::ostream& operator<<(std::ostream& os, const Vec2& v) {
@@ -18,7 +22,11 @@ struct Vec2 {
 };
 
 /** \brief Lightweight 3D vector (double precision) for the public API. */
-struct Vec3 {
+class Vec3 {
+   public:
+    Vec3() = default;
+    Vec3(double x, double y, double z) : x(x), y(y), z(z) {
+    }
     double x{0}, y{0}, z{0};
 
     friend std::ostream& operator<<(std::ostream& os, const Vec3& v) {

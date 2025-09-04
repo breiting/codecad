@@ -2,6 +2,7 @@ add_executable(test_kernel
 	main.cpp
 	TestShapes.cpp
 	TestOperations.cpp
+	TestTriMesh.cpp
 )
 
 target_include_directories(test_kernel PUBLIC
