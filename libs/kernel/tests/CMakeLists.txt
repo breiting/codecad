@@ -1,6 +1,7 @@
 add_executable(test_kernel
 	main.cpp
 	TestShapes.cpp
+	TestOperations.cpp
 )
 
 target_include_directories(test_kernel PUBLIC

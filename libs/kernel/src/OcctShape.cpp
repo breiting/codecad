@@ -1,4 +1,4 @@
-#include "private/geometry/OcctShape.hpp"
+#include "private/geom/OcctShape.hpp"
 
 #include <BRepBndLib.hxx>
 #include <BRepGProp.hxx>

@@ -1,5 +1,7 @@
 add_library(kernel STATIC
 	src/Primitives.cpp
+	src/OcctShape.cpp
+	src/Operations.cpp
 )
 
 # --- OpenCascade handling for different plattforms
