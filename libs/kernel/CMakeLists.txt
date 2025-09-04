@@ -55,3 +55,5 @@ target_link_libraries(kernel PRIVATE
 				nlohmann_json::nlohmann_json
 	PUBLIC glm::glm
 )
+
+add_subdirectory(tests)
