@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/sumneko/vscode-lua/master/setting/schema.json",
-  "Lua.workspace.library": ["./types", "./lib"],
+  "Lua.workspace.library": ["./lua/types", "./lua/lib"],
   "Lua.workspace.checkThirdParty": false,
   "Lua.diagnostics.globals": [
     "bbox",
@@ -19,7 +19,6 @@
     "emit",
     "extrude",
     "fillet",
-    "gear_involute",
     "hex_prism",
     "intersection",
     "mm",

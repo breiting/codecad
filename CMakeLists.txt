@@ -9,8 +9,6 @@ set (CMAKE_EXPORT_COMPILE_COMMANDS 1)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(ENABLE_PURE "Build with PURE 3D viewer support" ON)
-
 # Load compiler settings target
 include(cmake/CompilerSettings.cmake)
 
@@ -91,23 +89,15 @@ endif()
 message(STATUS "Lua include: ${LUA_INCLUDE_DIR}")
 message(STATUS "Lua libs: ${LUA_LIBRARIES}")
 
-# ---------------------------------------------------------------
+enable_testing()
 
+# ---------------------------------------------------------------
+# DEPRECATED !
 add_subdirectory(core)
 
-if(ENABLE_PURE)
-	add_subdirectory(pure)
-endif()
-
-add_subdirectory(app)
-add_subdirectory(lab)
-
-# ---------------------------------------------------------------
-# Testing
-# ---------------------------------------------------------------
-
-enable_testing()
-add_subdirectory(tests)
+# NEW !
+add_subdirectory(libs)
+add_subdirectory(apps)
 
 # ---------------------------------------------------------------
 # INSTALL
@@ -122,12 +112,12 @@ install(TARGETS ccad
 # --- Lua library + types + docs ---
 set(CODECAD_SHARE_DIR ${CMAKE_INSTALL_DATADIR}/codecad)
 
-install(DIRECTORY lib/
+install(DIRECTORY lua/lib/
 		DESTINATION ${CODECAD_SHARE_DIR}/lib
 		FILES_MATCHING PATTERN "*.lua"
 )
 
-install(DIRECTORY types/
+install(DIRECTORY lua/types/
 		DESTINATION ${CODECAD_SHARE_DIR}/types
 		FILES_MATCHING PATTERN "*.d.lua"
 )

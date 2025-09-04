@@ -3,7 +3,7 @@ Extract global function names from .d.lua stubs for Lua LS,
 so you can paste them into Lua.diagnostics.globals in .luarc.json.
 
 Usage:
-  python scripts/extract_globals.py types/core.d.lua
+  python scripts/extract_globals.py lua/types/ccad/global.d.lua
 """
 
 import argparse
