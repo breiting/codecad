@@ -2,6 +2,24 @@ cmake_minimum_required(VERSION 4.1)
 
 project(codecad LANGUAGES CXX)
 
+# Version numbering
+set (CODECAD_VERSION_MAJOR 0)
+set (CODECAD_VERSION_MINOR 1)
+set (CODECAD_VERSION_PATCH 0)
+
+if ($ENV{BUILD_NUMBER})
+	set (CODECAD_BUILD_NUMBER $ENV{BUILD_NUMBER})
+else()
+	set (CODECAD_BUILD_NUMBER 11111)
+endif()
+
+configure_file (
+	${CMAKE_CURRENT_SOURCE_DIR}/libs/kernel/inc/private/version.hpp.in
+	${CMAKE_CURRENT_BINARY_DIR}/generated/ccad/version.hpp
+	@ONLY
+)
+
+
 # Produce json file for neovim clangd completion
 set (CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
@@ -89,6 +107,7 @@ endif()
 message(STATUS "Lua include: ${LUA_INCLUDE_DIR}")
 message(STATUS "Lua libs: ${LUA_LIBRARIES}")
 
+
 enable_testing()
 
 # ---------------------------------------------------------------
@@ -111,6 +130,12 @@ install(TARGETS ccad
 
 # --- Lua library + types + docs ---
 set(CODECAD_SHARE_DIR ${CMAKE_INSTALL_DATADIR}/codecad)
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/libs/kernel/inc
+	DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+	FILES_MATCHING
+	PATTERN "*.hpp"
+	PATTERN "*/private/*" EXCLUDE)
 
 install(DIRECTORY lua/lib/
 		DESTINATION ${CODECAD_SHARE_DIR}/lib
