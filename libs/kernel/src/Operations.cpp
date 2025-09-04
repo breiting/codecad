@@ -9,7 +9,7 @@
 
 #include "ccad/ops/Boolean.hpp"
 #include "ccad/ops/Transform.hpp"
-#include "private/geom/ShapeHelper.hpp"
+#include "internal/geom/ShapeHelper.hpp"
 
 namespace ccad {
 namespace ops {

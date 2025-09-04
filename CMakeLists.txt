@@ -14,7 +14,7 @@ else()
 endif()
 
 configure_file (
-	${CMAKE_CURRENT_SOURCE_DIR}/libs/kernel/inc/private/version.hpp.in
+	${CMAKE_CURRENT_SOURCE_DIR}/libs/kernel/inc/internal/version.hpp.in
 	${CMAKE_CURRENT_BINARY_DIR}/generated/ccad/version.hpp
 	@ONLY
 )

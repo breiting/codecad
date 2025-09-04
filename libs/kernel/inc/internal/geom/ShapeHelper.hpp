@@ -4,7 +4,7 @@
 
 #include "ccad/base/IShape.hpp"
 #include "ccad/base/Shape.hpp"
-#include "private/geom/OcctShape.hpp"
+#include "internal/geom/OcctShape.hpp"
 
 namespace ccad {
 inline const OcctShape* ShapeAsOcct(const Shape& s) {

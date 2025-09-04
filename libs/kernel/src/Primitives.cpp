@@ -11,7 +11,7 @@
 
 #include "ccad/base/Exception.hpp"
 #include "ccad/base/Status.hpp"
-#include "private/geom/ShapeHelper.hpp"
+#include "internal/geom/ShapeHelper.hpp"
 
 namespace ccad {
 namespace geom {

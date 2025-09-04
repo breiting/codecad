@@ -1,7 +1,10 @@
 add_library(kernel STATIC
 	src/Primitives.cpp
 	src/OcctShape.cpp
+	src/Extrude.cpp
+	src/Revolve.cpp
 	src/Operations.cpp
+	src/Rectangle.cpp
 )
 
 # --- OpenCascade handling for different plattforms
