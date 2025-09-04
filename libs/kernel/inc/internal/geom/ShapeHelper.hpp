@@ -1,4 +1,6 @@
 #pragma once
+#include <BRepCheck_Analyzer.hxx>
+#include <ShapeFix_Shape.hxx>
 #include <TopoDS_Shape.hxx>
 #include <memory>
 
@@ -14,4 +16,17 @@ inline const OcctShape* ShapeAsOcct(const Shape& s) {
 inline Shape WrapOcctShape(const TopoDS_Shape& s) {
     return Shape{std::make_unique<OcctShape>(std::move(s))};
 }
+
+inline bool IsValid(const TopoDS_Shape& s) {
+    BRepCheck_Analyzer ana(s);
+    return ana.IsValid();
+}
+
+inline TopoDS_Shape FixIfNeeded(const TopoDS_Shape& s) {
+    if (IsValid(s)) return s;
+    Handle(ShapeFix_Shape) fixer = new ShapeFix_Shape(s);
+    fixer->Perform();
+    return fixer->Shape();
+}
+
 }  // namespace ccad
