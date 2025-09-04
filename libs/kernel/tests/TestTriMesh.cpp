@@ -3,6 +3,7 @@
 #include <ccad/geom/Box.hpp>
 
 #include "ccad/geom/Triangulation.hpp"
+#include "ccad/io/Export.hpp"
 
 using namespace ccad;
 using namespace ccad::geom;
@@ -12,6 +13,8 @@ TEST(TestTriMesh, CreateMesh) {
 
     TriangulationParams params;
     auto mesh = Triangulate(box, params);
+
+    io::SaveSTL(box, "box.stl", params);
 
     std::cout << mesh;
 }
