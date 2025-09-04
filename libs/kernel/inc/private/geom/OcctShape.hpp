@@ -2,8 +2,8 @@
 #include <TopoDS_Shape.hxx>
 #include <memory>
 
-#include "ccad/geom/IShape.hpp"
-#include "ccad/geom/Math.hpp"
+#include "ccad/base/IShape.hpp"
+#include "ccad/base/Math.hpp"
 
 namespace ccad {
 

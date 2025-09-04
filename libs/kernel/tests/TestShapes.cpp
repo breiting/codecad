@@ -1,8 +1,10 @@
 #include <gtest/gtest.h>
 
-#include <ccad/geom/Primitives.hpp>
+#include <ccad/geom/Box.hpp>
+#include <ccad/geom/Cylinder.hpp>
 
 using namespace ccad;
+using namespace ccad::geom;
 
 TEST(TestShapes, Shape_Create) {
     auto box = Box(10, 10, 10);

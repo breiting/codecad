@@ -6,7 +6,7 @@
 #include <GProp_GProps.hxx>
 #include <Standard_TypeDef.hxx>
 
-#include "ccad/geom/Math.hpp"
+#include "ccad/base/Math.hpp"
 
 using namespace ccad;
 

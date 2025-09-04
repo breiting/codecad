@@ -1,15 +1,8 @@
 #pragma once
-#include <ccad/geom/Shape.hpp>
+#include <ccad/base/Shape.hpp>
 
 namespace ccad {
-namespace op {
-
-/** \name Boolean operations
- *  \{ */
-Shape Union(const Shape& a, const Shape& b);
-Shape Difference(const Shape& a, const Shape& b);
-Shape Intersection(const Shape& a, const Shape& b);
-/** \} */
+namespace ops {
 
 /** \name Transforms (returns new shapes)
  *  \{ */
@@ -20,5 +13,5 @@ Shape RotateZ(const Shape& s, double deg);
 Shape ScaleUniform(const Shape& s, double factor);
 /** \} */
 
-}  // namespace op
+}  // namespace ops
 }  // namespace ccad

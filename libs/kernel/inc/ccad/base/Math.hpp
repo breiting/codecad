@@ -7,6 +7,16 @@ constexpr double DegToRad(double d) {
     return d * M_PI / 180.0;
 }
 
+/** \brief Lightweight 2D vector (double precision) for the public API. */
+struct Vec2 {
+    double x{0}, y{0};
+
+    friend std::ostream& operator<<(std::ostream& os, const Vec2& v) {
+        os << "Vec3(" << v.x << ", " << v.y << ")";
+        return os;
+    }
+};
+
 /** \brief Lightweight 3D vector (double precision) for the public API. */
 struct Vec3 {
     double x{0}, y{0}, z{0};

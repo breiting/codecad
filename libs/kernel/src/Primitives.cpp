@@ -1,5 +1,3 @@
-#include "ccad/geom/Primitives.hpp"
-
 #include <BRepBuilderAPI_MakeFace.hxx>
 #include <BRepBuilderAPI_MakePolygon.hxx>
 #include <BRepPrimAPI_MakeBox.hxx>
@@ -11,13 +9,12 @@
 #include <gp_Pnt.hxx>
 #include <gp_Vec.hxx>
 
-#include "ccad/common/Exception.hpp"
-#include "ccad/common/Status.hpp"
-#include "ccad/geom/Primitives.hpp"
-#include "private/geom/OcctShape.hpp"
+#include "ccad/base/Exception.hpp"
+#include "ccad/base/Status.hpp"
 #include "private/geom/ShapeHelper.hpp"
 
 namespace ccad {
+namespace geom {
 Shape Box(double sx, double sy, double sz) {
     if (sx <= 0 || sy <= 0 || sz <= 0) throw Exception("Box: sizes must be > 0", Status::ERROR_OCCT);
     TopoDS_Shape s = BRepPrimAPI_MakeBox(sx, sy, sz).Shape();
@@ -73,5 +70,5 @@ Shape HexPrism(double across_flats, double height) {
     TopoDS_Shape s = BRepPrimAPI_MakePrism(face, gp_Vec(0, 0, height)).Shape();
     return WrapOcctShape(s);
 }
-
+}  // namespace geom
 }  // namespace ccad

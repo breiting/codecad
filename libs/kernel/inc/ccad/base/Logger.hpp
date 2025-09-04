@@ -9,7 +9,7 @@
  * To create a Logentry which should be put out in two ore more cases use the follwing syntax:
  * Log((uint16_t)LoggerLevels::WARN_|(uint16_t)LoggerLevels::ERROR_)) << "LogMessage";
  */
-#define LOG(X) reecon::sense::Log((uint16_t)LoggerLevels::X##_) << " " << #X << " "
+#define LOG(X) ccad::Log((uint16_t)LoggerLevels::X##_) << " " << #X << " "
 
 /** Definition of LogLevels
  * Loglevels are used as binary bitmask format an can be used together by using binary or
@@ -17,8 +17,7 @@
  */
 enum class LoggerLevels : uint16_t { NONE_ = 0x00, INFO_ = 0x01, DEBUG_ = 0x02, WARN_ = 0x04, ERROR_ = 0x08 };
 
-namespace reecon {
-namespace sense {
+namespace ccad {
 class LogSettings {
    public:
     /// Creates a global available instance (even creation is thread safe)
@@ -81,5 +80,4 @@ class Log {
     bool m_endlLast;
     std::mutex m_acquisitionLock;
 };
-}  // namespace sense
-}  // namespace reecon
+}  // namespace ccad

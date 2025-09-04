@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ccad/common/Status.hpp>
+#include <ccad/base/Status.hpp>
 #include <string>
 
 namespace ccad {
