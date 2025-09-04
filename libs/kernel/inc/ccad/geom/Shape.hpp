@@ -3,6 +3,8 @@
 #include <memory>
 #include <string>
 
+#include "ccad/geom/Math.hpp"
+
 namespace ccad {
 
 /** \brief Thin value handle to own a shape with nice pass/return semantics. */

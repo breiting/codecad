@@ -1,9 +1,4 @@
 #pragma once
-#include <BRepBndLib.hxx>
-#include <BRepGProp.hxx>
-#include <Bnd_Box.hxx>
-#include <GProp_GProps.hxx>
-#include <Standard_TypeDef.hxx>
 #include <TopoDS_Shape.hxx>
 #include <memory>
 
@@ -24,13 +19,7 @@ class OcctShape final : public IShape {
         return "OcctShape";
     }
 
-    Bounds BoundingBox() const override {
-        Bnd_Box bb;
-        BRepBndLib::Add(m_Shape, bb);
-        Standard_Real xmin, ymin, zmin, xmax, ymax, zmax;
-        bb.Get(xmin, ymin, zmin, xmax, ymax, zmax);
-        return Bounds{{xmin, ymin, zmin}, {xmax, ymax, zmax}};
-    }
+    Bounds BoundingBox() const override;
 
     std::unique_ptr<IShape> Clone() const override {
         return std::make_unique<OcctShape>(m_Shape);  // TopoDS_Shape is a handle (shared) – OK for clone semantics

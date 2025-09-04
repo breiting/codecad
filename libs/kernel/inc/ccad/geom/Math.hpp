@@ -8,22 +8,23 @@ struct Vec3 {
 };
 
 /** \brief Axis-aligned bounding box in model units. */
-struct Bounds {
+class Bounds {
+   public:
     Vec3 min{0, 0, 0};
     Vec3 max{0, 0, 0};
 
     /// True if min<=max on all axes
-    bool valid() const {
+    bool IsValid() const {
         return (min.x <= max.x) && (min.y <= max.y) && (min.z <= max.z);
     }
 
     /// Box center
-    Vec3 center() const {
+    Vec3 Center() const {
         return {(min.x + max.x) * 0.5, (min.y + max.y) * 0.5, (min.z + max.z) * 0.5};
     }
 
     /// Box size (max - min), not clamped.
-    Vec3 size() const {
+    Vec3 Size() const {
         return {max.x - min.x, max.y - min.y, max.z - min.z};
     }
 };
