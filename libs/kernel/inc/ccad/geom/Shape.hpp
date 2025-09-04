@@ -1,8 +1,7 @@
 #pragma once
+#include <ccad/geom/IShape.hpp>
 #include <memory>
 #include <string>
-
-#include "ccad/geom/IShape.hpp"
 
 namespace ccad {
 

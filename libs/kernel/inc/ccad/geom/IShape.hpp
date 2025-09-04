@@ -1,7 +1,6 @@
 #pragma once
+#include <ccad/geom/Math.hpp>
 #include <memory>
-
-#include "ccad/geom/Math.hpp"
 
 namespace ccad {
 

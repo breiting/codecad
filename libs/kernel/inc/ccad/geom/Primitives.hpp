@@ -1,5 +1,5 @@
 #pragma once
-#include "ccad/geom/Shape.hpp"
+#include <ccad/geom/Shape.hpp>
 
 namespace ccad {
 
