@@ -15,6 +15,7 @@
 #include <cstdint>
 #include <cstring>
 #include <ctime>
+#include <atomic>
 #include <mutex>
 
 using namespace std::chrono;

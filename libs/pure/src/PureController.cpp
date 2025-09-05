@@ -1,6 +1,7 @@
 #include <imgui.h>
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <chrono>
 #include <iostream>
 #include <pure/PureController.hpp>
 #include <pure/PureMeshFactory.hpp>

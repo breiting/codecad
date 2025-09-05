@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.1)
+cmake_minimum_required(VERSION 3.28)
 
 project(codecad LANGUAGES CXX)
 
@@ -110,11 +110,6 @@ message(STATUS "Lua libs: ${LUA_LIBRARIES}")
 
 enable_testing()
 
-# ---------------------------------------------------------------
-# DEPRECATED !
-add_subdirectory(core)
-
-# NEW !
 add_subdirectory(libs)
 add_subdirectory(apps)
 

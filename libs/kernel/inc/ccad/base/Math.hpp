@@ -1,7 +1,13 @@
 #pragma once
 
 #include <ostream>
+#include <vector>
+#include <cmath>
 namespace ccad {
+
+#ifndef M_PI
+constexpr double M_PI = 3.14159265358979323846;
+#endif
 
 constexpr double DegToRad(double d) {
     return d * M_PI / 180.0;

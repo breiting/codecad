@@ -21,6 +21,7 @@ target_include_directories(lua PUBLIC
 
 target_link_libraries(lua PRIVATE
 				project_settings
+				kernel
 				${LUA_LIBRARIES}
 )
 

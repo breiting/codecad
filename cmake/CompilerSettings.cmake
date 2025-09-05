@@ -17,6 +17,7 @@ else()
 				-Wextra
 				-Wpedantic
 				-Wno-unknown-warning-option
+				-Wno-deprecated-declarations
 				)
 endif()
 

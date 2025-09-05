@@ -14,6 +14,7 @@ target_include_directories(clab PUBLIC
 target_link_libraries(clab PRIVATE
 	project_settings
 	kernel
+	lua
 	pure
 )
 

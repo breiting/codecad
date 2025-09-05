@@ -166,7 +166,7 @@ Handle(Geom_Curve) MakeHelixCurve(double radius, double pitch, double length, bo
 
     GeomAPI_PointsToBSpline builder(pts, 3, 8, GeomAbs_C2, 1.0e-6);  // TODO: maybe skip parameters here?
     if (!builder.IsDone()) throw std::runtime_error("MakeHelixCurve: BSpline build failed");
-    return builder.Curve();
+    return Handle(Geom_Curve)::DownCast(builder.Curve());
 }
 
 /**
