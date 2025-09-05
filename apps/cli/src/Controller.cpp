@@ -1,6 +1,8 @@
 #include "Controller.hpp"
 
 #include <ccad/io/Export.hpp>
+#include <ccad/lua/Bom.hpp>
+#include <ccad/lua/LuaEngine.hpp>
 #include <ccad/ops/Transform.hpp>
 #include <filesystem>
 #include <iostream>
@@ -8,7 +10,6 @@
 #include "GLFW/glfw3.h"
 #include "ProjectPanel.hpp"
 #include "Utils.hpp"
-#include "ccad/lua/LuaEngine.hpp"
 #include "pure/PureBounds.hpp"
 #include "pure/PureMesh.hpp"
 
@@ -302,6 +303,59 @@ void Controller::RebuildPartByPath(const std::string& luaPath) {
         }
     if (!p) return;
     AddPartToScene(*p);
+}
+
+void Controller::CreateBom() {
+    if (!m_ProjectLoaded) {
+        throw std::runtime_error("No project is loaded!");
+    }
+    try {
+        io::BomWriter bomWriter;
+
+        for (const auto& part : m_Project.parts) {
+            fs::path src = fs::current_path() / part.source;
+            fs::path luaFile = fs::weakly_canonical(src);
+
+            try {
+                sol::state& L = m_Engine->Lua();
+                sol::table bom = L["require"]("ccad.util.bom");
+                if (bom.valid()) {
+                    sol::protected_function clear = bom["clear"];
+                    if (clear.valid()) {
+                        sol::protected_function_result r = clear();
+                        if (!r.valid()) {
+                            sol::error err = r;
+                            std::cerr << "Warning: bom.clear() failed: " << err.what() << "\n";
+                        }
+                    }
+                }
+            } catch (...) {
+                std::cerr << "Warning: could not clear BOM for part\n";
+            }
+
+            std::string err;
+            ApplyProjectParamsToLua(m_Engine->Lua(), m_Project);
+            if (!m_Engine->RunFile(luaFile.string(), &err)) {
+                std::cerr << "Lua error in " << luaFile.string() << ": " << err << "\n";
+                return;
+            }
+
+            try {
+                bomWriter.Collect(m_Engine->Lua(), part.id.empty() ? part.name : part.id);
+            } catch (const std::exception& e) {
+                std::cerr << "Error: collecting BOM failed for part " << (part.id.empty() ? part.name : part.id) << ": "
+                          << e.what() << "\n";
+                return;
+            }
+        }
+
+        bomWriter.WriteCsv("bom.csv");
+        bomWriter.WriteMarkdown("bom.md");
+        std::cout << "BOM written: bom.csv, bom.md\n";
+
+    } catch (const std::exception& e) {
+        std::cerr << "Error: failed to generate BOM: " << e.what() << "\n";
+    }
 }
 
 void Controller::SetupEngine() {

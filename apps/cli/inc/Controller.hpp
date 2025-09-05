@@ -14,6 +14,7 @@ class Controller {
     void LoadProject(const fs::path& projectDir);
     void BuildProject();
     void ViewProject();
+    void CreateBom();
 
     void HealthCheck();
 

@@ -107,7 +107,6 @@ endif()
 message(STATUS "Lua include: ${LUA_INCLUDE_DIR}")
 message(STATUS "Lua libs: ${LUA_LIBRARIES}")
 
-
 enable_testing()
 
 add_subdirectory(libs)

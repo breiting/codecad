@@ -264,8 +264,7 @@ void App::handleLive(const std::string& rootDir) {
 void App::handleBom() {
     fs::path root = fs::current_path();
     m_Controller->LoadProject(root);
-    // TODO: missing code !!!
-    // m_Controller->CreateBom();
+    m_Controller->CreateBom();
 }
 
 void App::handleDoctor() {

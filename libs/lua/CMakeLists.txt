@@ -10,6 +10,7 @@ add_library(lua STATIC
 			src/BindSketch.cpp
 			src/BindingUtils.cpp
 			src/BindMech.cpp
+			src/Bom.cpp
 )
 
 target_include_directories(lua PUBLIC
