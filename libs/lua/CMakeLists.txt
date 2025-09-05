@@ -3,6 +3,7 @@ add_library(lua STATIC
 			src/BindIO.cpp
 			src/BindPrimitives.cpp
 			src/BindTransforms.cpp
+			src/BindBooleans.cpp
 )
 
 target_include_directories(lua PUBLIC

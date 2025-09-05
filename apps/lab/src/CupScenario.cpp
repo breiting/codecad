@@ -42,7 +42,7 @@ Shape BuildCanTop(double lidHandleHeight, double threadLength, double canDiamete
     auto handle = Cylinder(canDiameter, lidHandleHeight);
     handle = ops::Translate(handle, 0, 0, -lidHandleHeight);
 
-    auto fused = ops::Union(lid, handle);
+    auto fused = ops::Union({lid, handle});
 
     const double holeDiameter = spec.fitDiameter - canWallThickness;
     auto hole = Cylinder(holeDiameter, threadLength);

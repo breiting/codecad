@@ -14,14 +14,16 @@
 namespace ccad {
 namespace ops {
 
-Shape Union(const Shape& a, const Shape& b) {
-    auto oa = ShapeAsOcct(a), ob = ShapeAsOcct(b);
-    if (!oa || !ob) throw std::runtime_error("Union: non-OCCT shape implementation");
-    BRepAlgoAPI_Fuse algo(oa->Occt(), ob->Occt());
-    algo.SetRunParallel(true);
-    algo.Build();
-    if (!algo.IsDone()) throw std::runtime_error("Union failed");
-    return WrapOcctShape(algo.Shape());
+Shape Union(const std::vector<Shape>& shapes) {
+    if (shapes.size() < 2) throw std::runtime_error("Union: More than two shapes are required");
+
+    auto shape = ShapeAsOcct(shapes[0])->Occt();
+
+    for (size_t i = 1; i < shapes.size(); ++i) {
+        auto os = ShapeAsOcct(shapes[i]);
+        shape = BRepAlgoAPI_Fuse(shape, os->Occt()).Shape();
+    }
+    return WrapOcctShape(shape);
 }
 
 Shape Difference(const Shape& a, const Shape& b) {

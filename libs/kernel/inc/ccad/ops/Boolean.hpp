@@ -6,7 +6,7 @@ namespace ops {
 
 /** \name Boolean operations
  *  \{ */
-Shape Union(const Shape& a, const Shape& b);
+Shape Union(const std::vector<Shape>& shapes);
 Shape Difference(const Shape& a, const Shape& b);
 Shape Intersection(const Shape& a, const Shape& b);
 /** \} */

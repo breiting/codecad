@@ -22,7 +22,7 @@ TEST(TestOps, TestUnion) {
 
     b2 = ops::Translate(b2, 10, 0, 0);
 
-    auto fused = ops::Union(b1, b2);
+    auto fused = ops::Union({b1, b2});
     auto bbox = fused.BBox();
     EXPECT_NEAR(bbox.Size().x, 20, 1e-6);
 }

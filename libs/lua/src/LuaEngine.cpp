@@ -79,7 +79,7 @@ bool LuaEngine::Initialize(std::string* errorMsg) {
         RegisterPrimitives(m_Lua);
         RegisterIO(m_Lua, this);
         RegisterTransforms(m_Lua);
-        // runtime::RegisterBooleans(m_Lua);
+        RegisterBooleans(m_Lua);
         // runtime::RegisterFeatures(m_Lua);
         // runtime::RegisterSketch(m_Lua);
         // runtime::RegisterConstruct(m_Lua);
