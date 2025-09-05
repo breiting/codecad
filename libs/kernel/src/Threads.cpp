@@ -1,5 +1,7 @@
 #include "ccad/mech/Threads.hpp"
 
+#include <sys/types.h>
+
 #include <BRepAlgoAPI_Common.hxx>
 #include <BRepAlgoAPI_Cut.hxx>
 #include <BRepAlgoAPI_Fuse.hxx>
@@ -235,7 +237,8 @@ static bool IsLeft(const ThreadSpec& s) {
 
 // ---------------- public API ----------------
 
-Shape ThreadOps::ThreadExternalRod(const ThreadSpec& inSpec, double rodLength, double threadLength) {
+Shape ThreadOps::ThreadExternalRod(const ThreadSpec& inSpec, double rodLength, double threadLength,
+                                   double& majorDiameter) {
     ThreadSpec spec = inSpec;
     spec.Normalize();
 
@@ -251,6 +254,7 @@ Shape ThreadOps::ThreadExternalRod(const ThreadSpec& inSpec, double rodLength, d
 
     // Base rod (full rodLength)
     const double R_minor = 0.5 * spec.fitDiameter - spec.clearance + eps;
+    majorDiameter = (R_minor + spec.depth) * 2.0;
     TopoDS_Shape rod = BRepPrimAPI_MakeCylinder(R_minor, rodLength).Shape();
 
     // Helix for threaded section (0..L)

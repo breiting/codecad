@@ -36,7 +36,8 @@ Shape BuildCanBottom(double canHeight, double canDiameter, double canWallThickne
 
 Shape BuildCanTop(double lidHandleHeight, double threadLength, double canDiameter, double canWallThickness,
                   const ThreadSpec& spec) {
-    auto lid = mech::ThreadOps::ThreadExternalRod(spec, threadLength, threadLength);
+    double majorDiameter;
+    auto lid = mech::ThreadOps::ThreadExternalRod(spec, threadLength, threadLength, majorDiameter);
 
     auto handle = Cylinder(canDiameter, lidHandleHeight);
     handle = ops::Translate(handle, 0, 0, -lidHandleHeight);

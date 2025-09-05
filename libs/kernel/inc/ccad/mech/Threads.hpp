@@ -129,7 +129,8 @@ class ThreadOps {
      * @param rodLength Total rod length (>= threadLength).
      * @param threadLength Length of threaded section (<= rodLength).
      */
-    static Shape ThreadExternalRod(const ThreadSpec& spec, double rodLength, double threadLength);
+    static Shape ThreadExternalRod(const ThreadSpec& spec, double rodLength, double threadLength,
+                                   double& outerDiameter);
 
     /**
      * @brief Build an INTERNAL thread CUTTER volume. You typically subtract this from your housing body.

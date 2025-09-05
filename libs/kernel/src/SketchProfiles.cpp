@@ -69,58 +69,32 @@ Shape PolyXY(const std::vector<Vec2>& ptsIn) {
     return WrapOcctShape(face);
 }
 
-Shape ProfileXZ(const std::vector<Vec2>& ptsIn, bool closed, bool closeToAxis) {
+Shape ProfileXZ(const std::vector<Vec2>& ptsIn, bool closed) {
     auto pts = dedupeConsecutive(ptsIn);
-    if (pts.size() < 2) {
-        throw Exception("ProfileXZ: need at least 2 distinct points");
-    }
+    if (pts.size() < 2) throw Exception("ProfileXZ: need at least 2 distinct points");
 
-    // Prepare 3D points in XZ plane (Y=0)
     std::vector<gp_Pnt> p3;
-    p3.reserve(pts.size() + (closeToAxis ? 3 : (closed ? 1 : 0)));
+    p3.reserve(pts.size() + (closed ? 1 : 0));
+    for (const auto& p : pts) p3.emplace_back(p.x, 0.0, p.y);
 
-    for (const auto& p : pts) {
-        p3.emplace_back(p.x, 0.0, p.y);
-    }
-
-    if (closeToAxis) {
-        // (lastX,lastZ) -> (0,lastZ) -> (0,firstZ) -> (firstX,firstZ)
-        const Vec2& first = pts.front();
-        const Vec2& last = pts.back();
-
-        // Append axis-closure points
-        if (!almostEqual(last.x, 0.0)) {
-            p3.emplace_back(0.0, 0.0, last.y);
-        }
-        if (!almostEqual(last.y, first.y)) {
-            p3.emplace_back(0.0, 0.0, first.y);
-        }
-        if (!almostEqual(first.x, p3.back().X())) {
-            p3.emplace_back(first.x, 0.0, first.y);
-        }
-        // This produces a closed contour suitable for revolve
-    } else if (closed) {
-        // Explicitly close wire back to first
+    if (closed) {
         const auto& first = p3.front();
         const auto& last = p3.back();
-        if (!last.IsEqual(first, kEps)) {
-            p3.push_back(first);
-        }
-    }
-
-    if (p3.size() < 2) {
-        throw Exception("ProfileXZ: degenerate after closure");
+        if (!last.IsEqual(first, kEps)) p3.push_back(first);
     }
 
     BRepBuilderAPI_MakeWire wire;
     addPolylineEdges(wire, p3);
+    if (!wire.IsDone()) throw Exception("ProfileXZ: failed to build wire");
 
-    if (!wire.IsDone()) {
-        throw Exception("ProfileXZ: failed to build wire");
+    if (closed) {
+        // planar face
+        TopoDS_Face f = BRepBuilderAPI_MakeFace(wire).Face();
+        return WrapOcctShape(f);
+    } else {
+        // open wire
+        return WrapOcctShape(wire.Wire());
     }
-
-    // Return wire as Shape (not a face!), RevolveZ will consume this.
-    return WrapOcctShape(wire.Wire());
 }
 
 }  // namespace ccad::sketch

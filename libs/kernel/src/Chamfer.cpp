@@ -1,3 +1,5 @@
+#include "ccad/feature/Chamfer.hpp"
+
 #include <BRepFilletAPI_MakeChamfer.hxx>
 #include <TopExp.hxx>
 #include <TopExp_Explorer.hxx>
@@ -5,9 +7,13 @@
 #include <TopoDS_Face.hxx>
 #include <TopoDS_Wire.hxx>
 #include <ccad/base/Logger.hpp>
+#include <cmath>
 
 #include "ccad/base/Exception.hpp"
+#include "ccad/base/Math.hpp"
 #include "ccad/base/Status.hpp"
+#include "ccad/construct/Revolve.hpp"
+#include "ccad/sketch/SketchProfiles.hpp"
 #include "internal/geom/ShapeHelper.hpp"
 
 namespace ccad::feature {
@@ -68,6 +74,28 @@ Shape ChamferAll(const Shape& s, double distanceMm) {
         LOG(ERROR) << "[chamfer] unknown error.\n";
         return s;
     }
+}
+
+Shape ChamferCutterRadial(double diameter, const ChamferRadialSpec& spec) {
+    const double xLength = spec.length * std::cos(DegToRad(spec.angleDeg));
+    const double zLength = spec.length * std::sin(DegToRad(spec.angleDeg));
+
+    double xStart = 0.0;
+    if (spec.type == ChamferRadialType::External) {
+        xStart = diameter * 0.5 - xLength;
+    } else if (spec.type == ChamferRadialType::Internal) {
+        xStart = -diameter * 0.5 - xLength;
+    } else {
+        Exception("Unknown ChamferRadialType");
+    }
+    std::vector<Vec2> triangle{
+        {xStart, 0},
+        {xStart + xLength, 0},
+        {xStart + xLength, zLength},
+    };
+    auto profile = sketch::ProfileXZ(triangle, true);
+
+    return construct::RevolveZ(profile, 360);
 }
 
 }  // namespace ccad::feature

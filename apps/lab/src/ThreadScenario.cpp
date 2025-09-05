@@ -1,6 +1,7 @@
 #include "ThreadScenario.hpp"
 
 #include <ccad/base/Shape.hpp>
+#include <ccad/feature/Chamfer.hpp>
 #include <ccad/geom/Cylinder.hpp>
 #include <ccad/geom/HexPrism.hpp>
 #include <ccad/mech/Threads.hpp>
@@ -13,9 +14,12 @@
 #include <pure/PureMeshFactory.hpp>
 #include <pure/PureScene.hpp>
 
+#include "ccad/mech/Rod.hpp"
+
 using namespace ccad;
 using namespace ccad::geom;
 using namespace ccad::mech;
+using namespace ccad::feature;
 using namespace pure;
 
 Shape BuildNut(const ThreadSpec& spec) {
@@ -35,16 +39,18 @@ Shape BuildNut(const ThreadSpec& spec) {
     return nut;
 }
 
-Shape BuildBolt(double length, const ThreadSpec& spec) {
-    auto bolt = mech::ThreadOps::ThreadExternalRod(spec, length, length);
-
-    return bolt;
+Shape BuildBolt(double boltLength, double threadLength, const ThreadSpec& spec) {
+    RodSpec rodSpec;
+    rodSpec.chamferBottom = true;
+    rodSpec.chamferTop = true;
+    return ThreadedRod(boltLength, threadLength, rodSpec, spec);
 }
 
 void ThreadScenario::Build(std::shared_ptr<PureScene> scene) {
     scene->Clear();
 
     const double boltLength = 30.0;
+    const double threadLength = 20.0;
 
     ThreadSpec spec;
     spec.fitDiameter = 8.0;         // Nenndurchmesser (Major Diameter ISO M8)
@@ -58,7 +64,7 @@ void ThreadScenario::Build(std::shared_ptr<PureScene> scene) {
     spec.segmentsPerTurn = 64;
 
     // Bolt
-    auto bolt = BuildBolt(boltLength, spec);
+    auto bolt = BuildBolt(boltLength, threadLength, spec);
     scene->AddPart("Bolt", ShapeToMesh(bolt), glm::mat4{1.0f}, Hex("#d2ffd2"));
     m_Shapes.push_back(bolt);
 

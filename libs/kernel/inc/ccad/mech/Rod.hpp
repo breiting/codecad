@@ -6,14 +6,14 @@ namespace ccad {
 namespace mech {
 
 struct RodSpec {
-    double diameter = 10;
-    double length = 200.0;
+    bool chamferBottom = false;
+    bool chamferTop = false;
 };
 
 /// \brief Make a simple rod
-Shape Rod(const RodSpec& spec);
+Shape Rod(double diameter, double length, const RodSpec& spec);
 
 /// \brief Make a threaded rod
-Shape ThreadedRod(const RodSpec& rodSpec, const ThreadSpec& threadSpec);
+Shape ThreadedRod(double totalLength, double threadLength, const RodSpec& rodSpec, const ThreadSpec& threadSpec);
 }  // namespace mech
 }  // namespace ccad

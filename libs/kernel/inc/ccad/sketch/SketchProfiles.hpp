@@ -31,11 +31,10 @@ Shape PolyXY(const std::vector<Vec2>& pts);
  *   (lastX,lastZ) → (0,lastZ) → (0,firstZ) → (firstX,firstZ).
  *
  * @param pts          Polyline points in XZ (must have size >= 2 after de-dup).
- * @param closed       Close wire back to first point.
- * @param closeToAxis  Close wire to the Z-axis (overrides/augments closure).
+ * @param closed       True indicates, that the profile should be closed (should be used for shape revolve later)
  * @return Shape  Wire in the XZ plane (Y=0).
  * @throws Exception on invalid/degenerate input.
  */
-Shape ProfileXZ(const std::vector<Vec2>& pts, bool closed = false, bool closeToAxis = false);
+Shape ProfileXZ(const std::vector<Vec2>& pts, bool closed = true);
 
 }  // namespace ccad::sketch
