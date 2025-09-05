@@ -16,12 +16,10 @@ This document explains the code layout, build, and contribution guidelines for *
 ## Error Handling
 
 - OCCT routines may throw `Standard_Failure`. Catch at API boundaries and
-  raise a `std::runtime_error` for Lua with a descriptive message.
-- Boolean operations (fuse, cut) may return invalid shapes; check `IsNull()` and
-  fall back gracefully when sensible.
+  raise a `Exception` from the `ccad/base/Exception.hpp`.
 
 ## Contributing
 
 - Add tests for new functionality (if non-trivial).
 - Keep examples short and descriptive.
-- Update `types/?.d.lua` when changing Lua API.
+- Update `lualib/types/?.d.lua` when changing Lua API.
