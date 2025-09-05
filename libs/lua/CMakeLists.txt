@@ -9,6 +9,7 @@ add_library(lua STATIC
 			src/BindMeasure.cpp
 			src/BindSketch.cpp
 			src/BindingUtils.cpp
+			src/BindMech.cpp
 )
 
 target_include_directories(lua PUBLIC
