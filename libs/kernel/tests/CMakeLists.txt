@@ -1,6 +1,7 @@
 add_executable(test_kernel
 	main.cpp
 	TestShapes.cpp
+	TestMech.cpp
 	TestOperations.cpp
 	TestTriMesh.cpp
 )

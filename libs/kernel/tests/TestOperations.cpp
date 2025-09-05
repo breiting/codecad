@@ -6,7 +6,6 @@
 #include <ccad/ops/Boolean.hpp>
 #include <ccad/ops/Transform.hpp>
 #include <ccad/sketch/Rectangle.hpp>
-#include <fstream>
 
 #include "ccad/base/Math.hpp"
 #include "ccad/construct/Extrude.hpp"

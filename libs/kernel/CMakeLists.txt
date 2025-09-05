@@ -10,8 +10,10 @@ add_library(kernel STATIC
 	src/Primitives.cpp
 	src/Rectangle.cpp
 	src/Revolve.cpp
+	src/Rod.cpp
 	src/Section.cpp
 	src/SketchProfiles.cpp
+	src/Threads.cpp
 	src/Triangulation.cpp
 )
 
