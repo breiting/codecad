@@ -39,7 +39,6 @@ void RegisterPipes(sol::state& lua) {
     lua.new_usertype<ThreadSpec>(
         "ThreadSpec", sol::constructors<ThreadSpec()>(),
 
-        // --- Properties via getters/setters (statt raw member pointer!) ---
         "fitDiameter",
         sol::property([](ThreadSpec& s) { return s.fitDiameter; }, [](ThreadSpec& s, double v) { s.fitDiameter = v; }),
         "pitch", sol::property([](ThreadSpec& s) { return s.pitch; }, [](ThreadSpec& s, double v) { s.pitch = v; }),

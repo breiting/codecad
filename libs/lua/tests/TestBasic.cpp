@@ -10,7 +10,6 @@ TEST(TestLua, Basic) {
     std::string err;
     ASSERT_TRUE(e.Initialize(&err));
     e.RunString("emit(box(10,10,10))", &err);
-    cout << "XXXXXXXXXXXXXXXXX " << err << endl;
     auto s = e.GetEmitted();
     ASSERT_TRUE((bool)s);
 }
