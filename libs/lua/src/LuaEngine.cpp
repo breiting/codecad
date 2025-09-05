@@ -80,13 +80,12 @@ bool LuaEngine::Initialize(std::string* errorMsg) {
         RegisterIO(m_Lua, this);
         RegisterTransforms(m_Lua);
         RegisterBooleans(m_Lua);
-        // runtime::RegisterFeatures(m_Lua);
+        RegisterConstruct(m_Lua);
+        RegisterFeatures(m_Lua);
+        RegisterMeasure(m_Lua);
         // runtime::RegisterSketch(m_Lua);
-        // runtime::RegisterConstruct(m_Lua);
         // runtime::RegisterPipes(m_Lua);
         // runtime::RegisterThreads(m_Lua);
-        // runtime::RegisterDraft(m_Lua);
-        // runtime::RegisterMeasure(m_Lua);
 
         m_Initialized = true;
         return true;

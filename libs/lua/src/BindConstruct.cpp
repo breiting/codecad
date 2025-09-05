@@ -1,14 +1,20 @@
-#include "runtime/BindConstruct.hpp"
+#include <ccad/base/Shape.hpp>
+#include <ccad/construct/Extrude.hpp>
+#include <ccad/construct/Revolve.hpp>
+#include <sol/sol.hpp>
 
-#include "geometry/Extrude.hpp"
+#include "ccad/lua/Bindings.hpp"
 
-namespace runtime {
+using namespace ccad::construct;
+
+namespace ccad {
+namespace lua {
+
 void RegisterConstruct(sol::state& lua) {
-    lua.set_function("extrude", [](const geometry::ShapePtr& face, double height) -> geometry::ShapePtr {
-        return geometry::ExtrudeZ(face, height);
-    });
-    lua.set_function("revolve", [](const geometry::ShapePtr& prof, double angleDeg) -> geometry::ShapePtr {
-        return geometry::RevolveZ(prof, angleDeg);
-    });
+    lua.set_function("extrude",
+                     [](const Shape& face, double height) -> Shape { return construct::ExtrudeZ(face, height); });
+    lua.set_function("revolve",
+                     [](const Shape& prof, double angleDeg) -> Shape { return construct::RevolveZ(prof, angleDeg); });
 }
-}  // namespace runtime
+}  // namespace lua
+}  // namespace ccad
