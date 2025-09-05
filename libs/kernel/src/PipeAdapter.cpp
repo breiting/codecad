@@ -67,7 +67,6 @@ Shape PipeAdapter(const PipeEnds& endsIn, const PipeBlendOpts& opts) {
     const int N = max(8, opts.samples);
     const double L = e.length;
     const double dz = L / static_cast<double>(N - 1);
-    const double eps = max(1e-6, opts.epsilon);
 
     // Sample OUTER and INNER curves as XZ points (y=0), X = radius(z), Z = z
     // Outer is traced forward z=0..L; Inner is traced backward L..0 (to close face CCW).

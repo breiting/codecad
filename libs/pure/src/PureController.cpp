@@ -293,6 +293,7 @@ void PureController::Shutdown() {
         glfwMakeContextCurrent(m_Window);
     }
 
+    m_Axis.reset();
     m_Gui.Shutdown();
 
     if (m_Window) {
