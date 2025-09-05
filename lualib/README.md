@@ -1,5 +1,7 @@
 # CodeCAD Lua Library Collection
 
+> IMPORTANT! The examples and samples folders are outdated and will not work anymore. They will be reworked as CCAD project soon!
+
 This directory contains a useful set of Lua functions on top of the CodeCAD Core functionality.
 
 ## Installation
