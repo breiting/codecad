@@ -1,7 +1,7 @@
 # CodeCAD — Parametric CAD in Code
 
 **CodeCAD** is a lightweight, code-first parametric CAD tool.
-You write **Lua scripts**, CodeCAD builds **solids** using the robust [OpenCascade](https://www.opencascade.com/) kernel — with live preview, reusable parts, and a workflow that feels as natural as editing code in your favorite editor.
+You write **Lua scripts**, CodeCAD builds **solids** using the robust [OpenCascade](https://www.opencascade.com/) kernel (OCCT) — with live preview, reusable parts, and a workflow that feels as natural as editing code in your favorite editor.
 
 [![CodeCAD Demo](https://img.youtube.com/vi/xyIz4Y3gc14/hqdefault.jpg)](https://www.youtube.com/watch?v=xyIz4Y3gc14)
 
@@ -24,23 +24,31 @@ With CodeCAD you:
 - Model in **pure code** (with Lua)
 - Get **live preview** in the integrated viewer
 - Keep your models **small, diff-able, and version-controlled** in Git
-- Parametrically adapt designs: change `M6` → `M8` and your screw updates
+- Parametrically adapt designs, do not start all over, if you want to change a small parameter
 
 👉 If you love code, the command line, and reproducible workflows — CodeCAD is for you.
 
-## 🏛 Architecture
+## 🏛 Software Architecture
 
-```text
-┌────────────┐      ┌────────────┐      ┌───────────────┐
-│   core     │─────▶│    pure    │─────▶│     main      │
-│ LuaEngine  │      │ Viewer     │      │ CLI frontend  │
-│ OCCT, STL  │      │ GLFW+ImGui │      │ ccad commands │
-└────────────┘      └────────────┘      └───────────────┘
+### KERNEL
 
-	•	core — C++ engine with Lua bindings, geometry, triangulation & STL export
-	•	pure — A simple GLFW-based render engine optimized for CodeCAD with ImGui controls
-	•	main — CLI: ccad init, ccad add, ccad live, ccad build
-```
+Pure C++ layer on top of OCCT: custom types (Shapes, TriMesh, Ops), Extrude/Revolve, Booleans, Fillet/Chamfer, Section, Triangulation, STL/STEP export. OCCT stays encapsulated internally. The kernel API does not expose any OCCT types.
+
+### LUA
+
+Binds the kernel API to Lua (via sol2). Provides a stable, curated scripting API (Primitives, Transforms, Ops, higher-level parts like Threads, Rods).
+
+### PURE
+
+Lightweight render engine (GLFW + GLM + ImGui). Accepts TriMeshes from Kernel/Lua/Service, renders them, displays status bar & dock panel.
+
+### CLI
+
+Project tool (`ccad init/parts/live/build/bom`, etc.). Can execute Lua/kernels locally; shows live geometry through Pure.
+
+### LAB
+
+Playground for new geometries/algorithms. Uses kernel and PURE for visualization.
 
 ## 🚀 Getting Started
 
@@ -48,7 +56,7 @@ With CodeCAD you:
 
 - CMake ≥ 3.16
 - C++17 compiler
-- OpenCascade (OCCT) installed
+- OpenCascade (OCCT) installed (version 7.9.1)
 - Lua 5.4 (headers + libs)
 
 ### Build
@@ -56,9 +64,10 @@ With CodeCAD you:
 ```bash
 git clone https://github.com/breiting/codecad
 cd codecad
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j
-cd build && make install
+mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=Release ..
+make -j8
+make install
 ```
 
 ### Scaffold a new project
@@ -70,7 +79,7 @@ ccad init
 
 # add a first part (the name is optional)
 
-ccad add --name "box"
+ccad parts add --name "box"
 
 # run live viewer
 ccad live
@@ -111,13 +120,6 @@ emit(difference(b, cut))
 
 Change hole from 6 → 8 and regenerate — instantly updated.
 
-## 🌱 Roadmap
-
-- 📚 Tutorials & docs
-- 🪵 Library extensions: codecad-wood, codecad-struct for domain-specific libraries
-- 🔩 Threading functions (inner & outer threads)
-- 🌍 Community support via Patreon
-
 ## 📖 Editor Support
 
 - Lua LSP stubs in types/ for completion & diagnostics
@@ -126,12 +128,11 @@ Change hole from 6 → 8 and regenerate — instantly updated.
 ## 🤝 Contributing
 
 You are welcome to contribute to this project. I am developing under MacOS and Linux. However, I cannot test with Windows. So volunteers are welcome to support all three platforms.
-
 Any feature requests should be filed directly in Github.
 
 ## Links
 
-- https://github.com/Open-Cascade-SAS/OCCT
+- [OpenCASCADE](https://github.com/Open-Cascade-SAS/OCCT)
 
 ## 📜 License
 
