@@ -35,8 +35,16 @@ Shape BuildNut(const ThreadSpec& spec) {
     auto boreHole = ops::Difference(hex, hole);
 
     auto nut = ops::Difference(boreHole, cutter);
-    // auto chamfered = mech::ChamferThreadEndsInternal(nut, spec.fitDiameter * 0.5, 1.0, 45.0, height, true, true);
-    return nut;
+
+    // apply chamfer
+    ChamferRadialSpec radSpec;
+    radSpec.type = ChamferRadialType::Internal;
+    auto chamfer = ChamferCutterRadial(boreHoleDiameter, radSpec);
+    nut = ops::Difference(nut, chamfer);
+
+    chamfer = ops::RotateX(chamfer, 180.0);
+    chamfer = ops::Translate(chamfer, 0, 0, height);
+    return ops::Difference(nut, chamfer);
 }
 
 Shape BuildBolt(double boltLength, double threadLength, const ThreadSpec& spec) {
