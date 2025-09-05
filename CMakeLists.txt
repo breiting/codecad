@@ -129,14 +129,14 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/libs/kernel/inc
 	DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 	FILES_MATCHING
 	PATTERN "*.hpp"
-	PATTERN "*/private/*" EXCLUDE)
+	PATTERN "*/internal/*" EXCLUDE)
 
-install(DIRECTORY lua/lib/
+install(DIRECTORY lualib/lib/
 		DESTINATION ${CODECAD_SHARE_DIR}/lib
 		FILES_MATCHING PATTERN "*.lua"
 )
 
-install(DIRECTORY lua/types/
+install(DIRECTORY lualib/types/
 		DESTINATION ${CODECAD_SHARE_DIR}/types
 		FILES_MATCHING PATTERN "*.d.lua"
 )
