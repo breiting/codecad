@@ -1,11 +1,14 @@
-#include "runtime/BindingUtils.hpp"
+#include "ccad/lua/BindingUtils.hpp"
 
 #include <stdexcept>
 
-namespace runtime {
+#include "ccad/base/Math.hpp"
 
-std::vector<std::pair<double, double>> ParsePointTable(sol::table t) {
-    std::vector<std::pair<double, double>> out;
+namespace ccad {
+namespace lua {
+
+std::vector<Vec2> ParsePointTable(sol::table t) {
+    std::vector<Vec2> out;
     out.reserve(t.size());
     for (std::size_t i = 1; i <= t.size(); ++i) {
         sol::object row = t[i];
@@ -35,9 +38,9 @@ std::vector<std::pair<double, double>> ParsePointTable(sol::table t) {
             yv = static_cast<double>(oy.as<int>());
         else
             throw std::runtime_error("poly: y must be a number");
-        out.emplace_back(xv, yv);
+        out.emplace_back(Vec2{xv, yv});
     }
     return out;
 }
-
-}  // namespace runtime
+}  // namespace lua
+}  // namespace ccad

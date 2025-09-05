@@ -1,23 +1,29 @@
-#include "runtime/BindSketch.hpp"
+#include <ccad/base/Shape.hpp>
+#include <ccad/sketch/Rectangle.hpp>
+#include <ccad/sketch/SketchProfiles.hpp>
+#include <sol/sol.hpp>
 
-#include "geometry/Sketch.hpp"
-#include "runtime/BindingUtils.hpp"
+#include "ccad/lua/BindingUtils.hpp"
+#include "ccad/lua/Bindings.hpp"
 
-namespace runtime {
+using namespace ccad::sketch;
+
+namespace ccad {
+namespace lua {
+
 void RegisterSketch(sol::state& lua) {
-    lua.set_function("poly_xy", [](sol::table pts_tbl, sol::optional<bool> closedOpt) -> geometry::ShapePtr {
+    lua.set_function("rect", [](double width, double height) -> Shape { return sketch::Rectangle(width, height); });
+
+    lua.set_function("poly_xy", [](sol::table pts_tbl) -> Shape {
         auto pts = ParsePointTable(pts_tbl);
-        bool closed = closedOpt.value_or(false);
-        return geometry::PolylineXY_Face(pts, closed);
+        return PolyXY(pts);
     });
 
-    lua.set_function(
-        "poly_xz",
-        [](sol::table rz_tbl, sol::optional<bool> closedOpt, sol::optional<bool> closeToAxisOpt) -> geometry::ShapePtr {
-            auto rz = ParsePointTable(rz_tbl);
-            bool closed = closedOpt.value_or(false);
-            bool close_to_axis = closeToAxisOpt.value_or(false);
-            return geometry::PolylineXZ_Face(rz, closed, close_to_axis);
-        });
+    lua.set_function("profile_xz", [](sol::table rz_tbl, sol::optional<bool> closedOpt) -> Shape {
+        auto rz = ParsePointTable(rz_tbl);
+        bool closed = closedOpt.value_or(false);
+        return ProfileXZ(rz, closed);
+    });
 }
-}  // namespace runtime
+}  // namespace lua
+}  // namespace ccad
