@@ -1,7 +1,7 @@
 #include <imgui.h>
 
-#include <glm/gtc/matrix_transform.hpp>
 #include <chrono>
+#include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 #include <pure/PureController.hpp>
 #include <pure/PureMeshFactory.hpp>
@@ -294,6 +294,8 @@ void PureController::Shutdown() {
     }
 
     m_Axis.reset();
+    m_Scene.reset();
+    m_Renderer.reset();
     m_Gui.Shutdown();
 
     if (m_Window) {

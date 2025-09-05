@@ -24,8 +24,6 @@ target_include_directories(ccad PUBLIC
 				${CMAKE_CURRENT_SOURCE_DIR}/../../libs/lua/inc
 				${CMAKE_CURRENT_SOURCE_DIR}/../../libs/pure/inc
 				${CMAKE_CURRENT_SOURCE_DIR}/inc
-										# ${LUA_INCLUDE_DIR}
-										# ${sol2_SOURCE_DIR}/include
 				${CMAKE_BINARY_DIR}/generated
 				${imgui_SOURCE_DIR}
 				${imgui_SOURCE_DIR}/backends
@@ -34,9 +32,6 @@ target_include_directories(ccad PUBLIC
 target_link_libraries(ccad PRIVATE
 	project_settings
 	CLI11::CLI11
-							# sol2
-	glfw
-	kernel
 	lua
 	pure
 	nlohmann_json::nlohmann_json
