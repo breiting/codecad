@@ -8,6 +8,7 @@ namespace lua {
 
 void RegisterIO(sol::state& lua, LuaEngine* owner);
 void RegisterPrimitives(sol::state& lua);
+void RegisterTransforms(sol::state& lua);
 
 }  // namespace lua
 }  // namespace ccad

@@ -78,7 +78,7 @@ bool LuaEngine::Initialize(std::string* errorMsg) {
         // 4) Bindings registrieren
         RegisterPrimitives(m_Lua);
         RegisterIO(m_Lua, this);
-        // runtime::RegisterTransforms(m_Lua);
+        RegisterTransforms(m_Lua);
         // runtime::RegisterBooleans(m_Lua);
         // runtime::RegisterFeatures(m_Lua);
         // runtime::RegisterSketch(m_Lua);
