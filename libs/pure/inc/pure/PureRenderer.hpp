@@ -17,10 +17,10 @@ class PureRenderer {
    public:
     PureRenderer() = default;
 
-    void DrawMesh(const PureMesh& mesh, const PureShader& shader, const glm::mat4& model, const glm::mat4& view,
+    void DrawMesh(const PureMesh& mesh, const PureShader* shader, const glm::mat4& model, const glm::mat4& view,
                   const glm::mat4& proj, const glm::vec3& camPos, const PureRenderParams& params);
 
-    void DrawScene(std::shared_ptr<PureScene> scene, const PureShader& shader, const glm::mat4& view,
+    void DrawScene(std::shared_ptr<PureScene> scene, const PureShader* shader, const glm::mat4& view,
                    const glm::mat4& proj, const glm::vec3& camPos, const glm::vec3& camViewDir /* Headlight */);
 
     void SetWireframe(bool onoff) {

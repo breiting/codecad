@@ -13,6 +13,7 @@
 #include "imgui_impl_glfw.h"
 #include "pure/IPureCamera.hpp"
 #include "pure/PureBounds.hpp"
+#include "pure/PureShader.hpp"
 
 using namespace std;
 
@@ -79,7 +80,8 @@ bool PureController::Initialize(int width, int height, const std::string& title,
     if (!m_Gui.Initialize(m_Window, "#version 330")) return false;
 
     // Build Phong shader
-    m_Shader.BuildPhong();
+    m_Shader = std::make_unique<PureShader>();
+    m_Shader->BuildPhong();
 
     glfwGetFramebufferSize(m_Window, &m_FramebufferW, &m_FramebufferH);
 
@@ -295,6 +297,7 @@ void PureController::Shutdown() {
         throw std::runtime_error("No window available anymore, you should not be here!");
     }
 
+    m_Shader.reset();
     m_Scene->Clear();
     m_Scene.reset();
     m_Axis.reset();
@@ -339,7 +342,7 @@ void PureController::Render() {
     glm::mat4 view = m_Camera->View();
     glm::mat4 proj = m_Camera->Projection();
 
-    m_Renderer->DrawScene(m_Scene, m_Shader, view, proj, m_Camera->Position(), m_Camera->ViewDirection());
+    m_Renderer->DrawScene(m_Scene, m_Shader.get(), view, proj, m_Camera->Position(), m_Camera->ViewDirection());
 
     if (m_Axis) {
         m_Axis->Render(m_Camera->View(), m_Camera->Projection());

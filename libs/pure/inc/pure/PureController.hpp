@@ -1,8 +1,8 @@
 #pragma once
 
-#include <chrono>
 #include <glad.h>
 
+#include <chrono>
 #include <functional>
 #include <pure/IPureCamera.hpp>
 #include <pure/PureScene.hpp>
@@ -84,7 +84,7 @@ class PureController {
     IPureCamera* m_Camera = nullptr;
     void SetCameraMode(CameraMode mode);
 
-    PureShader m_Shader;
+    std::unique_ptr<PureShader> m_Shader;
     std::shared_ptr<PureScene> m_Scene;
     std::shared_ptr<PureRenderer> m_Renderer;
 
