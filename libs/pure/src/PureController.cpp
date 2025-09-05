@@ -291,10 +291,13 @@ void PureController::Shutdown() {
     //
     if (m_Window) {
         glfwMakeContextCurrent(m_Window);
+    } else {
+        throw std::runtime_error("No window available anymore, you should not be here!");
     }
 
-    m_Axis.reset();
+    m_Scene->Clear();
     m_Scene.reset();
+    m_Axis.reset();
     m_Renderer.reset();
     m_Gui.Shutdown();
 

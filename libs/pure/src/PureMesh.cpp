@@ -1,8 +1,14 @@
+#include <iostream>
 #include <pure/PureMesh.hpp>
+
+#include "GLFW/glfw3.h"
+
+using namespace std;
 
 namespace pure {
 
 PureMesh::~PureMesh() {
+    std::cerr << "Destroying mesh, context = " << glfwGetCurrentContext() << endl;
     if (m_Ebo) glDeleteBuffers(1, &m_Ebo);
     if (m_Vbo) glDeleteBuffers(1, &m_Vbo);
     if (m_Vao) glDeleteVertexArrays(1, &m_Vao);
