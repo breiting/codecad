@@ -322,41 +322,12 @@ void App::handleLspInit() {
     j["workspace"]["library"] = libs;
     j["workspace"]["checkThirdParty"] = false;
 
-    j["diagnostics"]["globals"] = {"bbox",
-                                   "box",
-                                   "center_to",
-                                   "center_x",
-                                   "center_xy",
-                                   "center_xyz",
-                                   "center_y",
-                                   "center_z",
-                                   "chamfer",
-                                   "cone",
-                                   "cylinder",
-                                   "deg",
-                                   "difference",
-                                   "emit",
-                                   "extrude",
-                                   "fillet",
-                                   "gear_involute",
-                                   "hex_prism",
-                                   "intersection",
-                                   "mm",
-                                   "param",
-                                   "poly_xy",
-                                   "poly_xz",
-                                   "revolve",
-                                   "rotate_x",
-                                   "rotate_y",
-                                   "rotate_z",
-                                   "save_step",
-                                   "save_stl",
-                                   "scale",
-                                   "section_outline",
-                                   "sphere",
-                                   "translate",
-                                   "union",
-                                   "wedge"};
+    j["diagnostics"]["globals"] = {
+        "bbox",     "box",       "center_to",    "center_x",     "center_xy",  "center_xyz", "center_y",
+        "center_z", "chamfer",   "cone",         "cylinder",     "difference", "emit",       "extrude",
+        "fillet",   "hex_prism", "intersection", "pipe_adapter", "poly_xy",    "profile_xz", "rect",
+        "revolve",  "rod",       "rotate_x",     "rotate_y",     "rotate_z",   "save_step",  "save_stl",
+        "scale",    "sphere",    "threaded_rod", "translate",    "union",      "wedge"};
 
     if (!utils::WriteTextFile(luarc, j.dump(2) + "\n")) {
         std::cerr << "Failed to write .luarc.json: " << std::endl;
