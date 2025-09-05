@@ -95,4 +95,12 @@ struct Transform {
     }
 };
 
+static inline double Clamp(double v, double lo, double hi) {
+    return (v < lo) ? lo : (v > hi) ? hi : v;
+}
+
+static inline double Lerp(double a, double b, double s) {
+    return a + (b - a) * s;
+}
+
 }  // namespace ccad

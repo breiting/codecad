@@ -2,11 +2,20 @@
 
 #include <sstream>
 
-#include "geometry/Triangulate.hpp"
-#include "io/Export.hpp"
+#include "ccad/io/Export.hpp"
 #include "pure/PureMesh.hpp"
 
 using namespace pure;
+using namespace ccad;
+using namespace ccad::geom;
+
+static inline TriangulationParams GetTriangulateParams() {
+    geom::TriangulationParams params;
+    params.angularDeflectionDeg = 25.0;
+    params.linearDeflection = 0.3;
+    params.parallel = true;
+    return params;
+}
 
 glm::vec3 Scenario::Hex(const std::string& hex) {
     unsigned r = 0, g = 0, b = 0;
@@ -18,12 +27,12 @@ void Scenario::SaveSTL(const std::string& fileName) {
     for (unsigned i = 0; i < m_Shapes.size(); i++) {
         std::ostringstream fn;
         fn << fileName << "_" << i << ".stl";
-        io::SaveSTL(m_Shapes[i], fn.str());
+        io::SaveSTL(m_Shapes[i], fn.str(), GetTriangulateParams());
     }
 }
 
-std::shared_ptr<PureMesh> Scenario::ShapeToMesh(const TopoDS_Shape& shape) {
-    geometry::TriMesh tri = geometry::TriangulateShape(shape, /*defl*/ 0.3, /*ang*/ 25.0, /*parallel*/ true);
+std::shared_ptr<PureMesh> Scenario::ShapeToMesh(const Shape& shape) {
+    TriMesh tri = Triangulate(shape, GetTriangulateParams());
 
     std::vector<PureVertex> verts;
     verts.reserve(tri.positions.size());

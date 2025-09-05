@@ -1,53 +1,41 @@
 #include "ThreadScenario.hpp"
 
-#include <BRepAlgoAPI_Cut.hxx>
-#include <BRepAlgoAPI_Fuse.hxx>
-#include <BRepAlgoAPI_Section.hxx>
-#include <BRepBuilderAPI_Transform.hxx>
-#include <BRepPrimAPI_MakeCylinder.hxx>
-#include <BRep_Builder.hxx>
-#include <TopoDS_Compound.hxx>
-#include <TopoDS_Shape.hxx>
-#include <geometry/Shape.hpp>
-#include <geometry/Triangulate.hpp>
+#include <ccad/base/Shape.hpp>
+#include <ccad/geom/Cylinder.hpp>
+#include <ccad/geom/HexPrism.hpp>
+#include <ccad/mech/Threads.hpp>
+#include <ccad/ops/Boolean.hpp>
+#include <ccad/ops/Transform.hpp>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/glm.hpp>
-#include <gp_Ax2.hxx>
-#include <gp_Pln.hxx>
-#include <mech/ThreadChamfer.hpp>
-#include <mech/ThreadOps.hpp>
-#include <mech/ThreadSpec.hpp>
 #include <memory>
 #include <pure/PureMesh.hpp>
 #include <pure/PureMeshFactory.hpp>
 #include <pure/PureScene.hpp>
 
-using namespace mech;
+using namespace ccad;
+using namespace ccad::geom;
+using namespace ccad::mech;
 using namespace pure;
-using namespace geometry;
 
-geometry::ShapePtr BuildNut(const ThreadSpec& spec) {
+Shape BuildNut(const ThreadSpec& spec) {
     const double height = 10.0;
 
     // Create the internal cutter
     double boreHoleDiameter;
     auto cutter = mech::ThreadOps::ThreadInternalCutter(spec, height, boreHoleDiameter);
 
-    TopoDS_Shape hex = BRepPrimAPI_MakeCylinder(8.5, height).Shape();
-    TopoDS_Shape hole = BRepPrimAPI_MakeCylinder(boreHoleDiameter * 0.5, height).Shape();
+    auto hex = HexPrism(18, height);
+    auto hole = Cylinder(boreHoleDiameter, height);
 
-    TopoDS_Shape boreHole = BRepAlgoAPI_Cut(hex, hole);
+    auto boreHole = ops::Difference(hex, hole);
 
-    TopoDS_Shape nut = BRepAlgoAPI_Cut(boreHole, cutter->Get()).Shape();
-
-    auto chamfered = mech::ChamferThreadEndsInternal(nut, spec.fitDiameter * 0.5, 1.0, 45.0, height, true, true);
-
-    // return std::make_shared<Shape>(cutter->Get());
-    // return std::make_shared<Shape>(nut);
-    return std::make_shared<Shape>(chamfered);
+    auto nut = ops::Difference(boreHole, cutter);
+    // auto chamfered = mech::ChamferThreadEndsInternal(nut, spec.fitDiameter * 0.5, 1.0, 45.0, height, true, true);
+    return nut;
 }
 
-geometry::ShapePtr BuildBolt(double length, const ThreadSpec& spec) {
+Shape BuildBolt(double length, const ThreadSpec& spec) {
     auto bolt = mech::ThreadOps::ThreadExternalRod(spec, length, length);
 
     return bolt;
@@ -71,12 +59,12 @@ void ThreadScenario::Build(std::shared_ptr<PureScene> scene) {
 
     // Bolt
     auto bolt = BuildBolt(boltLength, spec);
-    scene->AddPart("Bolt", ShapeToMesh(bolt->Get()), glm::mat4{1.0f}, Hex("#d2ffd2"));
+    scene->AddPart("Bolt", ShapeToMesh(bolt), glm::mat4{1.0f}, Hex("#d2ffd2"));
     m_Shapes.push_back(bolt);
 
     // Nut
     auto nut = BuildNut(spec);
     glm::mat4 T = glm::translate(glm::mat4(1.0f), glm::vec3(20.f, 0.f, 0.0f));
-    scene->AddPart("Top", ShapeToMesh(nut->Get()), T, Hex("#ffd2d2"));
+    scene->AddPart("Top", ShapeToMesh(nut), T, Hex("#ffd2d2"));
     m_Shapes.push_back(nut);
 }

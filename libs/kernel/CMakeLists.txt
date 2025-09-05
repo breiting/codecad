@@ -7,6 +7,7 @@ add_library(kernel STATIC
 	src/Logger.cpp
 	src/OcctShape.cpp
 	src/Operations.cpp
+	src/PipeAdapter.cpp
 	src/Primitives.cpp
 	src/Rectangle.cpp
 	src/Revolve.cpp
