@@ -16,7 +16,7 @@ class Vec2 {
     double x{0}, y{0};
 
     friend std::ostream& operator<<(std::ostream& os, const Vec2& v) {
-        os << "Vec3(" << v.x << ", " << v.y << ")";
+        os << "Vec2(" << v.x << ", " << v.y << ")";
         return os;
     }
 };
@@ -34,6 +34,23 @@ class Vec3 {
         return os;
     }
 };
+
+/** \brief A simple plane 3D definition */
+class Plane3 {
+   public:
+    Vec3 point;   ///< any point on the plane
+    Vec3 normal;  ///< normalized normal vector
+};
+
+/** \brief Simple polyline datastructure */
+template <typename T>
+class Polyline {
+   public:
+    std::vector<T> points;
+};
+
+using Polyline2D = Polyline<Vec2>;
+using Polyline3D = Polyline<Vec3>;
 
 /** \brief Axis-aligned bounding box in model units. */
 class Bounds {

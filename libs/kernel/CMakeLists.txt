@@ -1,5 +1,6 @@
 add_library(kernel STATIC
 	src/Chamfer.cpp
+	src/Dxf.cpp
 	src/Export.cpp
 	src/Extrude.cpp
 	src/Fillet.cpp
@@ -9,6 +10,7 @@ add_library(kernel STATIC
 	src/Primitives.cpp
 	src/Rectangle.cpp
 	src/Revolve.cpp
+	src/Section.cpp
 	src/SketchProfiles.cpp
 	src/Triangulation.cpp
 )
