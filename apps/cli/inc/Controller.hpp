@@ -1,11 +1,10 @@
 #pragma once
-// #include <core/FileWatcher.hpp>
-#include <core/LuaEngine.hpp>
-#include <io/Project.hpp>
+#include <ccad/lua/LuaEngine.hpp>
 #include <memory>
 #include <pure/PureController.hpp>
 
 #include "FileWatcher.hpp"
+#include "Project.hpp"
 
 namespace fs = std::filesystem;
 
@@ -15,7 +14,6 @@ class Controller {
     void LoadProject(const fs::path& projectDir);
     void BuildProject();
     void ViewProject();
-    void CreateBom();
 
     void HealthCheck();
 
@@ -37,11 +35,11 @@ class Controller {
 
     // --- Scene utils ---
     void ClearScene();
-    void AddPartToScene(const io::Part& part);
+    void AddPartToScene(const Part& part);
     static std::string NormalizePath(const std::string& p);
 
    private:
-    io::Project m_Project;
+    Project m_Project;
     std::string m_ProjectDir;
     bool m_ProjectLoaded = false;
 
@@ -60,6 +58,6 @@ class Controller {
     std::unordered_map<std::string, std::chrono::steady_clock::time_point> m_LastLuaEvent;
     int m_DebounceMs = 200;
 
-    std::shared_ptr<LuaEngine> m_Engine;
+    std::shared_ptr<ccad::lua::LuaEngine> m_Engine;
     std::vector<std::string> m_LuaPaths;
 };

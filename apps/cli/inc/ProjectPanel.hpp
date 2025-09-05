@@ -1,23 +1,23 @@
 #pragma once
+#include <Project.hpp>
 #include <chrono>
 #include <functional>
-#include <io/Project.hpp>
 
 class ProjectPanel {
    public:
-    using SaveCallback = std::function<void(const io::Project&)>;
+    using SaveCallback = std::function<void(const Project&)>;
 
-    explicit ProjectPanel(io::Project& project);
+    explicit ProjectPanel(Project& project);
     void SetOnSave(SaveCallback cb);
     void Draw();
     void ForceSaveNow();
 
    private:
-    bool DrawMeta(io::Meta& meta);
-    bool DrawParams(io::ParamsMap& params);
+    bool DrawMeta(Meta& meta);
+    bool DrawParams(ParamsMap& params);
 
    private:
-    io::Project& m_Project;
+    Project& m_Project;
     SaveCallback m_OnSave;
     bool m_Dirty = false;
     std::chrono::steady_clock::time_point m_LastEdit = std::chrono::steady_clock::now();

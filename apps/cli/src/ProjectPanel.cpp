@@ -2,7 +2,7 @@
 
 #include <imgui.h>
 
-ProjectPanel::ProjectPanel(io::Project& p) : m_Project(p) {
+ProjectPanel::ProjectPanel(Project& p) : m_Project(p) {
 }
 void ProjectPanel::SetOnSave(SaveCallback cb) {
     m_OnSave = std::move(cb);
@@ -39,7 +39,7 @@ void ProjectPanel::Draw() {
     // }
 }
 
-bool ProjectPanel::DrawMeta(io::Meta& m) {
+bool ProjectPanel::DrawMeta(Meta& m) {
     bool c = false;
     char nameBuf[128];
     std::snprintf(nameBuf, sizeof(nameBuf), "%s", m.name.c_str());
@@ -63,7 +63,7 @@ bool ProjectPanel::DrawMeta(io::Meta& m) {
     return c;
 }
 
-bool ProjectPanel::DrawParams(io::ParamsMap& params) {
+bool ProjectPanel::DrawParams(ParamsMap& params) {
     bool c = false;
     for (auto& kv : params) {
         const std::string& key = kv.first;
@@ -71,21 +71,21 @@ bool ProjectPanel::DrawParams(io::ParamsMap& params) {
 
         ImGui::PushID(key.c_str());
         switch (pv.type) {
-            case io::ParamValue::Type::Boolean: {
+            case ParamValue::Type::Boolean: {
                 bool b = pv.boolean;
                 if (ImGui::Checkbox(key.c_str(), &b)) {
                     pv.boolean = b;
                     c = true;
                 }
             } break;
-            case io::ParamValue::Type::Number: {
+            case ParamValue::Type::Number: {
                 double val = pv.number;
                 if (ImGui::InputDouble((key + "##num").c_str(), &val, 1.0, 10.0, "%.3f")) {
                     pv.number = val;
                     c = true;
                 }
             } break;
-            case io::ParamValue::Type::String: {
+            case ParamValue::Type::String: {
                 char buf[256];
                 std::snprintf(buf, sizeof(buf), "%s", pv.string.c_str());
                 if (ImGui::InputText((key + "##str").c_str(), buf, sizeof(buf))) {

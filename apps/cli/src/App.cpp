@@ -5,10 +5,10 @@
 #include <nlohmann/json.hpp>
 
 #include "Controller.hpp"
+#include "Project.hpp"
 #include "Utils.hpp"
 #include "assets/part_template.h"
 #include "assets/readme_template.h"
-#include "io/Project.hpp"
 
 const std::string PROJECT_FILENAME = "project.json";
 const std::string PROJECT_OUTDIR = "generated";
@@ -165,14 +165,14 @@ void App::handleNew(const std::string& projectName, const std::string& unit) {
         return;
     }
 
-    io::Project p;
+    Project p;
     p.version = 1;
     p.meta.name = projectName;
     p.meta.author = "";
     p.meta.units = unit;
 
     const fs::path pj = rootDir / PROJECT_FILENAME;
-    if (!io::SaveProject(p, pj.string(), /*pretty*/ true)) {
+    if (!p.Save(pj.string(), /*pretty*/ true)) {
         std::cerr << "Error: failed to write " << pj << "\n";
         return;
     }
@@ -202,9 +202,9 @@ void App::handlePartsAdd(const std::string& partName) {
             return;
         }
 
-        io::Project p;
+        Project p;
         try {
-            p = io::LoadProject(pj.string());
+            p.Load(pj.string());
         } catch (const std::exception& e) {
             std::cerr << "Error: failed to load project.json: " << e.what() << "\n";
             return;
@@ -226,7 +226,7 @@ void App::handlePartsAdd(const std::string& partName) {
         std::ofstream(luaPath) << tpl;
 
         // Add part in project file
-        io::Part pr{};
+        Part pr{};
         pr.id = "";  // optional
         pr.name = partName;
         pr.source = std::string(PARTS_DIR) + "/" + finalFile;
@@ -238,7 +238,7 @@ void App::handlePartsAdd(const std::string& partName) {
         p.parts.push_back(std::move(pr));
 
         // Save project
-        if (!io::SaveProject(p, pj.string(), /*pretty*/ true)) {
+        if (!p.Save(pj.string(), /*pretty*/ true)) {
             std::cerr << "Error: failed to save " << pj << "\n";
             return;
         }
@@ -264,7 +264,8 @@ void App::handleLive(const std::string& rootDir) {
 void App::handleBom() {
     fs::path root = fs::current_path();
     m_Controller->LoadProject(root);
-    m_Controller->CreateBom();
+    // TODO: missing code !!!
+    // m_Controller->CreateBom();
 }
 
 void App::handleDoctor() {
@@ -273,25 +274,26 @@ void App::handleDoctor() {
 
 void App::handleParamsSet(const std::string& key, const std::string& value) {
     auto pj = fs::current_path() / PROJECT_FILENAME;
-    io::Project p = io::LoadProject(pj.string());
+    Project p;
+    p.Load(pj.string());
 
     auto lower = value;
     for (auto& c : lower) c = (char)std::tolower(c);
-    io::ParamValue v;
+    ParamValue v;
     if (lower == "true" || lower == "false" || lower == "1" || lower == "0") {
-        v = io::ParamValue::FromBool(lower == "true" || lower == "1");
+        v = ParamValue::FromBool(lower == "true" || lower == "1");
     } else {
         char* end = nullptr;
         double num = std::strtod(value.c_str(), &end);
         if (end && *end == '\0')
-            v = io::ParamValue::FromNumber(num);
+            v = ParamValue::FromNumber(num);
         else
-            v = io::ParamValue::FromString(value);
+            v = ParamValue::FromString(value);
     }
-    io::SetParam(p, key, v);
+    SetParam(p, key, v);
 
     // Save project
-    if (!io::SaveProject(p, pj.string(), /*pretty*/ true)) {
+    if (!p.Save(pj.string(), /*pretty*/ true)) {
         std::cerr << "Error: failed to save " << pj << "\n";
         return;
     } else {

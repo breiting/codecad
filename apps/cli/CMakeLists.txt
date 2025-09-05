@@ -1,9 +1,10 @@
 add_executable(ccad
 	src/App.cpp
+	src/Project.cpp
 	src/Controller.cpp
 	src/ProjectPanel.cpp
 	src/Utils.cpp
-				src/main.cpp
+	src/main.cpp
 )
 
 # -------------------------
@@ -19,11 +20,12 @@ embed_text_to_header("${ASSETS_SRC_DIR}/part_template.lua"      "${GEN_INC_DIR}/
 
 
 target_include_directories(ccad PUBLIC
-				${CMAKE_CURRENT_SOURCE_DIR}/../../core/inc
+				${CMAKE_CURRENT_SOURCE_DIR}/../../libs/kernel/inc
+				${CMAKE_CURRENT_SOURCE_DIR}/../../libs/lua/inc
 				${CMAKE_CURRENT_SOURCE_DIR}/../../libs/pure/inc
 				${CMAKE_CURRENT_SOURCE_DIR}/inc
-				${LUA_INCLUDE_DIR}
-				${sol2_SOURCE_DIR}/include
+										# ${LUA_INCLUDE_DIR}
+										# ${sol2_SOURCE_DIR}/include
 				${CMAKE_BINARY_DIR}/generated
 				${imgui_SOURCE_DIR}
 				${imgui_SOURCE_DIR}/backends
@@ -32,14 +34,10 @@ target_include_directories(ccad PUBLIC
 target_link_libraries(ccad PRIVATE
 	project_settings
 	CLI11::CLI11
-	sol2
+							# sol2
 	glfw
-	core
+	kernel
+	lua
 	pure
 	nlohmann_json::nlohmann_json
 )
-
-if(ENABLE_PURE)
-	target_link_libraries(ccad PRIVATE pure)
-	target_compile_definitions(ccad PRIVATE ENABLE_PURE)
-endif()

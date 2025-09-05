@@ -1,17 +1,14 @@
 #include "Controller.hpp"
 
-#include <BRepBuilderAPI_Transform.hxx>
+#include <ccad/io/Export.hpp>
+#include <ccad/ops/Transform.hpp>
 #include <filesystem>
-#include <gp_Ax1.hxx>
-#include <gp_Quaternion.hxx>
-#include <gp_Trsf.hxx>
 #include <iostream>
 
 #include "GLFW/glfw3.h"
 #include "ProjectPanel.hpp"
 #include "Utils.hpp"
-#include "io/Bom.hpp"
-#include "io/Export.hpp"
+#include "ccad/lua/LuaEngine.hpp"
 #include "pure/PureBounds.hpp"
 #include "pure/PureMesh.hpp"
 
@@ -39,7 +36,7 @@ static glm::vec3 ParseHexColor(const std::string& hex, glm::vec3 fallback = {0.7
     return {to01(r), to01(g), to01(b)};
 }
 
-static void ApplyProjectParamsToLua(sol::state& L, const io::Project& p) {
+static void ApplyProjectParamsToLua(sol::state& L, const Project& p) {
     sol::table P = L["PARAMS"];
     if (!P.valid()) P = L.create_named_table("PARAMS");
 
@@ -47,52 +44,35 @@ static void ApplyProjectParamsToLua(sol::state& L, const io::Project& p) {
         const auto& k = kv.first;
         const auto& v = kv.second;
         switch (v.type) {
-            case io::ParamValue::Type::Boolean:
+            case ParamValue::Type::Boolean:
                 P[k] = v.boolean;
                 break;
-            case io::ParamValue::Type::Number:
+            case ParamValue::Type::Number:
                 P[k] = v.number;
                 break;
-            case io::ParamValue::Type::String:
+            case ParamValue::Type::String:
                 P[k] = v.string;
                 break;
         }
     }
 }
 
-geometry::ShapePtr ApplyProjectTransform(const geometry::ShapePtr& s, const io::Transform& tr) {
-    if (!s || s->Get().IsNull()) return s;
+ccad::Shape ApplyProjectTransform(const ccad::Shape& s, const PartTransform& tr) {
+    if (!s) return s;
 
-    gp_Trsf t;
+    const bool noScale = std::abs(tr.scale - 1.0) < 1e-12;
+    const bool noRot = tr.rotate.x == 0.0 && tr.rotate.y == 0.0 && tr.rotate.z == 0.0;
+    const bool noTrans = tr.translate.x == 0.0 && tr.translate.y == 0.0 && tr.translate.z == 0.0;
+    if (noScale && noRot && noTrans) return s;
 
-    // Scale
-    t.SetScale(gp_Pnt(0, 0, 0), tr.scale);
-
-    // Rotation (deg) – ZYX sequence
-    auto deg2rad = [](double d) { return d * M_PI / 180.0; };
-    gp_Trsf rx, ry, rz;
-    if (tr.rotate.x != 0) {
-        rx.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(1, 0, 0)), deg2rad(tr.rotate.x));
-        t = rx * t;
-    }
-    if (tr.rotate.y != 0) {
-        ry.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(0, 1, 0)), deg2rad(tr.rotate.y));
-        t = ry * t;
-    }
-    if (tr.rotate.z != 0) {
-        rz.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)), deg2rad(tr.rotate.z));
-        t = rz * t;
-    }
-
-    // Translation
-    if (tr.translate.x != 0 || tr.translate.y != 0 || tr.translate.z != 0) {
-        gp_Trsf tt;
-        tt.SetTranslation(gp_Vec(tr.translate.x, tr.translate.y, tr.translate.z));
-        t = tt * t;
-    }
-
-    TopoDS_Shape res = BRepBuilderAPI_Transform(s->Get(), t, /*copy*/ true).Shape();
-    return std::make_shared<geometry::Shape>(res);
+    ccad::Shape out = s;
+    // gleiche Reihenfolge wie vorher: S, Rx, Ry, Rz, T
+    if (!noScale) out = ccad::ops::ScaleUniform(out, tr.scale);
+    if (tr.rotate.x != 0.0) out = ccad::ops::RotateX(out, tr.rotate.x);
+    if (tr.rotate.y != 0.0) out = ccad::ops::RotateY(out, tr.rotate.y);
+    if (tr.rotate.z != 0.0) out = ccad::ops::RotateZ(out, tr.rotate.z);
+    if (!noTrans) out = ccad::ops::Translate(out, tr.translate.x, tr.translate.y, tr.translate.z);
+    return out;
 }
 
 Controller::Controller(std::vector<std::string>& luaPaths) : m_LuaPaths(luaPaths) {
@@ -108,7 +88,7 @@ void Controller::LoadProject(const fs::path& projectDir) {
     }
 
     try {
-        m_Project = io::LoadProject(pj.string());
+        m_Project.Load(pj.string());
     } catch (const std::exception& e) {
         std::cerr << "Failed to load project: " << e.what() << "\n";
         return;
@@ -124,7 +104,7 @@ void Controller::BuildProject() {
         throw std::runtime_error("No project is loaded!");
     }
 
-    io::PrintProject(m_Project);
+    m_Project.Print();
     auto projectRoot = std::filesystem::absolute(std::filesystem::path(m_ProjectDir));
 
     auto outDir = projectRoot / PROJECT_OUTDIR;
@@ -149,7 +129,7 @@ void Controller::BuildProject() {
         }
         const auto stem = fs::path(luaFile).stem().string();
         const fs::path stlFile = outDir / (stem + ".stl");
-        io::SaveSTL(emitted.value(), stlFile.string(), 0.1);
+        ccad::io::SaveSTL(emitted.value(), stlFile.string(), ccad::lua::GetTriangulationParameters());
     }
 }
 void Controller::ViewProject() {
@@ -163,9 +143,7 @@ void Controller::ViewProject() {
     }
 
     ProjectPanel panel(m_Project);
-    panel.SetOnSave([this](const io::Project& p) {
-        io::SaveProject(p, fs::path(m_ProjectDir) / PROJECT_FILENAME, /*pretty*/ true);
-    });
+    panel.SetOnSave([this](const Project& p) { p.Save(fs::path(m_ProjectDir) / PROJECT_FILENAME, /*pretty*/ true); });
 
     m_PureController.SetRightDockPanel([&panel]() { panel.Draw(); });
 
@@ -260,7 +238,7 @@ void Controller::ClearScene() {
     if (m_Scene) m_Scene->Clear();
 }
 
-void Controller::AddPartToScene(const io::Part& part) {
+void Controller::AddPartToScene(const Part& part) {
     fs::path src = fs::path(m_ProjectDir) / part.source;
     auto luaFile = std::filesystem::weakly_canonical(src);
 
@@ -283,7 +261,7 @@ void Controller::AddPartToScene(const io::Part& part) {
     auto color = m_Project.materials[part.material].color;
     if (color.empty()) color = "#cccccc";
 
-    geometry::TriMesh tri = geometry::TriangulateShape(shaped->Get(), /*defl*/ 0.3, /*ang*/ 25.0, /*parallel*/ true);
+    ccad::geom::TriMesh tri = ccad::geom::Triangulate(shaped, ccad::lua::GetTriangulationParameters());
 
     std::vector<PureVertex> vertices;
 
@@ -316,7 +294,7 @@ void Controller::RebuildPartByPath(const std::string& luaPath) {
     const std::string& partId = it->second;
 
     m_Scene->RemovePartById(partId);
-    const io::Part* p = nullptr;
+    const Part* p = nullptr;
     for (const auto& pr : m_Project.parts)
         if (pr.id == partId) {
             p = &pr;
@@ -326,61 +304,8 @@ void Controller::RebuildPartByPath(const std::string& luaPath) {
     AddPartToScene(*p);
 }
 
-void Controller::CreateBom() {
-    if (!m_ProjectLoaded) {
-        throw std::runtime_error("No project is loaded!");
-    }
-    try {
-        io::BomWriter bomWriter;
-
-        for (const auto& part : m_Project.parts) {
-            fs::path src = fs::current_path() / part.source;
-            fs::path luaFile = fs::weakly_canonical(src);
-
-            try {
-                sol::state& L = m_Engine->Lua();
-                sol::table bom = L["require"]("ccad.util.bom");
-                if (bom.valid()) {
-                    sol::protected_function clear = bom["clear"];
-                    if (clear.valid()) {
-                        sol::protected_function_result r = clear();
-                        if (!r.valid()) {
-                            sol::error err = r;
-                            std::cerr << "Warning: bom.clear() failed: " << err.what() << "\n";
-                        }
-                    }
-                }
-            } catch (...) {
-                std::cerr << "Warning: could not clear BOM for part\n";
-            }
-
-            std::string err;
-            ApplyProjectParamsToLua(m_Engine->Lua(), m_Project);
-            if (!m_Engine->RunFile(luaFile.string(), &err)) {
-                std::cerr << "Lua error in " << luaFile.string() << ": " << err << "\n";
-                return;
-            }
-
-            try {
-                bomWriter.Collect(m_Engine->Lua(), part.id.empty() ? part.name : part.id);
-            } catch (const std::exception& e) {
-                std::cerr << "Error: collecting BOM failed for part " << (part.id.empty() ? part.name : part.id) << ": "
-                          << e.what() << "\n";
-                return;
-            }
-        }
-
-        bomWriter.WriteCsv("bom.csv");
-        bomWriter.WriteMarkdown("bom.md");
-        std::cout << "BOM written: bom.csv, bom.md\n";
-
-    } catch (const std::exception& e) {
-        std::cerr << "Error: failed to generate BOM: " << e.what() << "\n";
-    }
-}
-
 void Controller::SetupEngine() {
-    m_Engine = std::make_shared<LuaEngine>();
+    m_Engine = std::make_shared<ccad::lua::LuaEngine>();
 
     // Standard search paths
     std::vector<std::string> paths = {"./lib/?.lua", "./lib/?/init.lua", "./vendor/?.lua", "./vendor/?/init.lua"};
@@ -411,7 +336,7 @@ void Controller::SetupEngine() {
 void Controller::OnProjectChanged() {
     try {
         m_PureController.SetStatus("Project changed. Reloading...");
-        m_Project = io::LoadProject(fs::path(m_ProjectDir) / PROJECT_FILENAME);
+        m_Project.Load(fs::path(m_ProjectDir) / PROJECT_FILENAME);
 
         ApplyProjectParamsToLua(m_Engine->Lua(), m_Project);
         ResetLuaWatchers();
