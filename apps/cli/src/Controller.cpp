@@ -117,6 +117,7 @@ void Controller::BuildProject() {
         std::filesystem::path src = projectRoot / jp.source;
         auto luaFile = std::filesystem::weakly_canonical(src);
 
+        std::string err;
         if (!m_Engine->RunFile(luaFile, &err)) {
             auto errStr = std::string("Lua error in ") + luaFile.string() + ": " + err;
             std::cerr << errStr << std::endl;
