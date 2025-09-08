@@ -79,7 +79,7 @@ ccad init
 
 # add a first part (the name is optional)
 
-ccad parts add --name "box"
+ccad parts add "Box"
 
 # run live viewer
 ccad live
