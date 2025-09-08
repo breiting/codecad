@@ -15,6 +15,7 @@ class ProjectPanel {
    private:
     bool DrawMeta(Meta& meta);
     bool DrawParams(ParamsMap& params);
+    bool DrawParts();
 
    private:
     Project& m_Project;
