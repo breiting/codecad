@@ -3,6 +3,7 @@
 #include <CLI/CLI.hpp>
 #include <filesystem>
 #include <nlohmann/json.hpp>
+#include <sstream>
 
 #include "Controller.hpp"
 #include "Project.hpp"
@@ -66,9 +67,11 @@ reusable components, and integration with 3D printing workflows.
 
     // parts add [name <Part Name>]
     std::string partName = "part";
+    std::string partMatName = "";
     auto* cmdParts = app.add_subcommand("parts", "Handle project parts");
     auto* cmdAdd = cmdParts->add_subcommand("add", "Add a new part to the project");
     cmdAdd->add_option("name", partName, "Part name (e.g. \"Bracket A\")");
+    cmdAdd->add_option("mat", partMatName, "Material for the part (material must be added before)");
 
     // live [<rootDir>]
     std::string liveRoot = ".";
@@ -86,6 +89,13 @@ reusable components, and integration with 3D printing workflows.
     std::string key, value;
     cmdSet->add_option("key", key, "Param key")->required();
     cmdSet->add_option("value", value, "Value (true/false/number/string)")->required();
+
+    // material set key <key> value <value>
+    auto* cmdMaterial = app.add_subcommand("mat", "Handle materials");
+    auto* cmdMatSet = cmdMaterial->add_subcommand("set", "Set a material with name and hex color");
+    std::string matName, matColor;
+    cmdMatSet->add_option("name", matName, "Material name")->required();
+    cmdMatSet->add_option("color", matColor, "Color in hex (e.g. #ff0000 for red)")->required();
 
     // bom
     auto* cmdBom = app.add_subcommand("bom", "Generate project cutlist/BOM");
@@ -120,7 +130,7 @@ reusable components, and integration with 3D printing workflows.
         return;
     }
     if (*cmdParts && *cmdAdd) {
-        handlePartsAdd(partName);
+        handlePartsAdd(partName, partMatName);
         return;
     }
     if (*cmdInit) {
@@ -129,6 +139,10 @@ reusable components, and integration with 3D printing workflows.
     }
     if (*cmdParams && *cmdSet) {
         handleParamsSet(key, value);
+        return;
+    }
+    if (*cmdMaterial && *cmdMatSet) {
+        handleMaterialSet(matName, matColor);
         return;
     }
     if (*cmdBom) {
@@ -193,7 +207,7 @@ void App::handleNew(const std::string& projectName, const std::string& unit) {
               << "  3) ccad build\n";
 }
 
-void App::handlePartsAdd(const std::string& partName) {
+void App::handlePartsAdd(const std::string& partName, const std::string& partMatName) {
     try {
         const fs::path pj = fs::current_path() / PROJECT_FILENAME;
         if (!fs::exists(pj)) {
@@ -223,14 +237,42 @@ void App::handlePartsAdd(const std::string& partName) {
 
         // Get content from template file
         std::string tpl = std::string(part_template);
-        std::ofstream(luaPath) << tpl;
+
+        // Add all project parameters
+        ostringstream oss;
+        oss << "-- Useful library included" << endl;
+        oss << "--" << endl;
+        oss << "local T = require(\"ccad.util.transform\")" << endl;
+        oss << "local B = require(\"ccad.util.box\")" << endl;
+        oss << "local S = require(\"ccad.util.sketch\")" << endl << endl;
+
+        oss << "-- Project parameters" << endl;
+        oss << "--" << endl;
+        int i = 1;
+        for (auto it = p.params.begin(); it != p.params.end(); ++it, i++) {
+            oss << "local P" << i << " = param(\"" << it->first << "\", ";
+            if (it->second.type == ParamValue::Type::Number) {
+                oss << it->second.number;
+            } else if (it->second.type == ParamValue::Type::Boolean) {
+                if (it->second.boolean)
+                    oss << "true";
+                else
+                    oss << "false";
+            } else if (it->second.type == ParamValue::Type::String) {
+                oss << "\"" << it->second.string << "\"";
+            }
+            oss << ")" << endl;
+        }
+
+        // Add template to see a default shape
+        std::ofstream(luaPath) << oss.str() << tpl;
 
         // Add part in project file
         Part pr{};
         pr.id = "";  // optional
         pr.name = partName;
         pr.source = std::string(PARTS_DIR) + "/" + finalFile;
-        pr.material = "";  // optional: default material key
+        pr.material = partMatName;
         pr.transform.translate = {0, 0, 0};
         pr.transform.rotate = {0, 0, 0};
         pr.transform.scale = 1;
@@ -245,7 +287,6 @@ void App::handlePartsAdd(const std::string& partName) {
 
         std::cout << "Added part: " << partName << "\n"
                   << "  file: " << (fs::path("parts") / finalFile) << "\n";
-
     } catch (const std::exception& e) {
         std::cerr << "Fatal in handlePartsAdd: " << e.what() << "\n";
     }
@@ -297,6 +338,23 @@ void App::handleParamsSet(const std::string& key, const std::string& value) {
         return;
     } else {
         std::cout << "Set " << key << "\n";
+    }
+}
+
+void App::handleMaterialSet(const std::string& name, const std::string& color) {
+    auto pj = fs::current_path() / PROJECT_FILENAME;
+    Project p;
+    p.Load(pj.string());
+
+    Material m;
+    m.color = color;
+    p.materials[name] = m;
+
+    if (!p.Save(pj.string(), /*pretty*/ true)) {
+        std::cerr << "Error: failed to save " << pj << "\n";
+        return;
+    } else {
+        std::cout << "Set " << name << "\n";
     }
 }
 
