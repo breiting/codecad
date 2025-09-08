@@ -1,6 +1,6 @@
 --- @module "ccad.util.sketch"
 -- Tiny, chainable 2D sketch DSL for XY profiles (lines and arcs).
--- Produces a single closed or open polyline and turns it into a planar face via poly_xy().
+-- Produces a single polyline and turns it into a planar face via poly_xy().
 -- Units: mm, Angles: degrees (CCW positive).
 
 local S = {}
@@ -43,22 +43,11 @@ end
 function S.begin(x, y)
 	local self = setmetatable({
 		pts = { { x or 0, y or 0 } },
-		closed = false,
 	}, S)
 	return self
 end
 
 -- --- path building ----------------------------------------------------------
-
---- Move to absolute (x, y), starting a fresh path (single loop model).
---- @param x number
---- @param y number
---- @return ccad.util.sketch.Sketch
-function S:move_to(x, y)
-	self.pts = { { x, y } }
-	self.closed = false
-	return self
-end
 
 --- Line to absolute (x, y).
 --- Adds the point only if it differs from the current end point.
@@ -124,20 +113,12 @@ function S:arc_ccw(cx, cy, r, sweep_deg, seg)
 	return self
 end
 
---- Close the path back to the first point.
---- @return ccad.util.sketch.Sketch
-function S:close()
-	self.closed = true
-	return self
-end
-
 -- --- finalize ---------------------------------------------------------------
 
 --- Build a planar face using the accumulated polyline.
---- Uses poly_xy(points, closed). If not explicitly closed, will close by default.
 --- @return Shape
 function S:face()
-	return poly_xy(self.pts, self.closed ~= false)
+	return poly_xy(self.pts)
 end
 
 return S
