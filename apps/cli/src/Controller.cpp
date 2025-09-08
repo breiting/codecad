@@ -1,9 +1,11 @@
 #include "Controller.hpp"
 
+#include <ccad/base/Logger.hpp>
 #include <ccad/io/Export.hpp>
 #include <ccad/lua/Bom.hpp>
 #include <ccad/lua/LuaEngine.hpp>
 #include <ccad/ops/Transform.hpp>
+#include <exception>
 #include <filesystem>
 #include <iostream>
 
@@ -115,8 +117,6 @@ void Controller::BuildProject() {
         std::filesystem::path src = projectRoot / jp.source;
         auto luaFile = std::filesystem::weakly_canonical(src);
 
-        std::string err;
-
         if (!m_Engine->RunFile(luaFile, &err)) {
             auto errStr = std::string("Lua error in ") + luaFile.string() + ": " + err;
             std::cerr << errStr << std::endl;
@@ -152,6 +152,9 @@ void Controller::ViewProject() {
         switch (key) {
             case GLFW_KEY_W: {
                 m_PureController.ToggleWireframe();
+            } break;
+            case GLFW_KEY_S: {
+                BuildProject();
             } break;
 
             default:
@@ -243,16 +246,22 @@ void Controller::AddPartToScene(const Part& part) {
     fs::path src = fs::path(m_ProjectDir) / part.source;
     auto luaFile = std::filesystem::weakly_canonical(src);
 
-    std::string err;
-    if (!m_Engine->RunFile(luaFile, &err)) {
-        auto errStr = std::string("Lua error in ") + luaFile.string() + ": " + err;
-        std::cerr << errStr << std::endl;
-        return;
-    }
+    std::optional<ccad::Shape> emitted;
+    try {
+        std::string err;
+        if (!m_Engine->RunFile(luaFile, &err)) {
+            auto errStr = std::string("Lua error in ") + luaFile.string() + ": " + err;
+            std::cerr << errStr << std::endl;
+            return;
+        }
 
-    auto emitted = m_Engine->GetEmitted();
-    if (!emitted) {
-        std::cerr << "Canot get shape from " << luaFile << std::endl;
+        emitted = m_Engine->GetEmitted();
+        if (!emitted) {
+            std::cerr << "Canot get shape from " << luaFile << std::endl;
+            return;
+        }
+    } catch (std::exception& e) {
+        LOG(ERROR) << "Error during processing lua file: " << e.what();
         return;
     }
 
@@ -390,6 +399,7 @@ void Controller::SetupEngine() {
 void Controller::OnProjectChanged() {
     try {
         m_PureController.SetStatus("Project changed. Reloading...");
+        m_Scene->Clear();
         m_Project.Load(fs::path(m_ProjectDir) / PROJECT_FILENAME);
 
         ApplyProjectParamsToLua(m_Engine->Lua(), m_Project);

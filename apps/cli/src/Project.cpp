@@ -76,6 +76,10 @@ static PartTransform getTransform(const json& jt) {
 }
 
 void Project::Load(const std::string& path) {
+    materials.clear();
+    parts.clear();
+    animations.clear();
+
     const auto txt = readFile(path);
     json j = json::parse(txt);
 

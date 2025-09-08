@@ -1,8 +1,10 @@
 #include "ccad/lua/LuaEngine.hpp"
 
+#include <chrono>
 #include <iostream>
 #include <sstream>
 
+#include "ccad/base/Logger.hpp"
 #include "ccad/lua/Bindings.hpp"
 
 namespace ccad::lua {
@@ -104,6 +106,9 @@ bool LuaEngine::RunFile(const std::string& scriptPath, std::string* errorMsg) {
         return false;
     }
 
+    using clock = std::chrono::high_resolution_clock;
+    auto start = clock::now();
+
     sol::load_result chunk = m_Lua.load_file(scriptPath);
     if (!chunk.valid()) {
         sol::error err = chunk;
@@ -117,6 +122,10 @@ bool LuaEngine::RunFile(const std::string& scriptPath, std::string* errorMsg) {
         if (errorMsg) *errorMsg = std::string("Lua runtime error: ") + err.what();
         return false;
     }
+    auto end = clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+
+    LOG(INFO) << "[LuaEngine] Part: " << scriptPath << " processing time: " << ms << "ms";
     return true;
 }
 
