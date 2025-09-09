@@ -44,10 +44,10 @@ bool PurePicker::rayTriangle(const glm::vec3& ro, const glm::vec3& rd, const glm
 
 void PurePicker::screenRay(float mx, float my, glm::vec3& ro, glm::vec3& rd) const {
     // NDC
-    float x = (2.f * mx) / float(m_vpW) - 1.f;
-    float y = 1.f - (2.f * my) / float(m_vpH);
-    glm::vec4 pNear = m_invViewProj * glm::vec4(x, y, -1.f, 1.f);
-    glm::vec4 pFar = m_invViewProj * glm::vec4(x, y, 1.f, 1.f);
+    float x = (2.f * mx) / float(m_ViewportWidth) - 1.f;
+    float y = 1.f - (2.f * my) / float(m_ViewportHeight);
+    glm::vec4 pNear = m_InvViewProj * glm::vec4(x, y, -1.f, 1.f);
+    glm::vec4 pFar = m_InvViewProj * glm::vec4(x, y, 1.f, 1.f);
     pNear /= pNear.w;
     pFar /= pFar.w;
     ro = glm::vec3(pNear);
@@ -59,8 +59,8 @@ float PurePicker::pixelToWorld(float px, float depthWorld) const {
     // compute ray through center and +px in x, intersect plane orthogonal to view at depthWorld
     // here we approximate with: world_per_px ≈ depth * tan(fov_x/2) * 2 / vpW
     // better: query your projection params; for now a stable fallback:
-    float worldPerPx = std::max(0.001f, depthWorld * 2.0f / float(m_vpW));
-    return worldPerPx * px * m_dpi;
+    float worldPerPx = std::max(0.001f, depthWorld * 2.0f / float(m_ViewportWidth));
+    return worldPerPx * px * m_Dpi;
 }
 
 const PurePicker::EdgeCache& PurePicker::getEdgeCache(const PureMesh* m) {
@@ -99,14 +99,14 @@ const PurePicker::EdgeCache& PurePicker::getEdgeCache(const PureMesh* m) {
 }
 
 bool PurePicker::snapVertex(const glm::vec3& ro, const glm::vec3& rd, glm::vec3& outHitPos) {
-    if (!m_scene) return false;
+    if (!m_Scene) return false;
     bool found = false;
     float bestDepth = std::numeric_limits<float>::max();
     float bestScreenDist = std::numeric_limits<float>::max();
 
     // project vertex onto ray (closest point) then measure perpendicular distance in world,
     // convert to pixels with heuristic at that depth; accept if within m_snapPx
-    for (const auto& part : m_scene->Parts()) {
+    for (const auto& part : m_Scene->Parts()) {
         if (!part.mesh) continue;
         const auto& V = part.mesh->Vertices();
         glm::mat4 T = part.model;
@@ -118,7 +118,7 @@ bool PurePicker::snapVertex(const glm::vec3& ro, const glm::vec3& rd, glm::vec3&
             float t = glm::dot(w, rd);
             glm::vec3 q = ro + rd * t;
             float dWorld = glm::length(p - q);
-            float wpx = pixelToWorld(m_snapPx, std::max(0.001f, t));
+            float wpx = pixelToWorld(m_SnapPx, std::max(0.001f, t));
             if (dWorld <= wpx + 1e-3f) {
                 // prefer closer in depth, then closer in screen-distance
                 float screenDist = dWorld / std::max(1e-6f, wpx);
@@ -136,12 +136,12 @@ bool PurePicker::snapVertex(const glm::vec3& ro, const glm::vec3& rd, glm::vec3&
 
 bool PurePicker::snapEdge(const glm::vec3& ro, const glm::vec3& rd, glm::vec3& outHitPos,
                           std::optional<Edge>& outEdge) {
-    if (!m_scene) return false;
+    if (!m_Scene) return false;
     bool found = false;
     float bestDepth = std::numeric_limits<float>::max();
     float bestScreenDist = std::numeric_limits<float>::max();
 
-    for (const auto& part : m_scene->Parts()) {
+    for (const auto& part : m_Scene->Parts()) {
         if (!part.mesh) continue;
         const auto& V = part.mesh->Vertices();
         glm::mat4 T = part.model;
@@ -158,10 +158,9 @@ bool PurePicker::snapEdge(const glm::vec3& ro, const glm::vec3& rd, glm::vec3& o
             // better: use Ericson's segment-segment (ray as long segment)
             // Simple: project segment midpoint to ray
             glm::vec3 mid = 0.5f * (a + b);
-            float t;
             glm::vec3 q = ro + rd * std::max(0.f, glm::dot(mid - ro, rd));
             // screen radius in world at depth t
-            float wpx = pixelToWorld(m_snapPx, glm::length(q - ro));
+            float wpx = pixelToWorld(m_SnapPx, glm::length(q - ro));
             // distance from ray to segment: compute closest point on segment to q
             float dummy;
             glm::vec3 spt = closestPointOnSegment(q, a, b, dummy);
@@ -205,17 +204,16 @@ void PurePicker::UpdateHover(float mouseX, float mouseY) {
     glm::vec3 ro, rd;
     screenRay(mouseX, mouseY, ro, rd);
 
-    m_hover = {};
+    m_Hover = {};
 
     if (snapVertex(ro, rd, hitPos)) {
         if (isVisibleWorldPoint(hitPos)) {
-            m_hover.kind = HoverKind::Vertex;
-            m_hover.pos = hitPos;
+            m_Hover.kind = HoverKind::Vertex;
+            m_Hover.pos = hitPos;
             return;
         }
     }
 
-    // 2) Edge snap
     if (snapEdge(ro, rd, hitPos, edge)) {
         bool vis = true;
         vis = isVisibleWorldPoint(hitPos);
@@ -224,21 +222,21 @@ void PurePicker::UpdateHover(float mouseX, float mouseY) {
             vis = isVisibleWorldPoint(mid);
         }
         if (vis) {
-            m_hover.kind = HoverKind::Edge;
-            m_hover.pos = hitPos;
-            m_hover.edge = edge;
+            m_Hover.kind = HoverKind::Edge;
+            m_Hover.pos = hitPos;
+            m_Hover.edge = edge;
             return;
         }
     }
-    m_hover = {};
+    m_Hover = {};
 }
 
 bool PurePicker::sampleDepth(int sx, int sy, float& outDepth) const {
     // Guard
-    if (sx < 0 || sy < 0 || sx >= m_vpW || sy >= m_vpH) return false;
+    if (sx < 0 || sy < 0 || sx >= m_ViewportWidth || sy >= m_ViewportHeight) return false;
 
     int iy = sy;
-    iy = (m_vpH - 1) - sy;
+    iy = (m_ViewportHeight - 1) - sy;
 
     float depth = 1.0f;
     glReadPixels(sx, iy, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
@@ -258,61 +256,62 @@ bool PurePicker::isVisibleWorldPoint(const glm::vec3& w) const {
 }
 
 bool PurePicker::worldToScreen(const glm::vec3& w, int& outX, int& outY, float& outDepth01) const {
-    glm::vec4 clip = m_viewProj * glm::vec4(w, 1.0f);
+    glm::vec4 clip = m_ViewProj * glm::vec4(w, 1.0f);
     if (clip.w <= 1e-6f) return false;
     glm::vec3 ndc = glm::vec3(clip) / clip.w;  // -1..1
     if (ndc.x < -1.f || ndc.x > 1.f || ndc.y < -1.f || ndc.y > 1.f || ndc.z < -1.f || ndc.z > 1.f) return false;
 
-    outX = int((ndc.x * 0.5f + 0.5f) * m_vpW);
-    outY = int((1.0f - (ndc.y * 0.5f + 0.5f)) * m_vpH);  // origin top-left
-    outDepth01 = (ndc.z * 0.5f + 0.5f);                  // [-1,1] -> [0,1]
+    outX = int((ndc.x * 0.5f + 0.5f) * m_ViewportWidth);
+    outY = int((1.0f - (ndc.y * 0.5f + 0.5f)) * m_ViewportHeight);  // origin top-left
+    outDepth01 = (ndc.z * 0.5f + 0.5f);                             // [-1,1] -> [0,1]
     return true;
 }
 
-void PurePicker::DrawHoverOverlay(ImDrawList* dl, float dpiScale) const {
+void PurePicker::DrawHoverOverlay(ImDrawList* dl) const {
     if (!dl) return;
 
-    const float px = 1.0f * dpiScale;
-    const ImU32 colPt = IM_COL32(255, 210, 64, 255);    // amber
-    const ImU32 colPt2 = IM_COL32(0, 0, 0, 180);        // outline
-    const ImU32 colEdge = IM_COL32(64, 160, 255, 220);  // blue
-    const float rOuter = 5.0f * dpiScale;
-    const float rInner = 2.0f * dpiScale;
-    const float thick = 2.0f * dpiScale;
+    const float px = 1.0f * m_Dpi;
+    const ImU32 colPt = IM_COL32(255, 210, 64, 255);     // amber
+    const ImU32 colPt2 = IM_COL32(0, 0, 0, 180);         // outline
+    const ImU32 colEdge = IM_COL32(64, 160, 255, 220);   // blue
+    const ImU32 colText = IM_COL32(180, 180, 180, 255);  // grey
+    const float rOuter = 5.0f * m_Dpi;
+    const float rInner = 2.0f * m_Dpi;
+    const float thick = 2.0f * m_Dpi;
 
     int sx, sy;
     float ndcDepth;
     ImVec2 sp;
-    switch (m_hover.kind) {
+    switch (m_Hover.kind) {
         case HoverKind::Vertex:
-            if (worldToScreen(m_hover.pos, sx, sy, ndcDepth)) {
+            if (worldToScreen(m_Hover.pos, sx, sy, ndcDepth)) {
                 // ring highlight
                 dl->AddCircle(ImVec2(sx, sy), rOuter, colPt2, 24, thick);
                 dl->AddCircle(ImVec2(sx, sy), rOuter - thick * 0.5f, colPt, 24, thick);
                 // center dot
                 dl->AddCircleFilled(sp, rInner, colPt, 16);
 
-                const float pad = 8.f * dpiScale;
-                ImVec2 origin(pad, m_vpH - 40.f * dpiScale);
+                const float pad = 8.f * m_Dpi;
+                ImVec2 origin(pad, m_ViewportHeight - 40.f * m_Dpi);
                 char buf[128];
-                snprintf(buf, sizeof(buf), "Coords: %.02f %.02f %.02f", m_hover.pos.x, m_hover.pos.y, m_hover.pos.z);
-                dl->AddText(origin, IM_COL32(255, 255, 255, 255), buf);
+                snprintf(buf, sizeof(buf), "Coords: %.02f %.02f %.02f", m_Hover.pos.x, m_Hover.pos.y, m_Hover.pos.z);
+                dl->AddText(origin, colText, buf);
             }
             break;
 
         case HoverKind::Edge:
-            if (m_hover.edge) {
+            if (m_Hover.edge) {
                 ImVec2 a2, b2;
-                bool okA = worldToScreen(m_hover.edge->a, sx, sy, ndcDepth);
+                bool okA = worldToScreen(m_Hover.edge->a, sx, sy, ndcDepth);
                 a2 = ImVec2(sx, sy);
-                bool okB = worldToScreen(m_hover.edge->b, sx, sy, ndcDepth);
+                bool okB = worldToScreen(m_Hover.edge->b, sx, sy, ndcDepth);
                 b2 = ImVec2(sx, sy);
                 if (okA && okB) {
                     dl->AddLine(a2, b2, colEdge, thick);
                     // also mark the nearest point on edge:
-                    if (worldToScreen(m_hover.pos, sx, sy, ndcDepth)) {
+                    if (worldToScreen(m_Hover.pos, sx, sy, ndcDepth)) {
                         sp = ImVec2(sx, sy);
-                        dl->AddCircleFilled(sp, rInner + 1.0f * dpiScale, colEdge, 16);
+                        dl->AddCircleFilled(sp, rInner + 1.0f * m_Dpi, colEdge, 16);
                         dl->AddCircle(sp, rOuter * 0.8f, colEdge, 24, 1.5f * px);
                     }
                 }

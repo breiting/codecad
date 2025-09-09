@@ -1,4 +1,6 @@
 #pragma once
+#include <imgui.h>
+
 #include <cstdint>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
@@ -6,8 +8,6 @@
 #include <pure/IPurePickProvider.hpp>
 #include <pure/PureScene.hpp>
 #include <vector>
-
-#include "imgui.h"
 
 namespace pure {
 
@@ -23,32 +23,32 @@ class PurePicker : public IPurePickProvider {
 
     void UpdateHover(float mouseX, float mouseY);
 
-    void DrawHoverOverlay(ImDrawList* dl, float dpiScale = 1.0f) const;
+    void DrawHoverOverlay(ImDrawList* dl) const;
 
     const HoverState& Hover() const {
-        return m_hover;
+        return m_Hover;
     }
 
     void SetScene(const PureScene* scene) {
-        m_scene = scene;
+        m_Scene = scene;
     }
     void SetViewProj(const glm::mat4& view, const glm::mat4& proj) {
-        m_view = view;
-        m_proj = proj;
-        m_viewProj = proj * view;
-        m_invViewProj = glm::inverse(m_viewProj);
-        m_camPos = glm::vec3(glm::inverse(m_view)[3]);
+        m_View = view;
+        m_Proj = proj;
+        m_ViewProj = proj * view;
+        m_InvViewProj = glm::inverse(m_ViewProj);
+        m_CamPos = glm::vec3(glm::inverse(m_View)[3]);
         // rough forward from view (camera looks along -Z in view space)
-        m_camForward = glm::normalize(glm::vec3(glm::inverse(m_view) * glm::vec4(0, 0, -1, 0)));
+        m_CamForward = glm::normalize(glm::vec3(glm::inverse(m_View) * glm::vec4(0, 0, -1, 0)));
     }
     void SetViewport(int w, int h, float dpi = 1.0f) {
-        m_vpW = w;
-        m_vpH = h;
-        m_dpi = dpi;
+        m_ViewportWidth = w;
+        m_ViewportHeight = h;
+        m_Dpi = dpi;
     }
 
     void SetSnapPixels(float px) {
-        m_snapPx = px;
+        m_SnapPx = px;
     }
 
     // IPickProvider
@@ -82,13 +82,13 @@ class PurePicker : public IPurePickProvider {
     bool sampleDepth(int sx, int sy, float& outDepth) const;
 
    private:
-    const PureScene* m_scene{nullptr};
-    glm::mat4 m_view{1}, m_proj{1}, m_viewProj{1}, m_invViewProj{1};
-    glm::vec3 m_camPos{0}, m_camForward{0, 0, -1};
-    int m_vpW{1}, m_vpH{1};
-    float m_dpi{1.0f};
-    float m_snapPx{8.0f};
-    HoverState m_hover;
+    const PureScene* m_Scene{nullptr};
+    glm::mat4 m_View{1}, m_Proj{1}, m_ViewProj{1}, m_InvViewProj{1};
+    glm::vec3 m_CamPos{0}, m_CamForward{0, 0, -1};
+    int m_ViewportWidth{1}, m_ViewportHeight{1};
+    float m_Dpi{1.0f};
+    float m_SnapPx{8.0f};
+    HoverState m_Hover;
 
     mutable std::vector<EdgeCache> m_edgeCaches;
 };

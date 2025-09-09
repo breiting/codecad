@@ -1,4 +1,6 @@
 #pragma once
+#include <imgui.h>
+
 #include <glm/glm.hpp>
 #include <optional>
 #include <pure/IPurePickProvider.hpp>
@@ -46,10 +48,6 @@ class PureMeasurement {
         return m_Mode;
     }
 
-    /// Begin/end lifecycle per frame (optional)
-    void NewFrame();
-    void EndFrame();
-
     // Input hooks (call from your controller)
     void OnMouseMove(float x, float y);
     void OnMouseButton(int button, bool pressed, bool shiftHeld);
@@ -64,8 +62,13 @@ class PureMeasurement {
     void Reset();
 
     /// UI overlay (ImGui drawlist for screen-space)
-    void DrawOverlay(void* imDrawList /*ImDrawList**/, const glm::mat4& viewProj, const glm::vec2& viewportPx,
-                     float dpiScale = 1.0f) const;
+    void DrawOverlay(ImDrawList* dl) const;
+
+    void SetViewport(int w, int h, float dpi = 1.0f) {
+        m_ViewportWidth = w;
+        m_ViewportHeight = h;
+        m_Dpi = dpi;
+    }
 
    private:
     // Internal helpers
@@ -91,6 +94,8 @@ class PureMeasurement {
     // Live hover (second point pending)
     glm::vec3 m_HoverP{0};
     std::optional<Edge> m_HoverEdge;
+    int m_ViewportWidth{1}, m_ViewportHeight{1};
+    float m_Dpi{1.0f};
 
     std::optional<MeasurementResult> m_Result;
 };

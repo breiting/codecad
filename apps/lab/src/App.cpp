@@ -94,11 +94,11 @@ void App::Run() {
 
         m_Picker->SetViewProj(view, proj);
         m_Picker->SetViewport(m_Controller->GetFramebufferWidth(), m_Controller->GetFramebufferHeight());
+        m_Measure.SetViewport(m_Controller->GetFramebufferWidth(), m_Controller->GetFramebufferHeight());
 
         ImDrawList* fg = ImGui::GetForegroundDrawList();
         m_Picker->DrawHoverOverlay(fg);
-        m_Measure.DrawOverlay(
-            fg, proj * view, {float(m_Controller->GetFramebufferWidth()), float(m_Controller->GetFramebufferHeight())});
+        m_Measure.DrawOverlay(fg);
 
         m_Controller->EndFrame();
     }

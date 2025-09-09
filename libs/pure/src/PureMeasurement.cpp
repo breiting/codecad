@@ -10,15 +10,6 @@ namespace pure {
 
 PureMeasurement::PureMeasurement() = default;
 
-void PureMeasurement::NewFrame() {
-    // reset live hover each frame; recomputed in TryPickCurrent
-    m_HoverEdge.reset();
-}
-
-void PureMeasurement::EndFrame() {
-    // nothing
-}
-
 void PureMeasurement::Reset() {
     m_FirstFixed = false;
     m_E0.reset();
@@ -45,7 +36,7 @@ void PureMeasurement::OnMouseMove(float x, float y) {
     }
 }
 
-void PureMeasurement::OnMouseButton(int button, bool pressed, bool shiftHeld) {
+void PureMeasurement::OnMouseButton(int button, bool pressed, bool /*shiftHeld*/) {
     if (!m_Picker) return;
     if (button != 0 || !pressed) return;  // left down only
 
@@ -178,14 +169,11 @@ static ImU32 U32RGBA(unsigned char r, unsigned char g, unsigned char b, unsigned
     return IM_COL32(r, g, b, a);
 }
 
-void PureMeasurement::DrawOverlay(void* drawListVoid, const glm::mat4& /*viewProj*/, const glm::vec2& viewportPx,
-                                  float dpiScale) const {
-    ImDrawList* dl = reinterpret_cast<ImDrawList*>(drawListVoid);
+void PureMeasurement::DrawOverlay(ImDrawList* dl) const {
     if (!dl) return;
 
-    // HUD (bottom-left)
-    const float pad = 8.f * dpiScale;
-    ImVec2 origin(pad, viewportPx.y - 60.f * dpiScale);
+    const float pad = 8.f * m_Dpi;
+    ImVec2 origin(pad, m_ViewportHeight - 60.f * m_Dpi);
     char buf[128];
     if (m_Result) {
         snprintf(buf, sizeof(buf), "Distance: %.3f mm%s", m_Result->distance,
