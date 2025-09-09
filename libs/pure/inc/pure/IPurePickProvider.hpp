@@ -9,9 +9,9 @@ namespace pure {
  * @brief Lightweight picking interface PureMeasurement relies on.
  * Implement this in your controller using your existing raycaster.
  */
-class IPurePicker {
+class IPurePickProvider {
    public:
-    virtual ~IPurePicker() = default;
+    virtual ~IPurePickProvider() = default;
     /**
      * @param mouseX, mouseY: window coords in pixels
      * @param snap: desired snap type priority

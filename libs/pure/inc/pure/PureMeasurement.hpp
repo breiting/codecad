@@ -1,7 +1,7 @@
 #pragma once
 #include <glm/glm.hpp>
 #include <optional>
-#include <pure/IPurePicker.hpp>
+#include <pure/IPurePickProvider.hpp>
 #include <pure/PureTypes.hpp>
 
 namespace pure {
@@ -29,7 +29,7 @@ class PureMeasurement {
    public:
     PureMeasurement();
 
-    void SetPicker(IPurePicker* picker) {
+    void SetPicker(IPurePickProvider* picker) {
         m_Picker = picker;
     }
     void SetMode(MeasureMode m) {
@@ -74,7 +74,7 @@ class PureMeasurement {
     void ComputeEdgeToEdge();
 
    private:
-    IPurePicker* m_Picker{nullptr};
+    IPurePickProvider* m_Picker{nullptr};
 
     MeasureMode m_Mode{MeasureMode::PointToPoint};
     ConstraintAxis m_Constraint{ConstraintAxis::None};

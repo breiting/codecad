@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 #include <optional>
-#include <pure/IPurePicker.hpp>
+#include <pure/IPurePickProvider.hpp>
 #include <pure/PureScene.hpp>
 #include <vector>
 
@@ -11,7 +11,7 @@
 
 namespace pure {
 
-class PurePicker : public IPurePicker {
+class PurePicker : public IPurePickProvider {
    public:
     enum class HoverKind { None, Vertex, Edge };
 
