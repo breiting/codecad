@@ -1,9 +1,17 @@
 #include "ccad/feature/Chamfer.hpp"
 
+#include <BRepBuilderAPI_MakeFace.hxx>
 #include <BRepFilletAPI_MakeChamfer.hxx>
+#include <BRepGProp.hxx>
+#include <BRepTools.hxx>
+#include <BRep_Tool.hxx>
 #include <TopExp.hxx>
 #include <TopExp_Explorer.hxx>
+#include <TopTools_IndexedDataMapOfShapeListOfShape.hxx>
+#include <TopTools_IndexedMapOfShape.hxx>
+#include <TopTools_ListIteratorOfListOfShape.hxx>
 #include <TopoDS.hxx>
+#include <TopoDS_Edge.hxx>
 #include <TopoDS_Face.hxx>
 #include <TopoDS_Wire.hxx>
 #include <ccad/base/Logger.hpp>
@@ -96,6 +104,82 @@ Shape ChamferCutterRadial(double diameter, const ChamferRadialSpec& spec) {
     auto profile = sketch::ProfileXZ(triangle, true);
 
     return construct::RevolveZ(profile, 360);
+}
+
+/** Map all edges of a shape to a stable 1-based index. */
+static TopTools_IndexedMapOfShape BuildEdgeMap(const TopoDS_Shape& shape) {
+    TopTools_IndexedMapOfShape emap;
+    TopExp::MapShapes(shape, TopAbs_EDGE, emap);
+    return emap;
+}
+
+/** Resolve a zero-based EdgeRef.index to a TopoDS_Edge using an IndexedMap. */
+static TopoDS_Edge GetEdgeByIndex(const TopTools_IndexedMapOfShape& emap, std::size_t zeroBasedIndex) {
+    Standard_Integer oneBased = static_cast<Standard_Integer>(zeroBasedIndex + 1);
+    if (oneBased < 1 || oneBased > emap.Extent()) throw std::out_of_range("Chamfer: edge index out of range");
+    return TopoDS::Edge(emap.FindKey(oneBased));
+}
+
+/** Build edge→faces adjacency for a shape. */
+static TopTools_IndexedDataMapOfShapeListOfShape BuildEdgeToFaces(const TopoDS_Shape& shape) {
+    TopTools_IndexedDataMapOfShapeListOfShape map;
+    TopExp::MapShapesAndAncestors(shape, TopAbs_EDGE, TopAbs_FACE, map);
+    return map;
+}
+
+/** If input is a planar WIRE, promote to FACE for 2D chamfering. */
+static TopoDS_Shape EnsureFaceIfWire(const TopoDS_Shape& in) {
+    if (in.ShapeType() == TopAbs_WIRE) {
+        TopoDS_Wire w = TopoDS::Wire(in);
+        return BRepBuilderAPI_MakeFace(w).Face();
+    }
+    return in;
+}
+
+Shape Chamfer(const Shape& s, const select::EdgeSet& edgeSet, double distanceMm) {
+    if (distanceMm <= 0.0) return s;
+
+    auto os = ShapeAsOcct(s);
+    if (!os) throw std::runtime_error("Chamfer: non-OCCT shape implementation");
+    TopoDS_Shape shape = EnsureFaceIfWire(os->Occt());
+
+    // Pre-build maps for fast lookups
+    TopTools_IndexedMapOfShape edgeMap = BuildEdgeMap(shape);
+    TopTools_IndexedDataMapOfShapeListOfShape edge2faces = BuildEdgeToFaces(shape);
+
+    BRepFilletAPI_MakeChamfer mkChamfer(shape);
+
+    // Add a symmetric Distance/Distance chamfer for each selected edge.
+    for (const auto& er : edgeSet.items()) {
+        TopoDS_Edge e;
+        try {
+            e = GetEdgeByIndex(edgeMap, er.index);
+        } catch (...) {
+            continue;  // skip invalid index
+        }
+
+        // Fetch an adjacent face; for solids there are usually 2, for open shells 1.
+        if (!edge2faces.Contains(e)) {
+            // No adjacent face information; skip this edge.
+            continue;
+        }
+        const TopTools_ListOfShape& lst = edge2faces.FindFromKey(e);
+        if (lst.IsEmpty()) {
+            continue;
+        }
+        // Use the first adjacent face (robust default).
+        TopoDS_Face f = TopoDS::Face(lst.First());
+
+        // Symmetric D1=D2 chamfer
+        mkChamfer.Add(distanceMm, distanceMm, e, f);
+    }
+
+    mkChamfer.Build();
+    if (!mkChamfer.IsDone()) {
+        // Graceful fallback: return original shape on failure
+        return s;
+    }
+    return WrapOcctShape(mkChamfer.Shape());
 }
 
 }  // namespace ccad::feature

@@ -1,6 +1,7 @@
 #include "FilletScenario.hpp"
 
 #include <ccad/base/Shape.hpp>
+#include <ccad/feature/Chamfer.hpp>
 #include <ccad/feature/Fillet.hpp>
 #include <ccad/geom/Box.hpp>
 #include <ccad/select/EdgeSelector.hpp>
@@ -32,7 +33,7 @@ void FilletScenario::Build(std::shared_ptr<PureScene> scene) {
                 .parallelTo(Axis::Y)       //
                 .collect();
 
-    box = Fillet(box, edges, 1);
+    box = Chamfer(box, edges, 1);
 
     scene->AddPart("Box", ShapeToMesh(box), glm::mat4{1.0f}, Hex("#d2ffd2"));
     m_Shapes.push_back(box);
