@@ -9,6 +9,8 @@ add_executable(clab
 
 target_include_directories(clab PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}/inc
+	${imgui_SOURCE_DIR}
+	${imgui_SOURCE_DIR}/backends
 )
 
 target_link_libraries(clab PRIVATE

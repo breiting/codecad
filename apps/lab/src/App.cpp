@@ -1,5 +1,7 @@
 #include "App.hpp"
 
+#include <imgui.h>
+
 #include "GLFW/glfw3.h"
 #include "pure/PureBounds.hpp"
 
@@ -12,6 +14,13 @@ bool App::Initialize(int width, int height, const std::string& title) {
     if (!m_Controller->Initialize(width, height, title.c_str())) return false;
 
     m_Scene = std::make_shared<PureScene>();
+
+    m_Controller->SetMouseMoveHandler([this](double x, double y) { m_Measure.OnMouseMove(x, y); });
+    m_Controller->SetMouseButtonHandler([this](int button, int action, int mods) {
+        bool pressed = (action == GLFW_PRESS);
+        bool shift = (mods & GLFW_MOD_SHIFT) != 0;
+        m_Measure.OnMouseButton(button, pressed, shift);
+    });
 
     m_Controller->SetKeyPressedHandler([this](int key, int /*mods*/) {
         switch (key) {
@@ -37,7 +46,15 @@ bool App::Initialize(int width, int height, const std::string& title) {
             default:
                 break;
         }
+
+        m_Measure.OnKey(key, true);
     });
+
+    m_Picker = std::make_unique<PurePicker>();
+    m_Picker->SetScene(m_Scene.get());
+    m_Picker->SetSnapPixels(8.0f);  // 8px Snapradius
+    m_Measure.SetPicker(m_Picker.get());
+    m_Measure.SetMode(pure::MeasureMode::PointToPoint);  // default
 
     return true;
 }
@@ -60,6 +77,21 @@ void App::Run() {
         m_Controller->BeginFrame();
         m_Controller->DrawGui();
         m_Controller->RenderScene(m_Scene);
+
+        glm::mat4 view = m_Controller->Camera()->View();
+        glm::mat4 proj = m_Controller->Camera()->Projection();
+
+        m_Picker->SetViewProj(view, proj);
+        m_Picker->SetViewport(m_Controller->GetFramebufferWidth(), m_Controller->GetFramebufferHeight());
+
+        m_Measure.DrawOverlay(
+            ImGui::GetForegroundDrawList(), proj * view,
+            {float(m_Controller->GetFramebufferWidth()), float(m_Controller->GetFramebufferHeight())});
+
+        // if (auto& r = m_Measure.Result()) {
+        //     printf("%5.2f\n", r->distance);
+        //     // print r->distance, r->p0, r->p1 etc.
+        // }
         m_Controller->EndFrame();
     }
 }

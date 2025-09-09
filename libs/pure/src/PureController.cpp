@@ -213,6 +213,9 @@ void PureController::InstallGlfwCallbacks() {
     glfwSetCursorPosCallback(m_Window, [](GLFWwindow* w, double x, double y) {
         ImGui_ImplGlfw_CursorPosCallback(w, x, y);
         if (ImGui::GetIO().WantCaptureMouse) return;
+        auto* self = static_cast<PureController*>(glfwGetWindowUserPointer(w));
+        if (!self) return;
+        if (self->m_MouseMoveHandler) self->m_MouseMoveHandler(x, y);
     });
 
     glfwSetFramebufferSizeCallback(m_Window, [](GLFWwindow* w, int /*width*/, int /*height*/) {

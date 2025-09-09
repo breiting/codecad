@@ -40,12 +40,17 @@ class PureController {
     // Event handler which can be registered
     using KeyPressedHandler = std::function<void(int key, int mods)>;
     using MouseButtonHandler = std::function<void(int button, int action, int mods)>;
+    using MouseMoveHandler = std::function<void(double x, double y)>;
 
     void SetKeyPressedHandler(KeyPressedHandler h) {
         m_KeyPressedHandler = std::move(h);
     }
     void SetMouseButtonHandler(MouseButtonHandler h) {
         m_MouseButtonHandler = std::move(h);
+    }
+
+    void SetMouseMoveHandler(MouseMoveHandler h) {
+        m_MouseMoveHandler = std::move(h);
     }
 
     bool ShouldClose() const;
@@ -56,6 +61,13 @@ class PureController {
 
     IPureCamera* Camera() {
         return m_Camera;
+    }
+
+    int GetFramebufferWidth() const {
+        return m_FramebufferW;
+    }
+    int GetFramebufferHeight() const {
+        return m_FramebufferH;
     }
 
    private:
@@ -74,6 +86,7 @@ class PureController {
     // Handler
     KeyPressedHandler m_KeyPressedHandler;
     MouseButtonHandler m_MouseButtonHandler;
+    MouseMoveHandler m_MouseMoveHandler;
 
     // Input-Cache (mouse)
     bool m_Lmb = false, m_Rmb = false, m_Mmb = false;
