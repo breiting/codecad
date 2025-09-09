@@ -165,10 +165,6 @@ void PureMeasurement::ComputeEdgeToEdge() {
     m_Result = r;
 }
 
-static ImU32 U32RGBA(unsigned char r, unsigned char g, unsigned char b, unsigned char a = 255) {
-    return IM_COL32(r, g, b, a);
-}
-
 void PureMeasurement::DrawOverlay(ImDrawList* dl) const {
     if (!dl) return;
 
@@ -181,11 +177,11 @@ void PureMeasurement::DrawOverlay(ImDrawList* dl) const {
                   : m_Result->constraint == ConstraintAxis::X  ? " (X)"
                   : m_Result->constraint == ConstraintAxis::Y  ? " (Y)"
                                                                : " (Z)"));
-        dl->AddText(origin, U32RGBA(255, 255, 255), buf);
+        dl->AddText(origin, IM_COL32(255, 255, 255, 255), buf);
     } else {
         const char* help = (m_Mode == MeasureMode::PointToPoint) ? "Measure P-to-P: click first point, click second"
                                                                  : "Measure E-to-E: click first edge, click second";
-        dl->AddText(origin, U32RGBA(180, 180, 180), help);
+        dl->AddText(origin, IM_COL32(180, 180, 180, 255), help);
     }
 }
 
