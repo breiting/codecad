@@ -64,7 +64,7 @@ class PurePicker : public IPurePickProvider {
         std::vector<EdgeIds> edges;
     };
 
-    bool worldToScreen(const glm::vec3& w, const glm::mat4& viewProj, const glm::vec2& viewport, ImVec2& out) const;
+    bool worldToScreen(const glm::vec3& w, int& outX, int& outY, float& outDepth01) const;
 
     void screenRay(float mx, float my, glm::vec3& ro, glm::vec3& rd) const;
     static bool rayTriangle(const glm::vec3& ro, const glm::vec3& rd, const glm::vec3& a, const glm::vec3& b,
@@ -78,6 +78,9 @@ class PurePicker : public IPurePickProvider {
     bool snapVertex(const glm::vec3& ro, const glm::vec3& rd, glm::vec3& outHitPos);
     bool snapEdge(const glm::vec3& ro, const glm::vec3& rd, glm::vec3& outHitPos, std::optional<Edge>& edge);
     bool hitFace(const glm::vec3& ro, const glm::vec3& rd, glm::vec3& outHitPos);
+
+    bool isVisibleWorldPoint(const glm::vec3& w) const;
+    bool sampleDepth(int sx, int sy, float& outDepth) const;
 
    private:
     const PureScene* m_scene{nullptr};

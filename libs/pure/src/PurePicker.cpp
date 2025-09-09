@@ -6,6 +6,8 @@
 #include <pure/PureTypes.hpp>
 #include <unordered_set>
 
+#include "imgui.h"
+
 namespace pure {
 
 static inline glm::vec3 closestPointOnSegment(const glm::vec3& p, const glm::vec3& a, const glm::vec3& b, float& t01) {
@@ -203,32 +205,67 @@ void PurePicker::UpdateHover(float mouseX, float mouseY) {
     glm::vec3 ro, rd;
     screenRay(mouseX, mouseY, ro, rd);
 
-    // Reset
     m_hover = {};
 
     if (snapVertex(ro, rd, hitPos)) {
-        m_hover.kind = HoverKind::Vertex;
-        m_hover.pos = hitPos;
-        return;
+        if (isVisibleWorldPoint(hitPos)) {
+            m_hover.kind = HoverKind::Vertex;
+            m_hover.pos = hitPos;
+            return;
+        }
     }
+
+    // 2) Edge snap
     if (snapEdge(ro, rd, hitPos, edge)) {
-        m_hover.kind = HoverKind::Edge;
-        m_hover.pos = hitPos;
-        m_hover.edge = edge;
-        return;
+        bool vis = true;
+        vis = isVisibleWorldPoint(hitPos);
+        if (vis && edge) {
+            glm::vec3 mid = 0.5f * (edge->a + edge->b);
+            vis = isVisibleWorldPoint(mid);
+        }
+        if (vis) {
+            m_hover.kind = HoverKind::Edge;
+            m_hover.pos = hitPos;
+            m_hover.edge = edge;
+            return;
+        }
     }
+    m_hover = {};
 }
 
-bool PurePicker::worldToScreen(const glm::vec3& w, const glm::mat4& viewProj, const glm::vec2& viewport,
-                               ImVec2& out) const {
-    glm::vec4 clip = viewProj * glm::vec4(w, 1.0f);
-    if (clip.w <= 1e-6f) return false;
-    glm::vec3 ndc = glm::vec3(clip) / clip.w;  // -1..+1
-    if (ndc.z < -1.f || ndc.z > 1.f) return false;
+bool PurePicker::sampleDepth(int sx, int sy, float& outDepth) const {
+    // Guard
+    if (sx < 0 || sy < 0 || sx >= m_vpW || sy >= m_vpH) return false;
 
-    float sx = (ndc.x * 0.5f + 0.5f) * viewport.x;
-    float sy = (1.0f - (ndc.y * 0.5f + 0.5f)) * viewport.y;  // y down
-    out = ImVec2(sx, sy);
+    int iy = sy;
+    iy = (m_vpH - 1) - sy;
+
+    float depth = 1.0f;
+    glReadPixels(sx, iy, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
+    outDepth = depth;
+    return true;
+}
+
+bool PurePicker::isVisibleWorldPoint(const glm::vec3& w) const {
+    int sx, sy;
+    float ndcDepth;
+    if (!worldToScreen(w, sx, sy, ndcDepth)) return false;
+
+    float zBuf;
+    if (!sampleDepth(sx, sy, zBuf)) return true;  // Fallback: visible
+    const float eps = 1.5f / 65535.0f;
+    return (ndcDepth <= zBuf + eps);
+}
+
+bool PurePicker::worldToScreen(const glm::vec3& w, int& outX, int& outY, float& outDepth01) const {
+    glm::vec4 clip = m_viewProj * glm::vec4(w, 1.0f);
+    if (clip.w <= 1e-6f) return false;
+    glm::vec3 ndc = glm::vec3(clip) / clip.w;  // -1..1
+    if (ndc.x < -1.f || ndc.x > 1.f || ndc.y < -1.f || ndc.y > 1.f || ndc.z < -1.f || ndc.z > 1.f) return false;
+
+    outX = int((ndc.x * 0.5f + 0.5f) * m_vpW);
+    outY = int((1.0f - (ndc.y * 0.5f + 0.5f)) * m_vpH);  // origin top-left
+    outDepth01 = (ndc.z * 0.5f + 0.5f);                  // [-1,1] -> [0,1]
     return true;
 }
 
@@ -244,13 +281,15 @@ void PurePicker::DrawHoverOverlay(ImDrawList* dl, const glm::mat4& viewProj, con
     const float rInner = 2.0f * dpiScale;
     const float thick = 2.0f * dpiScale;
 
+    int sx, sy;
+    float ndcDepth;
     ImVec2 sp;
     switch (m_hover.kind) {
         case HoverKind::Vertex:
-            if (worldToScreen(m_hover.pos, viewProj, viewportSize, sp)) {
+            if (worldToScreen(m_hover.pos, sx, sy, ndcDepth)) {
                 // ring highlight
-                dl->AddCircle(sp, rOuter, colPt2, 24, thick);
-                dl->AddCircle(sp, rOuter - thick * 0.5f, colPt, 24, thick);
+                dl->AddCircle(ImVec2(sx, sy), rOuter, colPt2, 24, thick);
+                dl->AddCircle(ImVec2(sx, sy), rOuter - thick * 0.5f, colPt, 24, thick);
                 // center dot
                 dl->AddCircleFilled(sp, rInner, colPt, 16);
             }
@@ -259,12 +298,15 @@ void PurePicker::DrawHoverOverlay(ImDrawList* dl, const glm::mat4& viewProj, con
         case HoverKind::Edge:
             if (m_hover.edge) {
                 ImVec2 a2, b2;
-                bool okA = worldToScreen(m_hover.edge->a, viewProj, viewportSize, a2);
-                bool okB = worldToScreen(m_hover.edge->b, viewProj, viewportSize, b2);
+                bool okA = worldToScreen(m_hover.edge->a, sx, sy, ndcDepth);
+                a2 = ImVec2(sx, sy);
+                bool okB = worldToScreen(m_hover.edge->b, sx, sy, ndcDepth);
+                b2 = ImVec2(sx, sy);
                 if (okA && okB) {
                     dl->AddLine(a2, b2, colEdge, thick);
                     // also mark the nearest point on edge:
-                    if (worldToScreen(m_hover.pos, viewProj, viewportSize, sp)) {
+                    if (worldToScreen(m_hover.pos, sx, sy, ndcDepth)) {
+                        sp = ImVec2(sx, sy);
                         dl->AddCircleFilled(sp, rInner + 1.0f * dpiScale, colEdge, 16);
                         dl->AddCircle(sp, rOuter * 0.8f, colEdge, 24, 1.5f * px);
                     }
