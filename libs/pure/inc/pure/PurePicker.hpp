@@ -23,8 +23,7 @@ class PurePicker : public IPurePickProvider {
 
     void UpdateHover(float mouseX, float mouseY);
 
-    void DrawHoverOverlay(ImDrawList* dl, const glm::mat4& viewProj, const glm::vec2& viewportSize,
-                          float dpiScale = 1.0f) const;
+    void DrawHoverOverlay(ImDrawList* dl, float dpiScale = 1.0f) const;
 
     const HoverState& Hover() const {
         return m_hover;

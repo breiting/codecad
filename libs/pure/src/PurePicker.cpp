@@ -269,8 +269,7 @@ bool PurePicker::worldToScreen(const glm::vec3& w, int& outX, int& outY, float& 
     return true;
 }
 
-void PurePicker::DrawHoverOverlay(ImDrawList* dl, const glm::mat4& viewProj, const glm::vec2& viewportSize,
-                                  float dpiScale) const {
+void PurePicker::DrawHoverOverlay(ImDrawList* dl, float dpiScale) const {
     if (!dl) return;
 
     const float px = 1.0f * dpiScale;
@@ -292,6 +291,12 @@ void PurePicker::DrawHoverOverlay(ImDrawList* dl, const glm::mat4& viewProj, con
                 dl->AddCircle(ImVec2(sx, sy), rOuter - thick * 0.5f, colPt, 24, thick);
                 // center dot
                 dl->AddCircleFilled(sp, rInner, colPt, 16);
+
+                const float pad = 8.f * dpiScale;
+                ImVec2 origin(pad, m_vpH - 40.f * dpiScale);
+                char buf[128];
+                snprintf(buf, sizeof(buf), "Coords: %.02f %.02f %.02f", m_hover.pos.x, m_hover.pos.y, m_hover.pos.z);
+                dl->AddText(origin, IM_COL32(255, 255, 255, 255), buf);
             }
             break;
 

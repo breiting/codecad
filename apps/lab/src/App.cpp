@@ -96,15 +96,10 @@ void App::Run() {
         m_Picker->SetViewport(m_Controller->GetFramebufferWidth(), m_Controller->GetFramebufferHeight());
 
         ImDrawList* fg = ImGui::GetForegroundDrawList();
-        m_Picker->DrawHoverOverlay(
-            fg, proj * view, {float(m_Controller->GetFramebufferWidth()), float(m_Controller->GetFramebufferHeight())});
+        m_Picker->DrawHoverOverlay(fg);
         m_Measure.DrawOverlay(
             fg, proj * view, {float(m_Controller->GetFramebufferWidth()), float(m_Controller->GetFramebufferHeight())});
 
-        // if (auto& r = m_Measure.Result()) {
-        //     printf("%5.2f\n", r->distance);
-        //     // print r->distance, r->p0, r->p1 etc.
-        // }
         m_Controller->EndFrame();
     }
 }
