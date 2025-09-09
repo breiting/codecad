@@ -6,6 +6,7 @@
 #include "ccad/select/EdgeSelector.hpp"
 
 #include <algorithm>
+#include <ccad/base/Logger.hpp>
 #include <cmath>
 #include <unordered_set>
 
@@ -86,25 +87,23 @@ struct EdgeSelector::Impl {
             const Standard_Real l = c.LastParameter();
             const Standard_Real mid = 0.5 * (f + l);
 
-            gp_Pnt Pm = c.Value(mid);
+            gp_Pnt Pm(0, 0, 0);
             gp_Dir Tg(1, 0, 0);
 
             try {
-                // CL props über den Adaptor, nicht direkt über die Edge
                 BRepLProp_CLProps lprop(c, /*DerivativeOrder*/ 1, /*Tol*/ tol);
                 lprop.SetParameter(mid);
 
-                // Punkt holen
                 Pm = lprop.Value();
 
-                // Tangente nur, wenn definiert
                 if (lprop.IsTangentDefined()) {
                     gp_Dir t;
-                    lprop.Tangent(t);  // schreibt in t
+                    lprop.Tangent(t);
                     Tg = t;
                 }
             } catch (...) {
-                // Fallback: geometrische Mitte und Richtungsableitung vom Adaptor
+                LOG(ERROR) << "Fallback for midpoint";
+                // Fallback
                 Pm = c.Value(mid);
                 // Tg bleibt default (1,0,0)
             }
@@ -260,14 +259,15 @@ EdgeSet EdgeSelector::collect() const {
         }
         // parallel to axis
         if (m_filters.parallelAxisTolDeg) {
-            auto [ax, tolDeg] = *m_filters.parallelAxisTolDeg;
-            gp_Dir axis = GetAxisDirection(ax);
-            gp_Dir d(std::max(1e-12f, std::abs(e.approxDir.x)) * (e.approxDir.x >= 0 ? 1 : -1),
-                     std::max(1e-12f, std::abs(e.approxDir.y)) * (e.approxDir.y >= 0 ? 1 : -1),
-                     std::max(1e-12f, std::abs(e.approxDir.z)) * (e.approxDir.z >= 0 ? 1 : -1));
-            double a = CalculateAngleInDeg(axis, d);
-            a = std::min(a, 180.0 - a);  // accept both directions
-            if (a > tolDeg) return false;
+            const auto [ax, tolDeg] = *m_filters.parallelAxisTolDeg;
+
+            const glm::vec3 axis = GetAxisDirection(ax);
+            const glm::vec3 d = glm::normalize(e.approxDir);
+
+            const float cosTol = std::cos(glm::radians(static_cast<float>(tolDeg)));
+            const float c = std::abs(glm::dot(d, axis));
+
+            if (c < cosTol) return false;
         }
         // near plane axis=value
         if (m_filters.planeAxisValTol) {

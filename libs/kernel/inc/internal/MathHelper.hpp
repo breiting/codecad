@@ -20,15 +20,15 @@ inline glm::vec3 ToGlm(const gp_Pnt& p) {
     return {(float)p.X(), (float)p.Y(), (float)p.Z()};
 }
 
-inline gp_Dir GetAxisDirection(Axis ax) {
+inline glm::vec3 GetAxisDirection(Axis ax) {
     switch (ax) {
         case Axis::X:
-            return gp_Dir(1, 0, 0);
+            return glm::vec3(1, 0, 0);
         case Axis::Y:
-            return gp_Dir(0, 1, 0);
+            return glm::vec3(0, 1, 0);
         case Axis::Z:
         default:
-            return gp_Dir(0, 0, 1);
+            return glm::vec3(0, 0, 1);
     }
 }
 

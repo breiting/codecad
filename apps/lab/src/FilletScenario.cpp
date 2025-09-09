@@ -27,6 +27,13 @@ void FilletScenario::Build(std::shared_ptr<PureScene> scene) {
 
     box = Fillet(box, edges, 1);
 
+    edges = EdgeSelector::FromShape(box)   //
+                .onBoxSide(BoxSide::ZMax)  //
+                .parallelTo(Axis::Y)       //
+                .collect();
+
+    box = Fillet(box, edges, 1);
+
     scene->AddPart("Box", ShapeToMesh(box), glm::mat4{1.0f}, Hex("#d2ffd2"));
     m_Shapes.push_back(box);
 }
