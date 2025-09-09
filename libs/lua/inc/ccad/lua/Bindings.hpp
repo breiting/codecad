@@ -13,6 +13,7 @@ void RegisterBooleans(sol::state& lua);
 void RegisterConstruct(sol::state& lua);
 void RegisterFeatures(sol::state& lua);
 void RegisterMeasure(sol::state& lua);
+void RegisterSelect(sol::state& lua);
 void RegisterSketch(sol::state& lua);
 void RegisterMech(sol::state& lua);
 

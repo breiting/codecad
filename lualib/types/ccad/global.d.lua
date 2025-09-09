@@ -158,6 +158,71 @@ function fillet(s, r) end
 ---@return Shape
 function chamfer(s, d) end
 
+---@class EdgeSet
+local EdgeSet = {}
+
+---@class EdgeQuery
+local EdgeQuery = {}
+
+--- Start a new edge-query builder (optionally with a source shape).
+---@overload fun(): EdgeQuery
+---@param shape Shape
+---@return EdgeQuery
+function edges(shape) end
+
+---@param shape Shape
+---@return EdgeQuery
+function EdgeQuery:from(shape) end
+
+--- Filter edges lying on a specific AABB side of the shape's bounding box.
+--- Valid sides: "xmin","xmax","ymin","ymax","zmin","zmax".
+---@param side '"xmin"'|'"xmax"'|'"ymin"'|'"ymax"'|'"zmin"'|'"zmax"'
+---@param tolerance_mm? number  -- reserved for future use
+---@return EdgeQuery
+function EdgeQuery:on_box_side(side, tolerance_mm) end
+
+--- Filter by geometric type.
+--- "line" selects straight edges, "circle" selects circular arcs.
+---@param kind '"line"'|'"circle"'
+---@return EdgeQuery
+function EdgeQuery:geom(kind) end
+
+--- Filter edges whose tangent direction is parallel to an axis within a tolerance.
+---@param axis '"x"'|'"y"'|'"z"'
+---@param tol_deg? number @angular tolerance in degrees (default 3°)
+---@return EdgeQuery
+function EdgeQuery:parallel(axis, tol_deg) end
+
+--- Filter by dihedral angle between adjacent faces (in degrees).
+---@param min_deg number
+---@param max_deg number
+---@return EdgeQuery
+function EdgeQuery:dihedral_between(min_deg, max_deg) end
+
+--- Filter by edge length interval (in mm).
+---@param min_mm number
+---@param max_mm number
+---@return EdgeQuery
+function EdgeQuery:length_between(min_mm, max_mm) end
+
+--- Finalize and return the selected set of edges.
+---@return EdgeSet
+function EdgeQuery:collect() end
+
+--- Apply a rolling fillet on the selected edges of `shape`.
+---@param shape Shape
+---@param edges EdgeSet
+---@param radius_mm number
+---@return Shape
+function fillet(shape, edges, radius_mm) end
+
+--- Apply a straight chamfer on the selected edges of `shape`.
+---@param shape Shape
+---@param edges EdgeSet
+---@param distance_mm number
+---@return Shape
+function chamfer(shape, edges, distance_mm) end
+
 --==============================================================
 -- SKETCH (2D profiles)
 --==============================================================

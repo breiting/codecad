@@ -7,6 +7,7 @@
 #include "ccad/lua/Bindings.hpp"
 
 using namespace ccad::feature;
+using namespace ccad::select;
 
 namespace ccad {
 namespace lua {
@@ -25,6 +26,15 @@ void RegisterFeatures(sol::state& lua) {
         } catch (const Exception& e) {
             throw std::runtime_error(std::string("chamfer failed: ") + e.getDescription());
         }
+    });
+
+    // Fillet / Chamfer with EdgeSelection
+    lua.set_function("fillet", [](const Shape& s, const EdgeSet& es, double radius_mm) {
+        return feature::Fillet(s, es, radius_mm);
+    });
+
+    lua.set_function("chamfer", [](const Shape& s, const EdgeSet& es, double distance_mm) {
+        return feature::Chamfer(s, es, distance_mm);
     });
 }
 }  // namespace lua
