@@ -2,11 +2,15 @@
 #include <ccad/lua/LuaEngine.hpp>
 #include <memory>
 #include <pure/PureController.hpp>
+#include <pure/PurePicker.hpp>
 
 #include "FileWatcher.hpp"
 #include "Project.hpp"
+#include "pure/PureMeasurement.hpp"
 
 namespace fs = std::filesystem;
+
+enum class AppMode { Orbit, Measure };
 
 class Controller {
    public:
@@ -46,6 +50,10 @@ class Controller {
 
     std::shared_ptr<pure::PureScene> m_Scene;
     pure::PureController m_PureController;
+    AppMode m_AppMode{AppMode::Orbit};
+
+    std::unique_ptr<pure::PurePicker> m_Picker;
+    pure::PureMeasurement m_Measure;
 
     // Watchers
     FileWatcher m_ProjectWatcher;

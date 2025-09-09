@@ -12,6 +12,8 @@ PureMesh::~PureMesh() {
 
 void PureMesh::Upload(std::vector<PureVertex>& vertices, const std::vector<unsigned>& indices,
                       bool recalculateNormals) {
+    m_Vertices = vertices;
+    m_Indices = indices;
     if (recalculateNormals) {
         for (auto& v : vertices) {
             v.normal = glm::vec3(0.0f);
@@ -55,7 +57,6 @@ void PureMesh::Upload(std::vector<PureVertex>& vertices, const std::vector<unsig
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(PureVertex), (void*)sizeof(glm::vec3));
 
     glBindVertexArray(0);
-    m_IndexCount = static_cast<GLsizei>(indices.size());
 
     // Bounds
     m_Bounds.Reset();
@@ -63,9 +64,9 @@ void PureMesh::Upload(std::vector<PureVertex>& vertices, const std::vector<unsig
 }
 
 void PureMesh::Draw() const {
-    if (!m_IndexCount) return;
+    if (m_Indices.empty()) return;
     glBindVertexArray(m_Vao);
-    glDrawElements(GL_TRIANGLES, m_IndexCount, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, m_Indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }
 

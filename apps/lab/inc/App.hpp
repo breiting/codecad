@@ -5,6 +5,8 @@
 #include <string>
 
 #include "Scenario.hpp"
+#include "pure/PureMeasurement.hpp"
+#include "pure/PurePicker.hpp"
 
 /**
  * @brief Tiny harness around PURE to run small OCCT scenarios.
@@ -32,6 +34,9 @@ class App {
    private:
     std::unique_ptr<pure::PureController> m_Controller;
     std::shared_ptr<pure::PureScene> m_Scene;
+
+    std::unique_ptr<pure::PurePicker> m_Picker;
+    pure::PureMeasurement m_Measure;
 
     std::vector<ScenarioPtr> m_Scenarios;
     size_t m_Current = 0;

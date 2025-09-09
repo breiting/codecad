@@ -4,11 +4,14 @@
 #include <ccad/feature/Chamfer.hpp>
 #include <ccad/feature/Fillet.hpp>
 #include <ccad/geom/Box.hpp>
+#include <ccad/geom/Cylinder.hpp>
 #include <ccad/select/EdgeSelector.hpp>
 #include <memory>
 #include <pure/PureMesh.hpp>
 #include <pure/PureMeshFactory.hpp>
 #include <pure/PureScene.hpp>
+
+#include "ccad/ops/Boolean.hpp"
 
 using namespace ccad;
 using namespace ccad::geom;
@@ -34,6 +37,9 @@ void FilletScenario::Build(std::shared_ptr<PureScene> scene) {
                 .collect();
 
     box = Chamfer(box, edges, 1);
+
+    auto hole = Cylinder(5, 5);
+    box = ops::Difference(box, hole);
 
     scene->AddPart("Box", ShapeToMesh(box), glm::mat4{1.0f}, Hex("#d2ffd2"));
     m_Shapes.push_back(box);

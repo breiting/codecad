@@ -13,14 +13,14 @@ namespace ccad {
 namespace lua {
 
 void RegisterFeatures(sol::state& lua) {
-    lua.set_function("fillet", [](const Shape& s, double r) -> Shape {
+    lua.set_function("fillet_all", [](const Shape& s, double r) -> Shape {
         try {
             return feature::FilletAll(s, r);
         } catch (const Exception& e) {
             throw std::runtime_error(std::string("fillet failed: ") + e.getDescription());
         }
     });
-    lua.set_function("chamfer", [](const Shape& s, double d) -> Shape {
+    lua.set_function("chamfer_all", [](const Shape& s, double d) -> Shape {
         try {
             return feature::ChamferAll(s, d);
         } catch (const Exception& e) {

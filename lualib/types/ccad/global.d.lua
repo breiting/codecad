@@ -150,13 +150,13 @@ function intersection(a, b) end
 ---@param s Shape
 ---@param r number Radius [mm]
 ---@return Shape
-function fillet(s, r) end
+function fillet_all(s, r) end
 
 --- Apply a constant-distance chamfer to all eligible sharp edges of `s`.
 ---@param s Shape
 ---@param d number Distance [mm]
 ---@return Shape
-function chamfer(s, d) end
+function chamfer_all(s, d) end
 
 ---@class EdgeSet
 local EdgeSet = {}
