@@ -1,8 +1,8 @@
 #pragma once
 
+#include <cmath>
 #include <ostream>
 #include <vector>
-#include <cmath>
 namespace ccad {
 
 #ifndef M_PI
@@ -12,6 +12,14 @@ constexpr double M_PI = 3.14159265358979323846;
 constexpr double DegToRad(double d) {
     return d * M_PI / 180.0;
 }
+
+/** \brief Clamps the value between 0..1 */
+constexpr double ClampToUnit(double v) {
+    return std::max(0.0, std::min(1.0, v));
+}
+
+/// Principal axes.
+enum class Axis { X, Y, Z };
 
 /** \brief Lightweight 2D vector (double precision) for the public API. */
 class Vec2 {

@@ -2,6 +2,7 @@ add_library(kernel STATIC
 	src/Chamfer.cpp
 	src/Dxf.cpp
 	src/Export.cpp
+	src/EdgeSelector.cpp
 	src/Extrude.cpp
 	src/Fillet.cpp
 	src/Logger.cpp
