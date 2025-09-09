@@ -211,25 +211,22 @@ bool PurePicker::Pick(float mouseX, float mouseY, SnapType snap, glm::vec3& outH
     outEdge.reset();
     glm::vec3 ro, rd;
     screenRay(mouseX, mouseY, ro, rd);
-    snapVertex(ro, rd, outHitPos);
 
-    return true;
+    switch (snap) {
+        case SnapType::Vertex:
+            if (snapVertex(ro, rd, outHitPos)) return true;
+            // fallback to face
+            return hitFace(ro, rd, outHitPos);
 
-    // switch (snap) {
-    //     case SnapType::Vertex:
-    //         if (snapVertex(ro, rd, outHitPos)) return true;
-    //         // fallback to face
-    //         return hitFace(ro, rd, outHitPos);
-    //
-    //     case SnapType::Edge:
-    //         if (snapEdge(ro, rd, outHitPos, outEdge)) return true;
-    //         // fallback: face hit
-    //         return hitFace(ro, rd, outHitPos);
-    //
-    //     case SnapType::Face:
-    //     default:
-    //         return hitFace(ro, rd, outHitPos);
-    // }
+        case SnapType::Edge:
+            if (snapEdge(ro, rd, outHitPos, outEdge)) return true;
+            // fallback: face hit
+            return hitFace(ro, rd, outHitPos);
+
+        case SnapType::Face:
+        default:
+            return hitFace(ro, rd, outHitPos);
+    }
 }
 
 }  // namespace pure

@@ -4,6 +4,7 @@
 
 #include "GLFW/glfw3.h"
 #include "pure/PureBounds.hpp"
+#include "pure/PureTypes.hpp"
 
 using namespace pure;
 
@@ -41,6 +42,24 @@ bool App::Initialize(int width, int height, const std::string& title) {
                 break;
             case GLFW_KEY_R:
                 Rebuild();
+                break;
+            case GLFW_KEY_P:
+                m_Measure.SetMode(pure::MeasureMode::PointToPoint);
+                break;
+            case GLFW_KEY_E:
+                m_Measure.SetMode(pure::MeasureMode::EdgeToEdge);
+                break;
+            case GLFW_KEY_X:
+                m_Measure.SetConstraint(ConstraintAxis::X);
+                break;
+            case GLFW_KEY_Y:
+                m_Measure.SetConstraint(ConstraintAxis::Y);
+                break;
+            case GLFW_KEY_Z:
+                m_Measure.SetConstraint(ConstraintAxis::Z);
+                break;
+            case GLFW_KEY_C:
+                m_Measure.Reset();
                 break;
 
             default:
