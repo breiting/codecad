@@ -181,19 +181,8 @@ bool PurePicker::snapEdge(const glm::vec3& ro, const glm::vec3& rd, glm::vec3& o
     return found;
 }
 
-bool PurePicker::Pick(float mouseX, float mouseY, SnapType snap, glm::vec3& outHitPos, std::optional<Edge>& outEdge) {
-    outEdge.reset();
-    glm::vec3 ro, rd;
-    screenRay(mouseX, mouseY, ro, rd);
-
-    switch (snap) {
-        case SnapType::Vertex:
-            return snapVertex(ro, rd, outHitPos);
-        case SnapType::Edge:
-            return snapEdge(ro, rd, outHitPos, outEdge);
-        default:
-            return false;
-    }
+PurePicker::HoverState PurePicker::GetHoverState() const {
+    return m_Hover;
 }
 
 void PurePicker::UpdateHover(float mouseX, float mouseY) {

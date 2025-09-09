@@ -5,13 +5,13 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 #include <optional>
-#include <pure/IPurePickProvider.hpp>
+#include <pure/PureMeasurement.hpp>
 #include <pure/PureScene.hpp>
 #include <vector>
 
 namespace pure {
 
-class PurePicker : public IPurePickProvider {
+class PurePicker {
    public:
     enum class HoverKind { None, Vertex, Edge };
 
@@ -51,8 +51,7 @@ class PurePicker : public IPurePickProvider {
         m_SnapPx = px;
     }
 
-    // IPickProvider
-    bool Pick(float mouseX, float mouseY, SnapType snap, glm::vec3& outHitPos, std::optional<Edge>& outEdge) override;
+    HoverState GetHoverState() const;
 
    private:
     struct EdgeIds {

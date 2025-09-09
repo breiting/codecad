@@ -16,15 +16,22 @@ bool App::Initialize(int width, int height, const std::string& title) {
 
     m_Scene = std::make_shared<PureScene>();
 
-    m_Controller->SetMouseMoveHandler([this](double x, double y) {
-        m_Picker->UpdateHover(x, y);
-        m_Measure.OnMouseMove(x, y);
-    });
+    m_Controller->SetMouseMoveHandler([this](double x, double y) { m_Picker->UpdateHover(x, y); });
 
     m_Controller->SetMouseButtonHandler([this](int button, int action, int mods) {
         bool pressed = (action == GLFW_PRESS);
-        bool shift = (mods & GLFW_MOD_SHIFT) != 0;
-        m_Measure.OnMouseButton(button, pressed, shift);
+        if (pressed) {
+            auto hit = m_Picker->GetHoverState();
+            if (hit.kind == PurePicker::HoverKind::None) return;
+
+            if (hit.kind == PurePicker::HoverKind::Vertex) {
+                m_Measure.OnPick(PickPoint{hit.pos});
+            } else if (hit.kind == PurePicker::HoverKind::Edge) {
+                if (hit.edge.has_value()) {
+                    m_Measure.OnPick(PickEdge{hit.edge->a, hit.edge->b});
+                }
+            }
+        }
     });
 
     m_Controller->SetKeyPressedHandler([this](int key, int /*mods*/) {
@@ -47,25 +54,21 @@ bool App::Initialize(int width, int height, const std::string& title) {
             case GLFW_KEY_R:
                 Rebuild();
                 break;
-            case GLFW_KEY_P:
-                m_Measure.SetMode(pure::MeasureMode::PointToPoint);
-                break;
-            case GLFW_KEY_E:
-                m_Measure.SetMode(pure::MeasureMode::EdgeToEdge);
-                break;
+            case GLFW_KEY_M: {
+                m_Measure.Enable(true);
+            } break;
+            case GLFW_KEY_O: {
+                m_Measure.Enable(false);
+            } break;
 
             default:
                 break;
         }
-
-        m_Measure.OnKey(key, true);
     });
 
     m_Picker = std::make_unique<PurePicker>();
     m_Picker->SetScene(m_Scene.get());
     m_Picker->SetSnapPixels(8.0f);  // 8px Snapradius
-    m_Measure.SetPicker(m_Picker.get());
-    m_Measure.SetMode(pure::MeasureMode::PointToPoint);  // default
 
     return true;
 }
@@ -77,6 +80,8 @@ void App::Run() {
     } else {
         SwitchTo(0);
     }
+
+    m_Measure.SetReporter([this](const std::string& s) { this->m_Controller->SetStatus(s); });
 
     // Set camera only upon first load
     PureBounds bounds;
@@ -94,11 +99,9 @@ void App::Run() {
 
         m_Picker->SetViewProj(view, proj);
         m_Picker->SetViewport(m_Controller->GetFramebufferWidth(), m_Controller->GetFramebufferHeight());
-        m_Measure.SetViewport(m_Controller->GetFramebufferWidth(), m_Controller->GetFramebufferHeight());
 
         ImDrawList* fg = ImGui::GetForegroundDrawList();
         m_Picker->DrawHoverOverlay(fg);
-        m_Measure.DrawOverlay(fg);
 
         m_Controller->EndFrame();
     }

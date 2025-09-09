@@ -13,7 +13,10 @@
 #include "ProjectPanel.hpp"
 #include "Utils.hpp"
 #include "pure/PureBounds.hpp"
+#include "pure/PureMeasurement.hpp"
 #include "pure/PureMesh.hpp"
+#include "pure/PurePicker.hpp"
+#include "pure/PureTypes.hpp"
 
 using namespace std;
 using namespace pure;
@@ -150,6 +153,21 @@ void Controller::ViewProject() {
     m_PureController.SetRightDockPanel([&panel]() { panel.Draw(); });
 
     m_PureController.SetMouseMoveHandler([this](double x, double y) { m_Picker->UpdateHover(x, y); });
+    m_PureController.SetMouseButtonHandler([this](int /*button*/, int action, int /*mods*/) {
+        bool pressed = (action == GLFW_PRESS);
+        if (pressed) {
+            auto hit = m_Picker->GetHoverState();
+            if (hit.kind == PurePicker::HoverKind::None) return;
+
+            if (hit.kind == PurePicker::HoverKind::Vertex) {
+                m_Measure.OnPick(PickPoint{hit.pos});
+            } else if (hit.kind == PurePicker::HoverKind::Edge) {
+                if (hit.edge.has_value()) {
+                    m_Measure.OnPick(PickEdge{hit.edge->a, hit.edge->b});
+                }
+            }
+        }
+    });
 
     m_PureController.SetKeyPressedHandler([this](int key, int /*mods*/) {
         switch (key) {
@@ -159,6 +177,14 @@ void Controller::ViewProject() {
             case GLFW_KEY_S: {
                 BuildProject();
             } break;
+            case GLFW_KEY_M: {
+                m_AppMode = AppMode::Measure;
+                m_Measure.Enable(true);
+            } break;
+            case GLFW_KEY_O: {
+                m_AppMode = AppMode::Orbit;
+                m_Measure.Enable(false);
+            } break;
 
             default:
                 break;
@@ -167,11 +193,11 @@ void Controller::ViewProject() {
 
     m_Scene = std::make_shared<PureScene>();
 
-    // Initialize Picker
+    // Initialize Picker & Measure
     m_Picker = std::make_unique<PurePicker>();
     m_Picker->SetSnapPixels(8.0f);  // 8px Snapradius
-
     m_Picker->SetScene(m_Scene.get());
+    m_Measure.SetReporter([this](const std::string& s) { this->m_PureController.SetStatus(s); });
 
     RebuildAllParts();
     SetupWatchers();
@@ -190,13 +216,15 @@ void Controller::ViewProject() {
         m_PureController.DrawGui();
         m_PureController.RenderScene(m_Scene);
 
-        glm::mat4 view = m_PureController.Camera()->View();
-        glm::mat4 proj = m_PureController.Camera()->Projection();
+        if (m_AppMode == AppMode::Measure) {
+            glm::mat4 view = m_PureController.Camera()->View();
+            glm::mat4 proj = m_PureController.Camera()->Projection();
 
-        m_Picker->SetViewProj(view, proj);
-        m_Picker->SetViewport(m_PureController.GetFramebufferWidth(), m_PureController.GetFramebufferHeight());
-        ImDrawList* fg = ImGui::GetForegroundDrawList();
-        m_Picker->DrawHoverOverlay(fg);
+            m_Picker->SetViewProj(view, proj);
+            m_Picker->SetViewport(m_PureController.GetFramebufferWidth(), m_PureController.GetFramebufferHeight());
+            ImDrawList* fg = ImGui::GetForegroundDrawList();
+            m_Picker->DrawHoverOverlay(fg);
+        }
 
         m_PureController.EndFrame();
     }

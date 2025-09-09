@@ -35,8 +35,8 @@ class App {
     std::unique_ptr<pure::PureController> m_Controller;
     std::shared_ptr<pure::PureScene> m_Scene;
 
-    pure::PureMeasurement m_Measure;
     std::unique_ptr<pure::PurePicker> m_Picker;
+    pure::PureMeasurement m_Measure;
 
     std::vector<ScenarioPtr> m_Scenarios;
     size_t m_Current = 0;
