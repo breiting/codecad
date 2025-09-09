@@ -149,6 +149,8 @@ void Controller::ViewProject() {
 
     m_PureController.SetRightDockPanel([&panel]() { panel.Draw(); });
 
+    m_PureController.SetMouseMoveHandler([this](double x, double y) { m_Picker->UpdateHover(x, y); });
+
     m_PureController.SetKeyPressedHandler([this](int key, int /*mods*/) {
         switch (key) {
             case GLFW_KEY_W: {
@@ -164,6 +166,12 @@ void Controller::ViewProject() {
     });
 
     m_Scene = std::make_shared<PureScene>();
+
+    // Initialize Picker
+    m_Picker = std::make_unique<PurePicker>();
+    m_Picker->SetSnapPixels(8.0f);  // 8px Snapradius
+
+    m_Picker->SetScene(m_Scene.get());
 
     RebuildAllParts();
     SetupWatchers();
@@ -181,6 +189,14 @@ void Controller::ViewProject() {
 
         m_PureController.DrawGui();
         m_PureController.RenderScene(m_Scene);
+
+        glm::mat4 view = m_PureController.Camera()->View();
+        glm::mat4 proj = m_PureController.Camera()->Projection();
+
+        m_Picker->SetViewProj(view, proj);
+        m_Picker->SetViewport(m_PureController.GetFramebufferWidth(), m_PureController.GetFramebufferHeight());
+        ImDrawList* fg = ImGui::GetForegroundDrawList();
+        m_Picker->DrawHoverOverlay(fg);
 
         m_PureController.EndFrame();
     }
