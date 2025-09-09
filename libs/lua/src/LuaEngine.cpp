@@ -86,8 +86,7 @@ bool LuaEngine::Initialize(std::string* errorMsg) {
         RegisterFeatures(m_Lua);
         RegisterMeasure(m_Lua);
         RegisterSketch(m_Lua);
-        // runtime::RegisterPipes(m_Lua);
-        // runtime::RegisterThreads(m_Lua);
+        RegisterSelect(m_Lua);
 
         m_Initialized = true;
         return true;

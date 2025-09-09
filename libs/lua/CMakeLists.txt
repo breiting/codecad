@@ -7,6 +7,7 @@ add_library(lua STATIC
 			src/BindConstruct.cpp
 			src/BindFeatures.cpp
 			src/BindMeasure.cpp
+			src/BindSelect.cpp
 			src/BindSketch.cpp
 			src/BindingUtils.cpp
 			src/BindMech.cpp
