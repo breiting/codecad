@@ -18,7 +18,7 @@ bool App::Initialize(int width, int height, const std::string& title) {
 
     m_Controller->SetMouseMoveHandler([this](double x, double y) { m_Picker->UpdateHover(x, y); });
 
-    m_Controller->SetMouseButtonHandler([this](int button, int action, int mods) {
+    m_Controller->SetMouseButtonHandler([this](int /*button*/, int action, int /*mods*/) {
         bool pressed = (action == GLFW_PRESS);
         if (pressed) {
             auto hit = m_Picker->GetHoverState();
