@@ -41,21 +41,21 @@ embed_text_to_header("${SHADER_SRC_DIR}/unlit.frag"  "${GEN_INC_DIR}/assets/unli
 # Includes
 # -------------------------
 target_include_directories(pure
-				PUBLIC
-								${CMAKE_CURRENT_SOURCE_DIR}/inc
-								${GEN_INC_DIR}
-				PRIVATE
-								external/glad/include
-								${imgui_SOURCE_DIR}
-								${imgui_SOURCE_DIR}/backends
+PUBLIC
+${CMAKE_CURRENT_SOURCE_DIR}/inc
+${GEN_INC_DIR}
+PRIVATE
+external/glad/include
+${imgui_SOURCE_DIR}
+${imgui_SOURCE_DIR}/backends
 )
 
 # -------------------------
 # Linking
 # -------------------------
 target_link_libraries(pure
-				PUBLIC
-								project_settings
-								glfw
-		glm
+PUBLIC
+project_settings
+glfw
+glm
 )
