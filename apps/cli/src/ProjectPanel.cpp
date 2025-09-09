@@ -13,6 +13,9 @@ void ProjectPanel::Draw() {
     if (ImGui::CollapsingHeader("Meta", ImGuiTreeNodeFlags_DefaultOpen)) {
         changed |= DrawMeta(m_Project.meta);
     }
+    if (ImGui::CollapsingHeader("Parts", ImGuiTreeNodeFlags_DefaultOpen)) {
+        changed |= DrawParts();
+    }
     if (ImGui::CollapsingHeader("Parameters", ImGuiTreeNodeFlags_DefaultOpen)) {
         changed |= DrawParams(m_Project.params);
     }
@@ -37,6 +40,20 @@ void ProjectPanel::Draw() {
     //     if (m_OnSave) m_OnSave(m_Project);
     //     m_Dirty = false;
     // }
+}
+
+bool ProjectPanel::DrawParts() {
+    bool c = false;
+    for (auto& part : m_Project.parts) {
+        ImGui::PushID(part.name.c_str());
+        bool v = part.visible;
+        if (ImGui::Checkbox(part.name.c_str(), &v)) {
+            part.visible = v;
+            c = true;
+        }
+        ImGui::PopID();
+    }
+    return c;
 }
 
 bool ProjectPanel::DrawMeta(Meta& m) {

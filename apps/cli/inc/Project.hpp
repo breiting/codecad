@@ -1,8 +1,8 @@
 #pragma once
 #include <glm/glm.hpp>
 #include <map>
-#include <string>
 #include <optional>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -19,7 +19,6 @@ struct PartTransform {
 };
 
 struct Material {
-    std::string name;
     std::string color;  // hex color
 };
 
