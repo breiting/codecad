@@ -52,17 +52,16 @@ void PureMeasurement::OnMouseButton(int button, bool pressed, bool shiftHeld) {
     if (!m_FirstFixed) {
         // Fix first
         if (m_Mode == MeasureMode::PointToPoint) {
-            // pick point (prefer vertex, then edge, then face)
+            // pick point (prefer vertex, then edge)
             glm::vec3 hp;
             std::optional<Edge> tmp;
             if (m_Picker->Pick(m_Mouse.x, m_Mouse.y, SnapType::Vertex, hp, tmp) ||
-                m_Picker->Pick(m_Mouse.x, m_Mouse.y, SnapType::Edge, hp, tmp) ||
-                m_Picker->Pick(m_Mouse.x, m_Mouse.y, SnapType::Face, hp, tmp)) {
+                m_Picker->Pick(m_Mouse.x, m_Mouse.y, SnapType::Edge, hp, tmp)) {
                 m_P0 = hp;
                 m_FirstFixed = true;
             }
         } else {
-            // pick edge (prefer edge snap; fallback: derive small edge from face hit direction)
+            // pick edge
             glm::vec3 hp;
             std::optional<Edge> seg;
             if (m_Picker->Pick(m_Mouse.x, m_Mouse.y, SnapType::Edge, hp, seg)) {
@@ -76,8 +75,7 @@ void PureMeasurement::OnMouseButton(int button, bool pressed, bool shiftHeld) {
             glm::vec3 hp;
             std::optional<Edge> tmp;
             if (m_Picker->Pick(m_Mouse.x, m_Mouse.y, SnapType::Vertex, hp, tmp) ||
-                m_Picker->Pick(m_Mouse.x, m_Mouse.y, SnapType::Edge, hp, tmp) ||
-                m_Picker->Pick(m_Mouse.x, m_Mouse.y, SnapType::Face, hp, tmp)) {
+                m_Picker->Pick(m_Mouse.x, m_Mouse.y, SnapType::Edge, hp, tmp)) {
                 m_P1 = Constrain(m_P0, hp, m_Constraint);
                 ComputePointToPoint();
                 m_FirstFixed = false;  // ready for next measure
@@ -111,9 +109,9 @@ void PureMeasurement::OnKey(int key, bool pressed) {
         case 'C':
             SetConstraint(ConstraintAxis::None);
             break;
-        case 27:
+        case 'R':
             Reset();
-            break;  // ESC
+            break;
         default:
             break;
     }
@@ -126,8 +124,7 @@ void PureMeasurement::TryPickCurrent() {
 
     if (m_Mode == MeasureMode::PointToPoint) {
         if (m_Picker->Pick(m_Mouse.x, m_Mouse.y, SnapType::Vertex, hp, seg) ||
-            m_Picker->Pick(m_Mouse.x, m_Mouse.y, SnapType::Edge, hp, seg) ||
-            m_Picker->Pick(m_Mouse.x, m_Mouse.y, SnapType::Face, hp, seg)) {
+            m_Picker->Pick(m_Mouse.x, m_Mouse.y, SnapType::Edge, hp, seg)) {
             m_HoverP = hp;
         }
     } else {
@@ -191,7 +188,7 @@ void PureMeasurement::DrawOverlay(void* drawListVoid, const glm::mat4& /*viewPro
     ImVec2 origin(pad, viewportPx.y - 60.f * dpiScale);
     char buf[128];
     if (m_Result) {
-        snprintf(buf, sizeof(buf), "dist: %.3f mm%s", m_Result->distance,
+        snprintf(buf, sizeof(buf), "Distance: %.3f mm%s", m_Result->distance,
                  (m_Result->constraint == ConstraintAxis::None ? ""
                   : m_Result->constraint == ConstraintAxis::X  ? " (X)"
                   : m_Result->constraint == ConstraintAxis::Y  ? " (Y)"
@@ -202,10 +199,6 @@ void PureMeasurement::DrawOverlay(void* drawListVoid, const glm::mat4& /*viewPro
                                                                  : "Measure E-to-E: click first edge, click second";
         dl->AddText(origin, U32RGBA(180, 180, 180), help);
     }
-
-    // In a minimal variant we skip projecting world→screen here and rely on your existing
-    // gizmo/overlay if you have one. If you want, you can add a tiny line between p0/p1
-    // in screen space using your world->screen helper.
 }
 
 }  // namespace pure

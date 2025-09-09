@@ -16,7 +16,11 @@ bool App::Initialize(int width, int height, const std::string& title) {
 
     m_Scene = std::make_shared<PureScene>();
 
-    m_Controller->SetMouseMoveHandler([this](double x, double y) { m_Measure.OnMouseMove(x, y); });
+    m_Controller->SetMouseMoveHandler([this](double x, double y) {
+        m_Picker->UpdateHover(x, y);
+        m_Measure.OnMouseMove(x, y);
+    });
+
     m_Controller->SetMouseButtonHandler([this](int button, int action, int mods) {
         bool pressed = (action == GLFW_PRESS);
         bool shift = (mods & GLFW_MOD_SHIFT) != 0;
@@ -48,18 +52,6 @@ bool App::Initialize(int width, int height, const std::string& title) {
                 break;
             case GLFW_KEY_E:
                 m_Measure.SetMode(pure::MeasureMode::EdgeToEdge);
-                break;
-            case GLFW_KEY_X:
-                m_Measure.SetConstraint(ConstraintAxis::X);
-                break;
-            case GLFW_KEY_Y:
-                m_Measure.SetConstraint(ConstraintAxis::Y);
-                break;
-            case GLFW_KEY_Z:
-                m_Measure.SetConstraint(ConstraintAxis::Z);
-                break;
-            case GLFW_KEY_C:
-                m_Measure.Reset();
                 break;
 
             default:
@@ -103,9 +95,11 @@ void App::Run() {
         m_Picker->SetViewProj(view, proj);
         m_Picker->SetViewport(m_Controller->GetFramebufferWidth(), m_Controller->GetFramebufferHeight());
 
+        ImDrawList* fg = ImGui::GetForegroundDrawList();
+        m_Picker->DrawHoverOverlay(
+            fg, proj * view, {float(m_Controller->GetFramebufferWidth()), float(m_Controller->GetFramebufferHeight())});
         m_Measure.DrawOverlay(
-            ImGui::GetForegroundDrawList(), proj * view,
-            {float(m_Controller->GetFramebufferWidth()), float(m_Controller->GetFramebufferHeight())});
+            fg, proj * view, {float(m_Controller->GetFramebufferWidth()), float(m_Controller->GetFramebufferHeight())});
 
         // if (auto& r = m_Measure.Result()) {
         //     printf("%5.2f\n", r->distance);

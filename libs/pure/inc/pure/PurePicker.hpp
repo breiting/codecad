@@ -7,11 +7,29 @@
 #include <pure/PureScene.hpp>
 #include <vector>
 
+#include "imgui.h"
+
 namespace pure {
 
 class PurePicker : public IPurePicker {
    public:
-    // Scene / camera wiring
+    enum class HoverKind { None, Vertex, Edge };
+
+    struct HoverState {
+        HoverKind kind{HoverKind::None};
+        glm::vec3 pos{0};
+        std::optional<Edge> edge;
+    };
+
+    void UpdateHover(float mouseX, float mouseY);
+
+    void DrawHoverOverlay(ImDrawList* dl, const glm::mat4& viewProj, const glm::vec2& viewportSize,
+                          float dpiScale = 1.0f) const;
+
+    const HoverState& Hover() const {
+        return m_hover;
+    }
+
     void SetScene(const PureScene* scene) {
         m_scene = scene;
     }
@@ -30,7 +48,6 @@ class PurePicker : public IPurePicker {
         m_dpi = dpi;
     }
 
-    // tuning
     void SetSnapPixels(float px) {
         m_snapPx = px;
     }
@@ -47,15 +64,14 @@ class PurePicker : public IPurePicker {
         std::vector<EdgeIds> edges;
     };
 
-    // helpers
+    bool worldToScreen(const glm::vec3& w, const glm::mat4& viewProj, const glm::vec2& viewport, ImVec2& out) const;
+
     void screenRay(float mx, float my, glm::vec3& ro, glm::vec3& rd) const;
     static bool rayTriangle(const glm::vec3& ro, const glm::vec3& rd, const glm::vec3& a, const glm::vec3& b,
                             const glm::vec3& c, float& t, float& u, float& v);
 
-    // pixel → world tolerance an Tiefe z
     float pixelToWorld(float px, float depthWorld) const;
 
-    // caches
     const EdgeCache& getEdgeCache(const PureMesh* m);
 
     // snapping
@@ -70,6 +86,7 @@ class PurePicker : public IPurePicker {
     int m_vpW{1}, m_vpH{1};
     float m_dpi{1.0f};
     float m_snapPx{8.0f};
+    HoverState m_hover;
 
     mutable std::vector<EdgeCache> m_edgeCaches;
 };

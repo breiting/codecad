@@ -96,33 +96,6 @@ const PurePicker::EdgeCache& PurePicker::getEdgeCache(const PureMesh* m) {
     return m_edgeCaches.back();
 }
 
-bool PurePicker::hitFace(const glm::vec3& ro, const glm::vec3& rd, glm::vec3& outHitPos) {
-    float bestT = std::numeric_limits<float>::max();
-    bool hit = false;
-    if (!m_scene) return false;
-
-    for (const auto& part : m_scene->Parts()) {
-        if (!part.mesh) continue;
-        const auto& V = part.mesh->Vertices();
-        const auto& I = part.mesh->Indices();
-        glm::mat4 T = part.model;
-        for (size_t i = 0; i + 2 < I.size(); i += 3) {
-            glm::vec3 a = glm::vec3(T * glm::vec4(V[I[i + 0]].position, 1));
-            glm::vec3 b = glm::vec3(T * glm::vec4(V[I[i + 1]].position, 1));
-            glm::vec3 c = glm::vec3(T * glm::vec4(V[I[i + 2]].position, 1));
-            float t, u, v;
-            if (rayTriangle(ro, rd, a, b, c, t, u, v)) {
-                if (t < bestT) {
-                    bestT = t;
-                    outHitPos = ro + rd * t;
-                    hit = true;
-                }
-            }
-        }
-    }
-    return hit;
-}
-
 bool PurePicker::snapVertex(const glm::vec3& ro, const glm::vec3& rd, glm::vec3& outHitPos) {
     if (!m_scene) return false;
     bool found = false;
@@ -214,18 +187,94 @@ bool PurePicker::Pick(float mouseX, float mouseY, SnapType snap, glm::vec3& outH
 
     switch (snap) {
         case SnapType::Vertex:
-            if (snapVertex(ro, rd, outHitPos)) return true;
-            // fallback to face
-            return hitFace(ro, rd, outHitPos);
-
+            return snapVertex(ro, rd, outHitPos);
         case SnapType::Edge:
-            if (snapEdge(ro, rd, outHitPos, outEdge)) return true;
-            // fallback: face hit
-            return hitFace(ro, rd, outHitPos);
-
-        case SnapType::Face:
+            return snapEdge(ro, rd, outHitPos, outEdge);
         default:
-            return hitFace(ro, rd, outHitPos);
+            return false;
+    }
+}
+
+void PurePicker::UpdateHover(float mouseX, float mouseY) {
+    glm::vec3 hitPos;
+    std::optional<Edge> edge;
+
+    // Try vertex snap first (sharpest), then edge
+    glm::vec3 ro, rd;
+    screenRay(mouseX, mouseY, ro, rd);
+
+    // Reset
+    m_hover = {};
+
+    if (snapVertex(ro, rd, hitPos)) {
+        m_hover.kind = HoverKind::Vertex;
+        m_hover.pos = hitPos;
+        return;
+    }
+    if (snapEdge(ro, rd, hitPos, edge)) {
+        m_hover.kind = HoverKind::Edge;
+        m_hover.pos = hitPos;
+        m_hover.edge = edge;
+        return;
+    }
+}
+
+bool PurePicker::worldToScreen(const glm::vec3& w, const glm::mat4& viewProj, const glm::vec2& viewport,
+                               ImVec2& out) const {
+    glm::vec4 clip = viewProj * glm::vec4(w, 1.0f);
+    if (clip.w <= 1e-6f) return false;
+    glm::vec3 ndc = glm::vec3(clip) / clip.w;  // -1..+1
+    if (ndc.z < -1.f || ndc.z > 1.f) return false;
+
+    float sx = (ndc.x * 0.5f + 0.5f) * viewport.x;
+    float sy = (1.0f - (ndc.y * 0.5f + 0.5f)) * viewport.y;  // y down
+    out = ImVec2(sx, sy);
+    return true;
+}
+
+void PurePicker::DrawHoverOverlay(ImDrawList* dl, const glm::mat4& viewProj, const glm::vec2& viewportSize,
+                                  float dpiScale) const {
+    if (!dl) return;
+
+    const float px = 1.0f * dpiScale;
+    const ImU32 colPt = IM_COL32(255, 210, 64, 255);    // amber
+    const ImU32 colPt2 = IM_COL32(0, 0, 0, 180);        // outline
+    const ImU32 colEdge = IM_COL32(64, 160, 255, 220);  // blue
+    const float rOuter = 5.0f * dpiScale;
+    const float rInner = 2.0f * dpiScale;
+    const float thick = 2.0f * dpiScale;
+
+    ImVec2 sp;
+    switch (m_hover.kind) {
+        case HoverKind::Vertex:
+            if (worldToScreen(m_hover.pos, viewProj, viewportSize, sp)) {
+                // ring highlight
+                dl->AddCircle(sp, rOuter, colPt2, 24, thick);
+                dl->AddCircle(sp, rOuter - thick * 0.5f, colPt, 24, thick);
+                // center dot
+                dl->AddCircleFilled(sp, rInner, colPt, 16);
+            }
+            break;
+
+        case HoverKind::Edge:
+            if (m_hover.edge) {
+                ImVec2 a2, b2;
+                bool okA = worldToScreen(m_hover.edge->a, viewProj, viewportSize, a2);
+                bool okB = worldToScreen(m_hover.edge->b, viewProj, viewportSize, b2);
+                if (okA && okB) {
+                    dl->AddLine(a2, b2, colEdge, thick);
+                    // also mark the nearest point on edge:
+                    if (worldToScreen(m_hover.pos, viewProj, viewportSize, sp)) {
+                        dl->AddCircleFilled(sp, rInner + 1.0f * dpiScale, colEdge, 16);
+                        dl->AddCircle(sp, rOuter * 0.8f, colEdge, 24, 1.5f * px);
+                    }
+                }
+            }
+            break;
+
+        case HoverKind::None:
+        default:
+            break;
     }
 }
 
