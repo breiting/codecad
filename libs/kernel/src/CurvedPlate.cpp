@@ -25,6 +25,7 @@
 #include <TopoDS_Solid.hxx>
 #include <TopoDS_Wire.hxx>
 #include <ccad/geom/CurvedPlate.hpp>
+#include <functional>
 
 #include "internal/geom/ShapeHelper.hpp"
 

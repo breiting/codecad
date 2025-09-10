@@ -3,6 +3,8 @@
 #include <functional>
 #include <glm/glm.hpp>
 #include <optional>
+#include <variant>
+#include <string>
 #include <pure/PureTypes.hpp>
 
 namespace pure {

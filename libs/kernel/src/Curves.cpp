@@ -17,6 +17,7 @@
 #include <ccad/geom/Curves.hpp>
 #include <ccad/geom/Cylinder.hpp>
 #include <ccad/ops/Boolean.hpp>
+#include <algorithm>
 
 #include "internal/geom/ShapeHelper.hpp"
 
