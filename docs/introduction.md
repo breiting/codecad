@@ -1,4 +1,4 @@
-# Introduction
+# Introduction to CodeCAD
 
 ## What is CodeCAD?
 

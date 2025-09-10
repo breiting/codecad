@@ -1,4 +1,4 @@
-# Getting Started
+# Getting Started with CodeCAD
 
 CodeCAD is designed to be simple and developer-friendly. The easiest way to begin is through the CLI tool `ccad`.
 
