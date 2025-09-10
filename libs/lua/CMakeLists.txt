@@ -5,6 +5,7 @@ add_library(lua STATIC
 			src/BindTransforms.cpp
 			src/BindBooleans.cpp
 			src/BindConstruct.cpp
+			src/BindCurves.cpp
 			src/BindFeatures.cpp
 			src/BindMeasure.cpp
 			src/BindSelect.cpp

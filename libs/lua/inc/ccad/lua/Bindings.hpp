@@ -16,6 +16,7 @@ void RegisterMeasure(sol::state& lua);
 void RegisterSelect(sol::state& lua);
 void RegisterSketch(sol::state& lua);
 void RegisterMech(sol::state& lua);
+void RegisterCurves(sol::state& lua);
 
 }  // namespace lua
 }  // namespace ccad

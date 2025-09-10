@@ -81,6 +81,17 @@ function sphere(d) end
 ---@return Shape
 function hex_prism(across_flats, h) end
 
+---@class LatheOptions
+---@field points ({[1]:number,[2]:number})[]  -- control points in XZ (x=radius, Z=height)
+---@field angle? number                -- revolve angle in degrees (default 360)
+---@field thickness? number            -- wall thickness (mm); if set → hollow body, else solid
+
+--- Revolve an XY silhouette around Z to create a solid or hollow body.
+--- If `thickness` is provided, an inner silhouette is auto-generated and subtracted.
+---@param opts LatheOptions
+---@return Shape
+function lathe(opts) end
+
 --==============================================================
 -- TRANSFORMS
 --==============================================================
