@@ -381,11 +381,13 @@ void App::handleLspInit() {
     j["workspace"]["checkThirdParty"] = false;
 
     j["diagnostics"]["globals"] = {
-        "bbox",     "box",       "center_to",    "center_x",     "center_xy",  "center_xyz", "center_y",
-        "center_z", "chamfer",   "cone",         "cylinder",     "difference", "emit",       "extrude",
-        "fillet",   "hex_prism", "intersection", "pipe_adapter", "poly_xy",    "profile_xz", "rect",
-        "revolve",  "rod",       "rotate_x",     "rotate_y",     "rotate_z",   "save_step",  "save_stl",
-        "scale",    "sphere",    "threaded_rod", "translate",    "union",      "wedge"};
+        "bbox",         "box",     "center_to",   "center_x",     "center_xy",       "center_xyz", "center_y",
+        "center_z",     "chamfer", "chamfer_all", "cone",         "curved_plate_xy", "cylinder",   "deg",
+        "difference",   "edges",   "emit",        "extrude",      "fillet",          "fillet_all", "hex_prism",
+        "intersection", "lathe",   "mm",          "param",        "pipe_adapter",    "poly_xy",    "profile_xz",
+        "rect",         "revolve", "rod",         "rotate_x",     "rotate_y",        "rotate_z",   "save_step",
+        "save_stl",     "scale",   "sphere",      "threaded_rod", "translate",       "union",      "wedge",
+        "ThreadSpec"};
 
     if (!utils::WriteTextFile(luarc, j.dump(2) + "\n")) {
         std::cerr << "Failed to write .luarc.json: " << std::endl;

@@ -7,9 +7,12 @@ repo_name: breiting/codecad
 copyright: Bernhard Reitinger © 2025
 site_author: Bernhard Reitinger
 
-site_description: |
- CodeCAD is a parametric CAD with Lua.
+site_description: "CodeCAD is a lightweight parametric modeling toolkit powered by Lua and OpenCascade – simple, scriptable, and perfect for makers & engineers."
 
+nav:
+  - Introduction: introduction.md
+  - Installation: installation.md
+  - Getting Started: getting_started.md
 
 theme:
   name: material
@@ -25,15 +28,8 @@ theme:
     - scheme: slate
       primary: indigo
       accent: indigo
-  custom_dir: 'docs/overrides'
-  # logo: 'assets/images/chekker-logo.png'
+  # logo: 'assets/images/logo.png'
   favicon: 'assets/images/favicon.png'
-
-nav:
-  - Introduction: introduction.md
-  # - Getting Started: getting-started.md
-  # - API Reference: api/index.md
-  # - Tutorials: tutorials/index.md
 
 markdown_extensions:
   - admonition
@@ -43,8 +39,5 @@ markdown_extensions:
   - toc:
       permalink: true
 
-extra:
-  version: !ENV [CKK-VERSION, "ATTENTION: Development Version"]
-
 extra_css:
-  - assets/stylesheets/extra.css
+  - stylesheets/extra.css
