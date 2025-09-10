@@ -1,29 +1,29 @@
 # CodeCAD – Parametric CAD with Lua
 
-**CodeCAD** ist ein leichtgewichtiges, skriptbares CAD für Maker, Ingenieur:innen und Forschende.
-Du modellierst mit **Lua** (oder C++ im Kernel), siehst das Ergebnis live im **PURE** Viewer
-und exportierst **STL/STEP** für 3D-Druck oder weitere CAD-Workflows.
+**CodeCAD** is a lightweight, scriptable CAD tool for makers, engineers, and researchers.
+You model with **Lua** (or C++ in the kernel), view the result live in the **PURE** viewer,
+and export **STL/STEP** for 3D printing or further CAD workflows.
 
-## Warum CodeCAD?
+## Why CodeCAD?
 
-- 💡 **Parametrisch**: Jede Abmessung ist eine Variable – ändere Zahlen, nicht Geometrie.
-- 🧠 **Lua-first**: Eine klare, einfache Sprache statt proprietärer DSL.
-- 🧩 **Erweiterbar**: C++-Kernel (OCCT), Lua-Bindings, modularer PURE-Viewer (GLFW/GL).
-- 🧵 **Praktische Features**: Druckbare Gewinde, Rohradapter, Bezier/BSpline, Fillet/Chamfer mit Edge-Selector.
-- 🛠️ **Open Source**: Baue dein Tooling selbst – oder nutze vorgefertigte Bausteine.
+- 💡 **Parametric**: Every dimension is a variable – change numbers, not geometry.
+- 🧠 **Lua-first**: A clear, simple language instead of a proprietary DSL.
+- 🧩 **Extensible**: C++ kernel (OCCT), Lua bindings, modular PURE viewer (GLFW/GL).
+- 🧵 **Practical features**: Printable threads, pipe adapters, Bezier/BSpline, fillet/chamfer with edge selector.
+- 🛠️ **Open Source**: Build your own tooling – or use ready-made building blocks.
 
-## Was kann ich bauen?
+## What can I build?
 
-- Mechanische Teile (Bolzen, Muttern, Dosen mit Schraubdeckel, Halterungen, Zahnräder)
-- Organische Formen (Vasen per Bezier/BSpline + Revolve)
-- Adapter (Pipe-Transitions), gebogene Platten, etc.
+- Mechanical parts (bolts, nuts, jars with screw caps, brackets, gears)
+- Organic shapes (vases via Bezier/BSpline + revolve)
+- Adapters (pipe transitions), bent plates, etc.
 
-## Schneller Eindruck (Lua)
+## Quick Impression (Lua)
 
 ```lua
 -- Simple parametric box with rounded edges
 local w, d, h = 100, 60, 20
 local b = box(w, d, h)
-b = fillet(b, 3)
+b = fillet(b, 1)
 emit(b)
 ```

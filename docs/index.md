@@ -1,3 +1,3 @@
 # Welcome
 
-👉 Starte hier: [Introduction](introduction.md)
+👉 Start here: [Introduction](introduction.md)
