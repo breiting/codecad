@@ -3,6 +3,7 @@
 #include <ccad/geom/Curves.hpp>
 #include <sol/sol.hpp>
 
+#include "ccad/geom/CurvedPlate.hpp"
 #include "ccad/lua/BindingUtils.hpp"
 
 using namespace ccad::geom;
@@ -43,6 +44,21 @@ void RegisterCurves(sol::state& lua) {
         } catch (const std::exception& e) {
             throw std::runtime_error(std::string("lathe failed: ") + e.what());
         }
+    });
+
+    lua.set_function("curved_plate_xy", [](double sx, double sy, double thickness, double k_u, double k_v) {
+        CurvedPlateSpec s{};
+        s.sizeX = sx;
+        s.sizeY = sy;
+        s.thickness = thickness;
+        s.nu = 8;
+        s.nv = 8;
+        s.kU = k_u;
+        s.kV = k_v;
+        s.dirU = {1.0, 0.0};
+        s.dirV = {0.0, 1.0};
+        s.law = BendLaw::Paraboloid;
+        return CurvedPlate(s);
     });
 }
 
