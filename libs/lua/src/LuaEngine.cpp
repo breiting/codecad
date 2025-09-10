@@ -88,6 +88,7 @@ bool LuaEngine::Initialize(std::string* errorMsg) {
         RegisterSketch(m_Lua);
         RegisterSelect(m_Lua);
         RegisterCurves(m_Lua);
+        RegisterMech(m_Lua);
 
         m_Initialized = true;
         return true;

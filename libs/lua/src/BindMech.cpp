@@ -12,7 +12,7 @@ using namespace ccad::mech;
 namespace ccad {
 namespace lua {
 
-void RegisterPipes(sol::state& lua) {
+void RegisterMech(sol::state& lua) {
     lua.set_function("pipe_adapter", [](double rIn0, double rOut0, double rIn1, double rOut1, double length,
                                         sol::optional<double> steepnessOpt) {
         mech::PipeEnds ends{rIn0, rOut0, rIn1, rOut1, length};
@@ -60,6 +60,9 @@ void RegisterPipes(sol::state& lua) {
         "tipCutRatio",
         sol::property([](ThreadSpec& s) { return s.tipCutRatio; }, [](ThreadSpec& s, double v) { s.tipCutRatio = v; }),
         "normalize", &ThreadSpec::Normalize);
+
+    lua["ThreadSpec"]["new"] = []() { return ThreadSpec{}; };
+    lua["ThreadSpec"][sol::meta_function::call] = []() { return ThreadSpec{}; };
 
     lua.set_function("threaded_rod", [](double totalLength, double threadLength, ThreadSpec threadSpec) {
         double majorDiameter = 0.0;

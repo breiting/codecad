@@ -418,7 +418,7 @@ local ThreadSpec = {}
 
 --- Create a new empty specification (all numeric fields default to 0).
 ---@return ThreadSpec
-function ThreadSpec:new() end
+function ThreadSpec.new() end
 
 --- Normalize/validate the spec in-place:
 --- clamps negatives to 0, enforces minimum segment counts, etc.
