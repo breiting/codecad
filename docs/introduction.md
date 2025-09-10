@@ -22,7 +22,7 @@ and export **STL/STEP** for 3D printing or further CAD workflows.
 
 ```lua
 -- Simple parametric box with rounded edges
-local w, d, h = 100, 60, 20
+local w, d, h = 100, 60, 30
 local b = box(w, d, h)
 b = fillet(b, 1)
 emit(b)
