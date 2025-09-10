@@ -1,5 +1,7 @@
 add_library(kernel STATIC
 	src/Chamfer.cpp
+	src/Curves.cpp
+	src/CurvedPlate.cpp
 	src/Dxf.cpp
 	src/Export.cpp
 	src/EdgeSelector.cpp

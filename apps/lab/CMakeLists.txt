@@ -1,8 +1,9 @@
 add_executable(clab
 	src/App.cpp
-	src/Scenario.cpp
-	src/FilletScenario.cpp
 	src/CupScenario.cpp
+	src/CurveScenario.cpp
+	src/FilletScenario.cpp
+	src/Scenario.cpp
 	src/ThreadScenario.cpp
 	src/main.cpp
 )

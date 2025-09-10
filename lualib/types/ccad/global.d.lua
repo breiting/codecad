@@ -81,6 +81,28 @@ function sphere(d) end
 ---@return Shape
 function hex_prism(across_flats, h) end
 
+---@class LatheOptions
+---@field points ({[1]:number,[2]:number})[]  -- control points in XZ (x=radius, Z=height)
+---@field angle? number                -- revolve angle in degrees (default 360)
+---@field thickness? number            -- wall thickness (mm); if set → hollow body, else solid
+
+--- Revolve an XY silhouette around Z to create a solid or hollow body.
+--- If `thickness` is provided, an inner silhouette is auto-generated and subtracted.
+---@param opts LatheOptions
+---@return Shape
+function lathe(opts) end
+
+---Create a doubly-curved plate by fitting a BSpline surface to a height field z(x,y),
+---offsetting by ±thickness/2, and closing the sides with ruled faces.
+---Returns a watertight solid suitable for booleans and export.
+---@param size_x number
+---@param size_y number
+---@param thickness number
+---@param k_u number
+---@param k_v number
+---@return Shape
+function curved_plate_xy(size_x, size_y, thickness, k_u, k_v) end
+
 --==============================================================
 -- TRANSFORMS
 --==============================================================
