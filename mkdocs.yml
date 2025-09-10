@@ -1,10 +1,8 @@
 site_name: CodeCAD
 site_description: Parametric CAD with Lua – fast, simple, frictionless.
-site_url: https://breiting.github.io/codecad
-# site_dir: 'build/generated'
+site_url: https://codecad.xyz
 repo_url: https://github.com/breiting/codecad
 repo_name: breiting/codecad
-# docs_dir: 'docs'
 
 copyright: Bernhard Reitinger © 2025
 site_author: Bernhard Reitinger
