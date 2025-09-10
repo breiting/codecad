@@ -12,7 +12,7 @@ using namespace ccad::geom;
 static inline TriangulationParams GetTriangulateParams() {
     geom::TriangulationParams params;
     params.angularDeflectionDeg = 25.0;
-    params.linearDeflection = 0.3;
+    params.linearDeflection = 0.2;
     params.parallel = true;
     return params;
 }

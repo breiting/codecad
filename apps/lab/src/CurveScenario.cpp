@@ -33,7 +33,7 @@ void CurveScenario::Build(std::shared_ptr<PureScene> scene) {
     shape = Union({shape, bottom});
 
     CurvedPlateSpec plateSpec;
-    plateSpec.kU = 0.002;
+    plateSpec.kU = 0.02;
     plateSpec.kV = 0.05;
     auto plate = CurvedPlate(plateSpec);
 
