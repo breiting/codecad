@@ -11,6 +11,7 @@
 
 #include "GLFW/glfw3.h"
 #include "ProjectPanel.hpp"
+#include "Time.hpp"
 #include "Utils.hpp"
 #include "pure/PureBounds.hpp"
 #include "pure/PureMeasurement.hpp"
@@ -120,10 +121,7 @@ void Controller::BuildProject() {
         std::filesystem::path src = projectRoot / jp.source;
         auto luaFile = std::filesystem::weakly_canonical(src);
 
-        std::string err;
-        if (!m_Engine->RunFile(luaFile, &err)) {
-            auto errStr = std::string("Lua error in ") + luaFile.string() + ": " + err;
-            std::cerr << errStr << std::endl;
+        if (!m_Engine->RunFile(luaFile)) {
             return;
         }
 
@@ -142,6 +140,7 @@ void Controller::ViewProject() {
         throw std::runtime_error("No project is loaded!");
     }
 
+    m_PureController.SetBackgroundColor(ParseHexColor("#1e2129"));
     if (!m_PureController.Initialize(1600, 1200, "CodeCAD Viewer", utils::DefaultInstallFontsPath())) {
         std::cerr << "Failed to initialize CodeCAD Viewer\n";
         return;
@@ -169,7 +168,7 @@ void Controller::ViewProject() {
         }
     });
 
-    m_PureController.SetKeyPressedHandler([this](int key, int /*mods*/) {
+    m_PureController.SetKeyPressedHandler([this](int key, int mods) {
         switch (key) {
             case GLFW_KEY_W: {
                 m_PureController.ToggleWireframe();
@@ -188,6 +187,12 @@ void Controller::ViewProject() {
 
             default:
                 break;
+        }
+        // easter egg, save current framebuffer as JPG (handy for generating pictures for documentation)
+        if (key == GLFW_KEY_X && (mods & GLFW_MOD_CONTROL)) {
+            auto filename = "shot-" + Time::GetCurrentDateTimeString() + ".jpg";
+            m_PureController.SaveScreenshotJPG(filename);
+            m_PureController.SetStatus("Saved file to " + filename);
         }
     });
 
@@ -293,16 +298,14 @@ void Controller::AddPartToScene(const Part& part) {
 
     std::optional<ccad::Shape> emitted;
     try {
-        std::string err;
-        if (!m_Engine->RunFile(luaFile, &err)) {
-            auto errStr = std::string("Lua error in ") + luaFile.string() + ": " + err;
-            std::cerr << errStr << std::endl;
+        if (!m_Engine->RunFile(luaFile)) {
+            LOG(ERROR) << "Problem with file " << luaFile;
             return;
         }
 
         emitted = m_Engine->GetEmitted();
         if (!emitted) {
-            std::cerr << "Canot get shape from " << luaFile << std::endl;
+            LOG(ERROR) << "Cannot get shape from " << luaFile;
             return;
         }
     } catch (std::exception& e) {
@@ -387,10 +390,8 @@ void Controller::CreateBom() {
                 std::cerr << "Warning: could not clear BOM for part\n";
             }
 
-            std::string err;
             ApplyProjectParamsToLua(m_Engine->Lua(), m_Project);
-            if (!m_Engine->RunFile(luaFile.string(), &err)) {
-                std::cerr << "Lua error in " << luaFile.string() << ": " << err << "\n";
+            if (!m_Engine->RunFile(luaFile.string())) {
                 return;
             }
 

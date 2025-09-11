@@ -38,12 +38,12 @@ class LuaEngine {
     bool Initialize(std::string* errorMsg = nullptr);
 
     /// Execute a Lua script file (path). Initialize() must be called first.
-    /// Returns false on error and fills errorMsg with a descriptive message.
-    bool RunFile(const std::string& scriptPath, std::string* errorMsg = nullptr);
+    /// Returns false on error.
+    bool RunFile(const std::string& scriptPath);
 
     /// Execute a Lua script. Initialize() must be called first.
-    /// Returns false on error and fills errorMsg with a descriptive message.
-    bool RunString(const std::string& script, std::string* errorMsg = nullptr);
+    /// Returns false on error.
+    bool RunString(const std::string& script);
 
     /// Reset the engine to a clean state (fresh Lua, fresh bindings).
     void Reset();

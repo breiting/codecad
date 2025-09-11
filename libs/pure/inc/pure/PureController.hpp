@@ -70,6 +70,11 @@ class PureController {
         return m_FramebufferH;
     }
 
+    void SetBackgroundColor(const glm::vec3& rgb);
+    void StoreBookmark(const std::string& name);
+    bool RecallBookmark(const std::string& name);
+    bool SaveScreenshotJPG(const std::string& path, int quality = 90, int width = 0, int height = 0);
+
    private:
     void SetupGl();
     void HandleInput();
@@ -113,6 +118,9 @@ class PureController {
 
     std::string m_StatusMessage = "Ready!";
     std::chrono::steady_clock::time_point m_StatusTimestamp;
+
+    std::unordered_map<std::string, CameraBookmark> m_CameraBookmarks;
+    glm::vec3 m_Background{0.11f, 0.12f, 0.14f};
 };
 
 }  // namespace pure

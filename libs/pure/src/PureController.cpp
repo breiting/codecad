@@ -1,4 +1,5 @@
 #include <imgui.h>
+#include <stb_image_write.h>
 
 #include <chrono>
 #include <glm/gtc/matrix_transform.hpp>
@@ -144,7 +145,7 @@ void PureController::SetupGl() {
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_CULL_FACE);
 
-    glClearColor(0.11f, 0.12f, 0.14f, 1.0f);
+    glClearColor(m_Background.r, m_Background.g, m_Background.b, 1.0f);
 }
 
 void PureController::InstallGlfwCallbacks() {
@@ -364,6 +365,105 @@ void PureController::BuildDemoScene() {
                      glm::vec3(0.25f, 1.0f, 0.25f));
     m_Scene->AddPart("cube 3", cube, glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 0.0f)),
                      glm::vec3(0.25f, 0.25f, 1.0f));
+}
+
+void PureController::SetBackgroundColor(const glm::vec3& rgb) {
+    m_Background = rgb;
+}
+
+void PureController::StoreBookmark(const std::string& name) {
+    if (!m_Camera) return;
+    CameraBookmark bm;
+    bm.position = m_Camera->Position();
+    bm.target = m_Camera->Target();
+    bm.up = {0, 0, 1};
+    bm.fovDeg = m_Camera->FovDeg();
+    m_CameraBookmarks[name] = bm;
+}
+
+bool PureController::RecallBookmark(const std::string& name) {
+    if (!m_Camera) return false;
+    auto it = m_CameraBookmarks.find(name);
+    if (it == m_CameraBookmarks.end()) return false;
+    const auto& b = it->second;
+    m_Camera->SetPosition(b.position);
+    m_Camera->SetTarget(b.target);
+    m_Camera->SetFovDeg(b.fovDeg);
+    return true;
+}
+
+static bool writePixelsJPG(const std::string& path, int w, int h, const std::vector<uint8_t>& rgba, int quality) {
+    // convert RGBA->RGB
+    std::vector<uint8_t> rgb;
+    rgb.reserve(w * h * 3);
+    for (int i = 0; i < w * h; i++) {
+        rgb.push_back(rgba[4 * i + 0]);
+        rgb.push_back(rgba[4 * i + 1]);
+        rgb.push_back(rgba[4 * i + 2]);
+    }
+    return stbi_write_jpg(path.c_str(), w, h, 3, rgb.data(), quality) != 0;
+}
+
+bool PureController::SaveScreenshotJPG(const std::string& path, int quality, int width, int height) {
+    // 1) Offscreen FBO
+    int w = width > 0 ? width : m_FramebufferW;
+    int h = height > 0 ? height : m_FramebufferH;
+
+    GLuint fbo = 0, tex = 0, rbo = 0;
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
+    glGenRenderbuffers(1, &rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, w, h);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glDeleteFramebuffers(1, &fbo);
+        glDeleteTextures(1, &tex);
+        glDeleteRenderbuffers(1, &rbo);
+        return false;
+    }
+
+    // 2) Render
+    GLint prevViewport[4];
+    glGetIntegerv(GL_VIEWPORT, prevViewport);
+    glViewport(0, 0, w, h);
+    glClearColor(m_Background.r, m_Background.g, m_Background.b, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glm::mat4 view = m_Camera->View();
+    glm::mat4 proj = m_Camera->Projection();
+    m_Renderer->DrawScene(m_Scene, m_Shader.get(), view, proj, m_Camera->Position(), m_Camera->ViewDirection());
+
+    if (m_Axis) {
+        m_Axis->Render(m_Camera->View(), m_Camera->Projection());
+    }
+
+    std::vector<uint8_t> pixels(w * h * 4);
+    glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+    // Flip vertically
+    for (int y = 0; y < h / 2; ++y) {
+        auto* a = pixels.data() + y * w * 4;
+        auto* b = pixels.data() + (h - 1 - y) * w * 4;
+        for (int i = 0; i < w * 4; i++) std::swap(a[i], b[i]);
+    }
+
+    // 4) Write
+    bool ok = writePixelsJPG(path, w, h, pixels, quality);
+
+    // 5) Cleanup
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(prevViewport[0], prevViewport[1], prevViewport[2], prevViewport[3]);
+    glDeleteFramebuffers(1, &fbo);
+    glDeleteTextures(1, &tex);
+    glDeleteRenderbuffers(1, &rbo);
+    return ok;
 }
 
 }  // namespace pure

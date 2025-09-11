@@ -3,9 +3,11 @@
 #include <chrono>
 #include <iostream>
 #include <sstream>
+#include <filesystem>
 
 #include "ccad/base/Logger.hpp"
 #include "ccad/lua/Bindings.hpp"
+#include "ccad/lua/PrettyLuaError.hpp"
 
 namespace ccad::lua {
 
@@ -101,9 +103,9 @@ bool LuaEngine::Initialize(std::string* errorMsg) {
     }
 }
 
-bool LuaEngine::RunFile(const std::string& scriptPath, std::string* errorMsg) {
+bool LuaEngine::RunFile(const std::string& scriptPath) {
     if (!m_Initialized) {
-        if (errorMsg) *errorMsg = "CoreEngine not initialized";
+        LOG(ERROR) << "CoreEngine is not initialized";
         return false;
     }
 
@@ -113,39 +115,40 @@ bool LuaEngine::RunFile(const std::string& scriptPath, std::string* errorMsg) {
     sol::load_result chunk = m_Lua.load_file(scriptPath);
     if (!chunk.valid()) {
         sol::error err = chunk;
-        if (errorMsg) *errorMsg = std::string("Lua load error: ") + err.what();
+        LOG(ERROR) << "Lua load error: " << err.what();
         return false;
     }
 
     sol::protected_function_result result = chunk();
     if (!result.valid()) {
-        sol::error err = result;
-        if (errorMsg) *errorMsg = std::string("Lua runtime error: ") + err.what();
+        auto pretty = FormatLuaError(m_Lua, result);
+        PrintLuaErrorPretty(pretty);
         return false;
     }
     auto end = clock::now();
     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
-    LOG(INFO) << "[LuaEngine] Part: " << scriptPath << " processing time: " << ms << "ms";
+    std::filesystem::path partFile{scriptPath};
+    LOG(INFO) << "[LuaEngine] " << partFile.filename() << " processing time: " << ms << "ms";
     return true;
 }
 
-bool LuaEngine::RunString(const std::string& script, std::string* errorMsg) {
+bool LuaEngine::RunString(const std::string& script) {
     if (!m_Initialized) {
-        if (errorMsg) *errorMsg = "CoreEngine not initialized";
+        LOG(ERROR) << "CoreEngine is not initialized";
         return false;
     }
     sol::load_result chunk = m_Lua.load(script.c_str());
     if (!chunk.valid()) {
         sol::error err = chunk;
-        if (errorMsg) *errorMsg = std::string("Lua load error: ") + err.what();
+        LOG(ERROR) << "Lua load error: " << err.what();
         return false;
     }
 
     sol::protected_function_result result = chunk();
     if (!result.valid()) {
-        sol::error err = result;
-        if (errorMsg) *errorMsg = std::string("Lua runtime error: ") + err.what();
+        auto pretty = FormatLuaError(m_Lua, result);
+        PrintLuaErrorPretty(pretty);
         return false;
     }
     return true;

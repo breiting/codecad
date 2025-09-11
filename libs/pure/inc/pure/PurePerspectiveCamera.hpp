@@ -10,8 +10,9 @@ class PurePerspectiveCamera : public IPureCamera {
     PurePerspectiveCamera();
 
     void SetAspect(float aspect) override;
-    void SetFovDegrees(float degrees);
-    void SetTarget(const glm::vec3& target);
+    void SetFovDeg(float degrees) override;
+    void SetTarget(const glm::vec3& target) override;
+    void SetPosition(const glm::vec3& pos) override;
     void SetRadius(float radius);
 
     // Mouse control
@@ -23,6 +24,13 @@ class PurePerspectiveCamera : public IPureCamera {
     // BBox-Utilities
     void FitToBounds(const PureBounds& bounds, float padding = 1.1f) override;
 
+    glm::vec3 Target() const override {
+        return m_Target;
+    }
+    float FovDeg() const override {
+        return m_FovDeg;
+    }
+
     // Matrices
     glm::mat4 View() const override;  // Z-up
     glm::mat4 Projection() const override;
@@ -31,17 +39,11 @@ class PurePerspectiveCamera : public IPureCamera {
     glm::vec3 Position() const override {
         return m_Position;
     }
-    glm::vec3 Target() const {
-        return m_Target;
-    }
     glm::vec3 ViewDirection() const override {
         return glm::normalize(m_Target - m_Position);
     }
     float Aspect() const {
         return m_Aspect;
-    }
-    float FovDegrees() const {
-        return m_FovDeg;
     }
     float Radius() const {
         return m_Radius;
