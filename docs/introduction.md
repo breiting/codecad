@@ -26,9 +26,14 @@ emit(part)
 
 That may look simple, but it’s already producing a real M8 threaded rod that can be 3D printed.
 
+<figure markdown>
+    <img src="../images/example_thread.jpg" width="800"/>
+    <figcaption>A threaded rod with simple code.</figcaption>
+</figure>
+
 ## CodeCAD is a library — GUIs are optional
 
-CodeCAD is intentionally designed as a GUI-less library. You work in Lua files and let the system render your geometry in the included PURE viewer.
+CodeCAD is intentionally designed as a GUI-less library. You work in Lua files and let the system render your geometry in the included viewer.
 
 This makes CodeCAD extremely flexible:
 
@@ -57,7 +62,7 @@ But CodeCAD focuses on a different sweet spot: lightweight, clean, and practical
 ### Compared to OpenSCAD
 
 - ✅ General-purpose Lua instead of a limited DSL.
-- ✅ OpenCascade kernel instead of CGAL → advanced CAD features like fillets, chamfers, STEP export.
+- ✅ OpenCascade kernel instead of CGAL including advanced CAD features.
 - ✅ Extensible: full Lua logic, not just CAD expressions.
 
 ### Compared to CadQuery

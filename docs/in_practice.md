@@ -4,6 +4,73 @@ CodeCAD is more than just individual Lua scripts. A full project ties together p
 
 This section explains how projects work and how they connect to real-world workflows such as 3D printing and construction.
 
+## Coordinate System
+
+CodeCAD uses a right-handed 3D coordinate system, which defines how shapes are placed in space. Understanding the axes is crucial, because every primitive, transformation, and operation builds on this foundation.
+
+- X axis → left / right
+- Y axis → front / back
+- Z axis → bottom / top
+
+<figure markdown>
+    <img src="../images/coordinate_system.png" width="400"/>
+    <figcaption>CodeCAD coordinate system.</figcaption>
+</figure>
+
+By convention:
+
+- The origin (0, 0, 0) is the reference point for all coordinates.
+- Positive X goes to the right, negative X to the left.
+- Positive Y goes backward, negative Y goes forward.
+- Positive Z goes up, negative Z goes down.
+
+### Why This Matters
+
+- Placing parts – When you use translate, you are moving objects along these axes.
+- Rotations – Functions like `rotate_x` or `rotate_z` depend on knowing which direction each axis points.
+- Assemblies – When combining multiple parts, a shared understanding of the coordinate system makes it easy to align them correctly.
+- Manufacturing consistency – 3D printers and CNC machines also rely on a coordinate system; designing with the correct orientation avoids surprises when exporting.
+
+### Example
+
+```lua
+local b = box(10, 10, 10)
+
+-- Move 20 mm to the right (X axis)
+local right = translate(b, 20, 0, 0)
+
+-- Move 20 mm backward (Y axis)
+local back = translate(b, 0, 20, 0)
+
+-- Move 20 mm upward (Z axis)
+local up = translate(b, 0, 0, 20)
+
+emit(union(b, right, back, up))
+```
+
+This creates four cubes:
+
+- one at the origin,
+- one shifted right,
+- one shifted back,
+- and one shifted up.
+
+<figure markdown>
+    <img src="../images/cubes.jpg" width="800"/>
+    <figcaption>A small L-shaped cluster of cubes showing how X, Y, and Z work.</figcaption>
+</figure>
+
+## Units
+
+CodeCAD uses **millimeters** for all lengths and **degrees** for all angles by default.
+
+- Lengths → millimeters (mm)
+- Angles → degrees (°)
+
+This keeps the modeling workflow simple and consistent with most 3D printing and mechanical design standards.
+
+If you need to work in other units, you can either scale your model or adapt the units field in the project metadata.
+
 ## Project Structure
 
 A CodeCAD project is described in a file called `project.json`. It contains the following main sections:
@@ -41,7 +108,9 @@ Defines available materials, usually by color for visualization.
 
 ### params
 
-Global parameters for your design. These can are getting populated to your individual Lua files. Which means that they act as global variables. The viewer picks up the project parameters and offers a UI to change the interactively.
+The `params` section defines global parameters for your design. They behave like variables that can be accessed inside your Lua part scripts.
+
+The viewer automatically detects these parameters and provides a UI to change them interactively — allowing you to explore design variations without editing code directly.
 
 ```json
 "params": {
@@ -91,13 +160,14 @@ Specifies the project file format version (currently 1).
 ## From Idea to Physical Part
 
 A project can contain multiple parts, each with different material and role.
+
 For example:
 
-• Blue part = a steel mounting plate.
-• Green part = a wooden frame element.
-• Red part = a 3D-printed bolt.
+- Blue part = a steel mounting plate.
+- Green part = a wooden frame element.
+- Red part = a 3D-printed bolt.
 
-In the viewer, you can see how these parts interact, move them into place, and check clearances — all while keeping them parameterized for later adjustments.
+In the viewer, you can see how these parts interact, move them into place, and check clearances - all while keeping them parameterized for later adjustments.
 
 ## Workflow in Practice
 

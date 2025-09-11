@@ -41,7 +41,7 @@ Sketch on paper:
 
 <figure markdown>
     <img src="../images/sketch1.jpg" width="400"/>
-    <figcaption>Simple block with a centered hole.</figcaption>
+    <figcaption>Simple sketch with pen and paper.</figcaption>
 </figure>
 
 The parameters for this bracket are as follows:

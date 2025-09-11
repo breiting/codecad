@@ -16,6 +16,8 @@ nav:
   - Getting Started: getting_started.md
   - Design Principles: design_principles.md
   - CodeCAD in Practice: in_practice.md
+  - Core Functionality:
+      - Primitives: core_primitives.md
   - Terminology: terminology.md
 
 theme:
