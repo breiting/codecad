@@ -13,6 +13,7 @@ add_library(lua STATIC
 			src/BindingUtils.cpp
 			src/BindMech.cpp
 			src/Bom.cpp
+			src/PrettyLuaError.cpp
 )
 
 target_include_directories(lua PUBLIC
