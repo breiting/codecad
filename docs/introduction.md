@@ -26,9 +26,14 @@ emit(part)
 
 That may look simple, but it’s already producing a real M8 threaded rod that can be 3D printed.
 
+<figure markdown>
+    <img src="../images/example_thread.jpg" width="800"/>
+    <figcaption>A threaded rod with simple code.</figcaption>
+</figure>
+
 ## CodeCAD is a library — GUIs are optional
 
-CodeCAD is intentionally designed as a GUI-less library. You work in Lua files and let the system render your geometry in the included PURE viewer.
+CodeCAD is intentionally designed as a GUI-less library. You work in Lua files and let the system render your geometry in the included viewer.
 
 This makes CodeCAD extremely flexible:
 
@@ -40,19 +45,38 @@ A minimal viewer is provided for live preview while coding, but the engine itsel
 
 ## Why CodeCAD instead of OpenSCAD or CadQuery?
 
-Like OpenSCAD and CadQuery, CodeCAD is open-source, script-based, parametric CAD.
-But CodeCAD focuses on a different sweet spot:
+Like **OpenSCAD** and **CadQuery**, CodeCAD is open-source, script-based, and parametric.
+But CodeCAD focuses on a different sweet spot: lightweight, clean, and practical for everyday design.
 
-- Lua instead of DSL or Python
+- Lua instead of DSL or Python<br>
   Lua is extremely lightweight, clean, and embeddable. The syntax stays minimal, but flexible enough to express complex geometry.
-- OCCT instead of CGAL
-  OpenCascade supports advanced CAD operations out-of-the-box: NURBS, splines, sewing, STL repair, STEP import/export, and robust boolean operations.
-- Less boilerplate
-  The Lua API is concise. You write fewer lines of code to create useful parts, thanks to a clean functional style.
-- 3D printing in mind
-  Operations like threads, chamfers, and pipe transitions are provided as first-class modeling tools optimized for printing.
-- Fast iteration
-  Edit your script, save, and instantly see the updated model in the PURE viewer.
+- OCCT instead of CGAL<br>
+  OpenCascade (OCCT) supports advanced CAD operations out-of-the-box: NURBS, splines, sewing, STL repair, STEP import/export, and robust boolean operations.
+- Concise API<br>
+  Less boilerplate. You write fewer lines of code to create useful parts, thanks to a functional, high-level Lua interface.
+- 3D printing in mind<br>
+  Threads, chamfers, fillets, and pipe transitions are provided as first-class tools, optimized for additive workflows.
+- Fast iteration<br>
+  Edit your script, save, and instantly preview in the built-in viewer.
+
+### Compared to OpenSCAD
+
+- ✅ General-purpose Lua instead of a limited DSL.
+- ✅ OpenCascade kernel instead of CGAL including advanced CAD features.
+- ✅ Extensible: full Lua logic, not just CAD expressions.
+
+### Compared to CadQuery
+
+- ✅ Same OCCT kernel, so geometry robustness is comparable.
+- ✅ Simplified API: high-level operations only, no complex OCCT internals exposed.
+- ✅ Lightweight runtime: Lua has almost no dependencies.
+- ✅ Easier for scripting and automation, without requiring the full Python ecosystem.
+
+In short:
+
+- OpenSCAD is approachable but limited.
+- CadQuery is powerful but heavy.
+- CodeCAD is the sweet spot: simple, lightweight, parametric, yet backed by industrial-grade geometry.
 
 ## Why Lua?
 

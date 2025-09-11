@@ -7,6 +7,7 @@
 
 ### General
 
+- Nicer error prints on console, if lua does not get compiled
 - Integrate triangulation parameters in ImGui
 - Make tutorials
 - Animations for parts

@@ -10,9 +10,15 @@ site_author: Bernhard Reitinger
 site_description: "CodeCAD is a lightweight parametric modeling toolkit powered by Lua and OpenCascade – simple, scriptable, and perfect for makers & engineers."
 
 nav:
+  - Home: index.md
   - Introduction: introduction.md
   - Installation: installation.md
   - Getting Started: getting_started.md
+  - Design Principles: design_principles.md
+  - CodeCAD in Practice: in_practice.md
+  - Core Functionality:
+      - Primitives: core_primitives.md
+  - Terminology: terminology.md
 
 theme:
   name: material
@@ -20,6 +26,7 @@ theme:
   features:
     - navigation.instant
     - navigation.top
+    - navigation.footer
     - navigation.tracking
     - content.code.copy
     - search.suggest
@@ -28,8 +35,8 @@ theme:
     - scheme: slate
       primary: indigo
       accent: indigo
-  # logo: 'assets/images/logo.png'
-  favicon: 'assets/images/favicon.png'
+  logo: 'images/CodeCAD-logo.png'
+  favicon: 'images/favicon.ico'
 
 markdown_extensions:
   - admonition

@@ -1,7 +1,10 @@
 # Installation
 
-CodeCAD is developed and tested primarily on **macOS** and **Linux**.  
-Windows support is not yet available — if you want to help porting CodeCAD to Windows, contributions are welcome!
+CodeCAD is developed and tested primarily on **macOS** and **Linux**.
+
+!!! info
+
+    Windows support is not yet available — if you want to help porting CodeCAD to Windows, contributions are welcome!
 
 ## Requirements
 
@@ -61,9 +64,9 @@ make -j$(nproc)   # On macOS: use `make -j$(sysctl -n hw.ncpu)`
 sudo make install
 ```
 
-!!! note “First CMake run”
+!!! warning "First CMake run"
 
-    The first run of `cmake ..` may take longer because external dependencies are downloaded and configured.
+    The first run of `cmake` may take longer because external dependencies are downloaded and configured.
     Subsequent runs will be faster.
 
 ## Post-installation
@@ -76,4 +79,4 @@ ccad --help
 ```
 
 If the installation was successful, you should see the CodeCAD CLI help. 🎉
-You are now ready to jump into [Getting Started](getting_started.md).
+You are now ready getting started.

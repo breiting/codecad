@@ -37,7 +37,7 @@ Here’s what happens step by step:
 
 <figure markdown>
     <img src="../images/getting_started.jpg" width="800"/>
-    <figcaption>Your first project in the PURE viewer.</figcaption>
+    <figcaption>Your first project in the viewer.</figcaption>
 </figure>
 
 Your project structure now looks like this:
@@ -69,7 +69,6 @@ Line by line:
 
 - `box(20, 20, 20)`<br>
   Creates a solid cube with width = 20mm, depth = 30mm, height = 40mm.
-  All units are in millimeters by default.
 - `emit(cube)`<br>
   Emits the shape to the viewer and export pipeline. Think of emit as "make this visible and part of my design".
 
@@ -80,7 +79,9 @@ Let’s extend the part by combining shapes:
 ```lua
 local base = box(40, 40, 10) -- A flat base plate
 local pillar = cylinder(5, 50) -- A vertical pillar
-pillar = translate(pillar, 20, 20, 10) -- Move pillar on top of the base and center on the cube
+
+-- Move pillar on top of the base and center on the cube
+pillar = translate(pillar, 20, 20, 10)
 
 local model = union(base, pillar) -- Boolean union of both
 emit(model)
@@ -112,11 +113,21 @@ emit(part)
 
 This creates a parametric bracket with a hole. Try editing the parameters (30, 50, 5) and watch the viewer update live.
 
+## Exporting STL
+
+To generate STL files for your project, run:
+
+```
+ccad build
+```
+
+This command creates a separate `.stl` file for each part and places them in the `generated/` folder.
+
 ## Next Steps
 
 Now that you've built your first parts, you can:
 
-- Explore more primitives: sphere, cone, rod, hex_prism, ...
+- Explore more primitives: sphere, cone, rod, hex_prism, ... (see [Primitives](core_primitives.md))
 - Try boolean operations: union, difference, intersection
 
 You are ready to start modeling with CodeCAD 🎉
