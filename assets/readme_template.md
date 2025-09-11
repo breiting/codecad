@@ -9,19 +9,13 @@ ccad live
 Add a part:
 
 ```bash
-ccad add
+ccad parts add
 ```
 
 Build STL files:
 
 ```bash
 ccad build
-```
-
-Write LUA LSP file:
-
-```bash
-ccad lsp
 ```
 
 Diagnose:

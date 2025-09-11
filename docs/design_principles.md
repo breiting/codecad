@@ -96,3 +96,4 @@ This simple script is fully parametric: change hole_diameter = 8 and regenerate 
 - Use sketching and measurement to clarify the problem.
 - Code your model as parametric Lua, so it stays adaptable.
 - Let CodeCAD be the catalyst that turns ideas into physical parts.
+- It may be easier to think and model in XY plane first and then go to the Z direction.

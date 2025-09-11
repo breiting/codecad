@@ -196,6 +196,9 @@ void App::handleNew(const std::string& projectName, const std::string& unit) {
 
     std::ofstream(rootDir / ".gitignore") << PROJECT_OUTDIR << "/\n";
 
+    // Also generate LSP files
+    handleLspInit();
+
     std::cout << "Project scaffold created:\n"
               << "  " << fs::absolute(rootDir) << "\n"
               << "  - project.json\n"
@@ -394,6 +397,6 @@ void App::handleLspInit() {
         return;
     }
     std::cout << "Wrote " << luarc << "\n";
-    std::cout << "Included library paths:\n";
-    for (auto& s : libs) std::cout << "  - " << s << "\n";
+    // std::cout << "Included library paths:\n";
+    // for (auto& s : libs) std::cout << "  - " << s << "\n";
 }
