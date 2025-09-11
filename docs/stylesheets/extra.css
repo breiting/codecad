@@ -10,37 +10,3 @@
 .md-tabs {
   background-color: #29777b;
 }
-
-.alert {
-  width: 100%;
-  padding: 12px 16px;
-  border-radius: 4px;
-  border-style: solid;
-  border-width: 1px;
-  margin-bottom: 12px;
-  font-size: 16px;
-}
-
-.alert.alert-attention {
-  background-color: rgb(234, 230, 255);
-  border-color: rgb(234, 230, 255);
-  color: rgb(116, 107, 164);
-}
-
-.alert.alert-info {
-  background-color: rgba(217, 237, 247, 1);
-  color: rgba(49, 112, 143, 1);
-  border-color: rgba(126, 182, 193, 1);
-}
-
-.alert.alert-warning {
-  background-color: rgba(252, 248, 227, 1);
-  border-color: rgba(177, 161, 129, 1);
-  color: rgba(138, 109, 59, 1);
-}
-
-.alert.alert-danger {
-  background-color: rgba(248, 215, 218, 1);
-  border-color: rgba(220, 53, 69, 1);
-  color: rgba(114, 28, 36, 1);
-}
