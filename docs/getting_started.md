@@ -112,6 +112,10 @@ emit(part)
 
 This creates a parametric bracket with a hole. Try editing the parameters (30, 50, 5) and watch the viewer update live.
 
+## Exporting Project
+
+In order to generate an STL file for you project, just use the command `ccad build` which then generates for each part a `.stl` file in the `generated/` folder.
+
 ## Next Steps
 
 Now that you've built your first parts, you can:

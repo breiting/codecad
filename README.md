@@ -50,14 +50,16 @@ Project tool (`ccad init/parts/live/build/bom`, etc.). Can execute Lua/kernels l
 
 Playground for new geometries/algorithms. Uses kernel and PURE for visualization.
 
+> [!IMPORTANT]
+> We are still in an early development stage. Please consider that the APIs are not yet stable and may change in future.
+
 ## 🚀 Getting Started
 
 ### Requirements
 
-- CMake ≥ 3.16
+- CMake
 - C++17 compiler
 - OpenCascade (OCCT) installed (version 7.9.1)
-- Lua 5.4 (headers + libs)
 
 ### Build
 
@@ -66,7 +68,7 @@ git clone https://github.com/breiting/codecad
 cd codecad
 mkdir build && cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
-make -j8
+make -j
 make install
 ```
 
@@ -119,6 +121,10 @@ emit(difference(b, cut))
 ```
 
 Change hole from 6 → 8 and regenerate — instantly updated.
+
+## User Documentation
+
+Please find more information on our documentation site (https://codecad.xyz)[https://codecad.xyz].
 
 ## 📖 Editor Support
 

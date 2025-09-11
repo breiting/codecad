@@ -4,11 +4,11 @@
 }
 
 .md-header {
-    background-color: #016273;
+  background-color: #29777b;
 }
 
 .md-tabs {
-    background-color: #016273;
+  background-color: #29777b;
 }
 
 .alert {
@@ -24,7 +24,7 @@
 .alert.alert-attention {
   background-color: rgb(234, 230, 255);
   border-color: rgb(234, 230, 255);
-  color: rgb(116,107,164);
+  color: rgb(116, 107, 164);
 }
 
 .alert.alert-info {
@@ -32,7 +32,6 @@
   color: rgba(49, 112, 143, 1);
   border-color: rgba(126, 182, 193, 1);
 }
-
 
 .alert.alert-warning {
   background-color: rgba(252, 248, 227, 1);
@@ -43,5 +42,5 @@
 .alert.alert-danger {
   background-color: rgba(248, 215, 218, 1);
   border-color: rgba(220, 53, 69, 1);
-  color: rgba(114, 28, 36,1);
+  color: rgba(114, 28, 36, 1);
 }

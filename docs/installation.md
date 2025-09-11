@@ -61,7 +61,7 @@ make -j$(nproc)   # On macOS: use `make -j$(sysctl -n hw.ncpu)`
 sudo make install
 ```
 
-!!! note “First CMake run”
+!!! note "First CMake run"
 
     The first run of `cmake ..` may take longer because external dependencies are downloaded and configured.
     Subsequent runs will be faster.
