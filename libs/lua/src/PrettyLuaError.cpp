@@ -56,7 +56,7 @@ std::string makeContext(const std::string& file, int line, int pad = 2) {
         oss << (mark ? yellow("▶ ") : "  ");
         oss << cyan(std::to_string(i + 1)) << "  " << lines[i] << "\n";
         if (mark) {
-            // optional: caret line (rudimentär)
+            // optional: caret line
         }
     }
     return oss.str();
@@ -67,13 +67,13 @@ std::string makeContext(const std::string& file, int line, int pad = 2) {
 namespace ccad::lua {
 
 LuaErrorPretty FormatLuaError(lua_State* L, const sol::error& e) {
-    (void)L;  // optional: luaL_traceback ergänzen
+    (void)L;  // optional: luaL_traceback
     LuaErrorPretty pe;
 
     std::string msg = e.what();
     pe.headline = bold(red("Lua error: ")) + red(msg);
 
-    // Primitive Frame-Extraktion
+    // simple frame extraction
     std::regex frameRe(R"(([^:\n]+\.lua):(\d+)(?:: in function '([^']+)')?)");
     std::smatch m;
     std::string s = msg;
