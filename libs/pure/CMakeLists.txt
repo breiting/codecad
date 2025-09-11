@@ -46,6 +46,7 @@ ${CMAKE_CURRENT_SOURCE_DIR}/inc
 ${GEN_INC_DIR}
 PRIVATE
 external/glad/include
+external
 ${imgui_SOURCE_DIR}
 ${imgui_SOURCE_DIR}/backends
 )

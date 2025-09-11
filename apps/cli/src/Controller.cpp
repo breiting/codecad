@@ -11,6 +11,7 @@
 
 #include "GLFW/glfw3.h"
 #include "ProjectPanel.hpp"
+#include "Time.hpp"
 #include "Utils.hpp"
 #include "pure/PureBounds.hpp"
 #include "pure/PureMeasurement.hpp"
@@ -142,6 +143,7 @@ void Controller::ViewProject() {
         throw std::runtime_error("No project is loaded!");
     }
 
+    m_PureController.SetBackgroundColor(ParseHexColor("#1e2129"));
     if (!m_PureController.Initialize(1600, 1200, "CodeCAD Viewer", utils::DefaultInstallFontsPath())) {
         std::cerr << "Failed to initialize CodeCAD Viewer\n";
         return;
@@ -169,7 +171,7 @@ void Controller::ViewProject() {
         }
     });
 
-    m_PureController.SetKeyPressedHandler([this](int key, int /*mods*/) {
+    m_PureController.SetKeyPressedHandler([this](int key, int mods) {
         switch (key) {
             case GLFW_KEY_W: {
                 m_PureController.ToggleWireframe();
@@ -188,6 +190,10 @@ void Controller::ViewProject() {
 
             default:
                 break;
+        }
+        // easter egg, save current framebuffer as JPG (handy for generating pictures for documentation)
+        if (key == GLFW_KEY_X && (mods & GLFW_MOD_CONTROL)) {
+            m_PureController.SaveScreenshotJPG("shot-" + Time::GetCurrentDateTimeString() + ".jpg");
         }
     });
 

@@ -3,6 +3,8 @@
 **CodeCAD** is a lightweight, code-first parametric CAD tool.
 You write **Lua scripts**, CodeCAD builds **solids** using the robust [OpenCascade](https://www.opencascade.com/) kernel (OCCT) — with live preview, reusable parts, and a workflow that feels as natural as editing code in your favorite editor.
 
+Please find more information on our documentation site [https://www.codecad.xyz](https://www.codecad.xyz).
+
 [![CodeCAD Demo](https://img.youtube.com/vi/xyIz4Y3gc14/hqdefault.jpg)](https://www.youtube.com/watch?v=xyIz4Y3gc14)
 
 - ⚡ **Live**: code in your editor, geometry updates instantly in an integrated viewer
@@ -121,10 +123,6 @@ emit(difference(b, cut))
 ```
 
 Change hole from 6 → 8 and regenerate — instantly updated.
-
-## User Documentation
-
-Please find more information on our documentation site (https://codecad.xyz)[https://codecad.xyz].
 
 ## 📖 Editor Support
 

@@ -12,11 +12,15 @@ PurePerspectiveCamera::PurePerspectiveCamera() {
 void PurePerspectiveCamera::SetAspect(float aspect) {
     m_Aspect = (aspect > 0.f ? aspect : 1.f);
 }
-void PurePerspectiveCamera::SetFovDegrees(float degrees) {
+void PurePerspectiveCamera::SetFovDeg(float degrees) {
     m_FovDeg = degrees;
 }
 void PurePerspectiveCamera::SetTarget(const glm::vec3& target) {
     m_Target = target;
+    UpdatePosition();
+}
+void PurePerspectiveCamera::SetPosition(const glm::vec3& pos) {
+    m_Position = pos;
     UpdatePosition();
 }
 void PurePerspectiveCamera::SetRadius(float radius) {
