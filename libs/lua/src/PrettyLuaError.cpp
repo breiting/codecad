@@ -1,5 +1,6 @@
 #include "ccad/lua/PrettyLuaError.hpp"
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <regex>

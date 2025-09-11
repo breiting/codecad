@@ -3,6 +3,7 @@
 #include <chrono>
 #include <iostream>
 #include <sstream>
+#include <filesystem>
 
 #include "ccad/base/Logger.hpp"
 #include "ccad/lua/Bindings.hpp"
