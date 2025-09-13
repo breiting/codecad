@@ -132,7 +132,9 @@ void Controller::BuildProject() {
         }
         const auto stem = fs::path(luaFile).stem().string();
         const fs::path stlFile = outDir / (stem + ".stl");
+        const fs::path stepFile = outDir / (stem + ".step");
         ccad::io::SaveSTL(emitted.value(), stlFile.string(), ccad::lua::GetTriangulationParameters());
+        ccad::io::SaveSTEP(emitted.value(), stepFile.string());
     }
 }
 void Controller::ViewProject() {
