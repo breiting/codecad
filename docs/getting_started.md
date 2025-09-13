@@ -110,15 +110,15 @@ emit(part)
 
 This creates a parametric bracket with a hole. Try editing the parameters (30, 50, 5) and watch the viewer update live.
 
-## Exporting STL
+## Exporting STL/STEP
 
-To generate STL files for your project, run:
+To generate STL and STEP files for your project, run:
 
 ```
 ccad build
 ```
 
-This command creates a separate `.stl` file for each part and places them in the `generated/` folder.
+This command creates a separate `.stl` and `.step` file for each part and places them in the `generated/` folder.
 
 ## Next Steps
 

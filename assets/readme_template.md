@@ -12,7 +12,7 @@ Add a part:
 ccad parts add
 ```
 
-Build STL files:
+Build STL and STEP file:
 
 ```bash
 ccad build
