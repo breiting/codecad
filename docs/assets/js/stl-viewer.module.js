@@ -12,32 +12,43 @@ function createViewer(el) {
   const bgHex = el.getAttribute("data-bg") || "#1e2129";
   const showGrid = parseBool(el.getAttribute("data-grid"), true);
   const autoRotate = parseBool(el.getAttribute("data-autorotate"), false);
+  const showControls = parseBool(el.getAttribute("data-controls"), false);
 
+  // Sizing helpers (robust against 0×0)
+  const getSize = () => {
+    const r = el.getBoundingClientRect();
+    const w = Math.floor(r.width) || el.clientWidth || 800;
+    const h = Math.floor(r.height) || el.clientHeight || 500;
+    return { w, h };
+  };
+  let { w, h } = getSize();
+
+  // Scene
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(bgHex);
 
-  const camera = new THREE.PerspectiveCamera(
-    50,
-    el.clientWidth / el.clientHeight,
-    0.1,
-    2000,
-  );
+  // Camera
+  const camera = new THREE.PerspectiveCamera(50, w / h, 0.1, 2000);
   camera.position.set(120, 90, 120);
 
+  // Renderer
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.setSize(el.clientWidth, el.clientHeight);
+  renderer.setSize(w, h);
   el.appendChild(renderer.domElement);
 
+  // Controls
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.autoRotate = autoRotate;
 
+  // Lights
   scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 0.7));
   const dir = new THREE.DirectionalLight(0xffffff, 0.7);
   dir.position.set(1, 1, 1);
   scene.add(dir);
 
+  // Grid
   let grid;
   if (showGrid) {
     grid = new THREE.GridHelper(200, 20, 0x888888, 0xdddddd);
@@ -45,6 +56,7 @@ function createViewer(el) {
     scene.add(grid);
   }
 
+  // Load STL
   const loader = new STLLoader();
   let mesh;
   loader.load(src, (geometry) => {
@@ -62,25 +74,81 @@ function createViewer(el) {
       .addVectors(bb.min, bb.max)
       .multiplyScalar(0.5);
 
+    mesh.rotateX(-Math.PI / 2);
+    // mesh.rotateY(Math.PI);
+
+    // center & scale
     mesh.position.sub(center);
     const maxDim = Math.max(size.x, size.y, size.z) || 1;
     mesh.scale.setScalar(100 / maxDim);
     scene.add(mesh);
 
+    // frame
     const dist = 2.2 * 100;
     camera.position.set(dist, dist * 0.75, dist);
     controls.target.set(0, 0, 0);
   });
 
+  // Resize
   const ro = new ResizeObserver(() => {
-    const w = el.clientWidth || 1,
-      h = el.clientHeight || 1;
+    const { w, h } = getSize();
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     renderer.setSize(w, h);
   });
   ro.observe(el);
+  // force one update
+  (() => {
+    const { w, h } = getSize();
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+  })();
 
+  // Toolbar (optional)
+  let toolbar, cbRotate, cbGrid;
+  if (showControls) {
+    toolbar = document.createElement("div");
+    toolbar.className = "stl-toolbar";
+
+    // autorotate
+    const labelRot = document.createElement("label");
+    cbRotate = document.createElement("input");
+    cbRotate.type = "checkbox";
+    cbRotate.checked = autoRotate;
+    labelRot.appendChild(cbRotate);
+    labelRot.appendChild(document.createTextNode("Auto-rotate"));
+
+    // grid
+    const labelGrid = document.createElement("label");
+    cbGrid = document.createElement("input");
+    cbGrid.type = "checkbox";
+    cbGrid.checked = showGrid;
+    labelGrid.appendChild(cbGrid);
+    labelGrid.appendChild(document.createTextNode("Grid"));
+
+    toolbar.appendChild(labelRot);
+    toolbar.appendChild(labelGrid);
+    el.appendChild(toolbar);
+
+    // events
+    cbRotate.addEventListener("change", () => {
+      controls.autoRotate = cbRotate.checked;
+    });
+    cbGrid.addEventListener("change", () => {
+      if (cbGrid.checked) {
+        if (!grid) {
+          grid = new THREE.GridHelper(200, 20, 0x888888, 0xdddddd);
+          grid.position.y = -0.01;
+        }
+        scene.add(grid);
+      } else if (grid) {
+        scene.remove(grid);
+      }
+    });
+  }
+
+  // Render loop
   let disposed = false;
   (function animate() {
     if (disposed) return;
@@ -89,6 +157,7 @@ function createViewer(el) {
     renderer.render(scene, camera);
   })();
 
+  // Disposer for SPA nav
   return () => {
     disposed = true;
     ro.disconnect();
@@ -98,7 +167,7 @@ function createViewer(el) {
       mesh.geometry.dispose();
       if (mesh.material?.dispose) mesh.material.dispose();
     }
-    if (grid) grid.geometry.dispose();
+    if (grid) grid.geometry?.dispose?.();
     while (el.firstChild) el.removeChild(el.firstChild);
   };
 }
@@ -118,7 +187,6 @@ if (document.readyState === "loading") {
   initAll();
 }
 
-// Re-init on MkDocs Material SPA page changes
 if (window.document$?.subscribe) {
   window.document$.subscribe(() => {
     document.querySelectorAll(".stl-viewer").forEach((el) => el.__dispose?.());

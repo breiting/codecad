@@ -32,10 +32,28 @@ With Lua, you describe parts with code that is **easy to read, easy to share, an
 - 🔬 **Researchers** – Explore geometry and manufacturing processes in a programmable, reproducible way.
 - 🔬 **Software developers** – Apply software engineering mindset to CAD modeling.
 
+## First example: A simple hex knob
+
+```lua
+local hex_across_flats = 13 -- mm
+local hex_height = 6        -- mm
+
+local knob_diameter = 20    -- mm
+local knob_height = 10      -- mm
+
+local hex = hex_prism(hex_across_flats, hex_height)
+hex = translate(hex, 0, 0, knob_height - hex_height)
+
+local cyl = cylinder(knob_diameter, knob_height)
+
+emit(difference(cyl, hex))
+```
+
 <div class="stl-viewer"
      data-src="/assets/models/hexnut_nobb.stl"
      data-color="#4b9fea"
      data-grid="true"
+     data-controls="true"
      data-autorotate="true">
 </div>
 
