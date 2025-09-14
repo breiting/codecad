@@ -46,5 +46,10 @@ markdown_extensions:
   - toc:
       permalink: true
 
+extra_javascript:
+  - assets/js/stl-viewer-bootstrap.js
+
 extra_css:
   - stylesheets/extra.css
+  - stylesheets/viewer.css
+

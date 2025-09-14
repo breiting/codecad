@@ -32,4 +32,11 @@ With Lua, you describe parts with code that is **easy to read, easy to share, an
 - 🔬 **Researchers** – Explore geometry and manufacturing processes in a programmable, reproducible way.
 - 🔬 **Software developers** – Apply software engineering mindset to CAD modeling.
 
+<div class="stl-viewer"
+     data-src="/assets/models/hexnut_nobb.stl"
+     data-color="#4b9fea"
+     data-grid="true"
+     data-autorotate="true">
+</div>
+
 💡 With CodeCAD, you’re not just designing parts – you’re **writing the blueprint of your ideas**.

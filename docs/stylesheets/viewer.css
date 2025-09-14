@@ -1,0 +1,9 @@
+.stl-viewer {
+  width: 100%;
+  max-width: 900px;
+  height: 500px;
+  margin: 1rem auto;
+}
+.stl-viewer canvas {
+  display: block;
+}
