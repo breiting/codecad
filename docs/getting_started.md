@@ -19,7 +19,6 @@ Run the following commands in your terminal:
 ```bash
 mkdir first_project && cd first_project
 ccad init
-ccad lsp
 ccad parts add
 ccad live
 ```
@@ -27,9 +26,7 @@ ccad live
 Here’s what happens step by step:
 
 - `ccad init`<br>
-  Creates a new project configuration (`project.json`) and initializes the folder.
-- `ccad lsp`<br>
-  Sets up Language Server Protocol (LSP) support so that your editor (e.g. Neovim, VSCode) has code completion, inline docs, and validation.
+  Creates a new project configuration (`project.json`) and initializes the folder. This command also sets up the Language Server Protocol (LSP) support so that your editor (e.g. Neovim, VSCode) has code completion, inline docs, and validation.
 - `ccad parts add`<br>
   Adds your first part file in `parts/`. By default, this contains a boilerplate Lua script with a simple cube.
 - `ccad live`<br>
@@ -113,15 +110,15 @@ emit(part)
 
 This creates a parametric bracket with a hole. Try editing the parameters (30, 50, 5) and watch the viewer update live.
 
-## Exporting STL
+## Exporting STL/STEP
 
-To generate STL files for your project, run:
+To generate STL and STEP files for your project, run:
 
 ```
 ccad build
 ```
 
-This command creates a separate `.stl` file for each part and places them in the `generated/` folder.
+This command creates a separate `.stl` and `.step` file for each part and places them in the `generated/` folder.
 
 ## Next Steps
 
