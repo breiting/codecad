@@ -20,6 +20,7 @@ nav:
       - Primitives: core_primitives.md
       - Boolean: core_boolean.md
       - Transformation: core_transform.md
+      - Features: core_features.md
       - Sketches: core_sketches.md
   - Terminology: terminology.md
 
