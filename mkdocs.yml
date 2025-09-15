@@ -19,6 +19,7 @@ nav:
   - Core Functionality:
       - Primitives: core_primitives.md
       - Boolean: core_boolean.md
+      - Transformation: core_transform.md
       - Sketches: core_sketches.md
   - Terminology: terminology.md
 
