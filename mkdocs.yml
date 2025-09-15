@@ -22,6 +22,8 @@ nav:
       - Transformation: core_transform.md
       - Features: core_features.md
       - Sketches: core_sketches.md
+      - Construction: core_construction.md
+      - Mechanical: core_mechanical.md
   - Terminology: terminology.md
 
 theme:
@@ -32,6 +34,7 @@ theme:
     - navigation.top
     - navigation.footer
     - navigation.tracking
+    - navigation.expand
     - content.code.copy
     - search.suggest
     - search.highlight

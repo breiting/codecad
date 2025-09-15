@@ -1,6 +1,7 @@
 #include "ccad/mech/Rod.hpp"
 
 #include "ccad/feature/Chamfer.hpp"
+#include "ccad/feature/Fillet.hpp"
 #include "ccad/geom/Cylinder.hpp"
 #include "ccad/mech/Threads.hpp"
 #include "ccad/ops/Boolean.hpp"
@@ -12,8 +13,22 @@ using namespace ccad::ops;
 namespace ccad {
 namespace mech {
 Shape Rod(double diameter, double length, const RodSpec& spec) {
-    return geom::Cylinder(diameter, length);
-    // TODO: apply chamfer
+    auto rod = geom::Cylinder(diameter, length);
+    if (spec.chamferBottom) {
+        auto edges = select::EdgeSelector::FromShape(rod)   //
+                         .onBoxSide(select::BoxSide::ZMin)  //
+                         .collect();
+
+        rod = Fillet(rod, edges, 1);
+    }
+    if (spec.chamferTop) {
+        auto edges = select::EdgeSelector::FromShape(rod)   //
+                         .onBoxSide(select::BoxSide::ZMax)  //
+                         .collect();
+
+        rod = Fillet(rod, edges, 1);
+    }
+    return rod;
 }
 
 Shape ThreadedRod(double totalLength, double threadLength, const RodSpec& rodSpec, const ThreadSpec& threadSpec) {
