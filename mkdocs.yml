@@ -23,6 +23,7 @@ nav:
       - Features: core_features.md
       - Sketches: core_sketches.md
       - Construction: core_construction.md
+      - Curves: core_curves.md
       - Mechanical: core_mechanical.md
   - Terminology: terminology.md
 
