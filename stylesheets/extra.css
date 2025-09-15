@@ -1,0 +1,12 @@
+.table-no-border {
+  border: 0px solid !important;
+  border-collapse: collapse;
+}
+
+.md-header {
+  background-color: #29777b;
+}
+
+.md-tabs {
+  background-color: #29777b;
+}
