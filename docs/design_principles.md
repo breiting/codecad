@@ -70,15 +70,21 @@ hole = translate(hole, width / 2, height / 2, 0)
 -- Cut hole through plate
 local bracket = difference(plate, hole)
 
+-- Center object around origin
+bracket = translate(bracket, -width / 2, -height / 2, 0)
+
 emit(bracket)
 ```
 
 This simple script is fully parametric: change hole_diameter = 8 and regenerate to adapt the bracket instantly.
 
-<figure markdown>
-    <img src="../images/example2.png" width="800"/>
-    <figcaption>Same block in CodeCAD with parametric settings.</figcaption>
-</figure>
+<div class="stl-viewer"
+     data-src="/assets/models/bracket.stl"
+     data-color="#4b9fea"
+     data-grid="true"
+     data-controls="true"
+     data-autorotate="true">
+</div>
 
 ## Common Pitfalls
 

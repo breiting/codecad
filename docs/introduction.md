@@ -20,16 +20,19 @@ spec.fitDiameter = 8.0
 spec.pitch = 1.25
 spec.depth = 0.6
 
-local part = threaded_rod(20.0, 10.0, spec)
+local part = threaded_rod(15.0, 10.0, spec)
 emit(part)
 ```
 
 That may look simple, but it’s already producing a real M8 threaded rod that can be 3D printed.
 
-<figure markdown>
-    <img src="../images/example_thread.jpg" width="800"/>
-    <figcaption>A threaded rod with simple code.</figcaption>
-</figure>
+<div class="stl-viewer"
+     data-src="/assets/models/thread.stl"
+     data-color="#4b9fea"
+     data-grid="true"
+     data-controls="true"
+     data-autorotate="true">
+</div>
 
 ## CodeCAD is a library — GUIs are optional
 

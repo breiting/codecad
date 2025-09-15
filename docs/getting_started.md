@@ -121,10 +121,10 @@ You can also structure your Lua code with functions to make reusable parts:
 ```lua
 -- Create a simple bracket
 local function bracket(width, height, thickness)
-  local plate = box(width, thickness, height)
-  local hole = cylinder(3, thickness * 2)
-  hole = translate(hole, width/2, 0, height/2)
-  return difference(plate, hole)
+	local plate = box(width, height, thickness)
+	local hole = cylinder(5, thickness * 2)
+	hole = translate(hole, width / 2, height / 2, 0)
+	return difference(plate, hole)
 end
 
 local part = bracket(30, 50, 5)
