@@ -82,16 +82,6 @@ rod(diameter, length, chamferBottom?, chamferTop?)
 Creates a cylindrical rod with optional end chamfers—handy as a starting shaft or as a carrier for threads.
 
 ```lua
--- 8 mm × 30 mm rod with a small chamfer on both ends
-local r = rod(8, 30, true, true)
-emit(r)
-```
-
-## rod(diameter, height)
-
-Creates a simple cylindrical rod (alias for a cylinder, but semantically useful for mechanical parts).
-
-```lua
 --8<-- "docs/assets/lua/rod.lua"
 ```
 
@@ -105,9 +95,9 @@ Creates a simple cylindrical rod (alias for a cylinder, but semantically useful 
 
 ### Parameters
 
-- diameter: outer diameter (OD)
-- length: along the Z-axis
-- chamferBottom?, chamferTop?: booleans to ease starts and reduce elephant-foot
+- `diameter`: outer diameter (OD)
+- `length`: along the Z-axis
+- `chamferBottom?`, `chamferTop?`: booleans to ease starts and reduce elephant-foot
 - **Returns** Shape — solid cylinder with optional chamfers
 
 ## Threaded Rod
@@ -119,74 +109,39 @@ threaded_rod(totalLength, threadLength, threadSpec)
 Generates an external threaded shaft and returns both the solid and the actual major diameter applied after any adjustments for tip style and clearance.
 
 ```lua
--- M20-ish printable rod: 60 mm long, 45 mm threaded section
-local ts = ThreadSpec.new()
-ts.fitDiameter = 20.0
-ts.pitch = 2.0
-ts.depth = 0.9
-ts.clearance = 0.20
-ts.segmentsPerTurn = 48
-ts.handed = "right"
-ts.tip = "cut"
-ts.tipCutRatio = 0.4
-ts:normalize()
-
-local tr, major = threaded_rod(60, 45, ts)
-emit(tr)
--- You can report or design mating parts against `major` if needed.
+--8<-- "docs/assets/lua/threaded_rod.lua"
 ```
+
+<div class="stl-viewer"
+     data-src="/assets/models/threaded_rod.stl"
+     data-color="#4b9fea"
+     data-grid="true"
+     data-controls="true"
+     data-autorotate="true">
+</div>
 
 ### Parameters
 
-- totalLength: full shaft length (mm)
-- threadLength: axial length of the threaded section (0..totalLength)
-- threadSpec: a validated ThreadSpec
-- Returns
+- `totalLength`: full shaft length (mm)
+- `threadLength`: axial length of the threaded section (0..totalLength)
+- `threadSpec`: a validated `ThreadSpec`
+- **Returns**
   - Shape — the threaded rod solid
   - number — actualMajorDiameter (mm)
 
 ## Patterns & Tips
 
-- For partial threading, set threadLength < totalLength (e.g., leave a smooth shank).
-- Use handed="left" for reverse threads in anti-rotation features.
-- For small pitches or brittle materials, prefer tip="cut" with tipCutRatio≈0.4.
-- Increase segmentsPerTurn for close-up aesthetics or metal printing.
-
-## Putting It Together
-
-Printable Reducer with Threaded Stub
-
-```lua
--- 1) Reducer body
-local reducer = pipe_adapter(8, 12, 6, 10, 25, 9) -- gentle transition
-
--- 2) Threaded stub: partial external thread on a rod
-local ts = ThreadSpec.new()
-ts.fitDiameter = 12.0
-ts.pitch = 1.5
-ts.depth = 0.6
-ts.clearance = 0.18
-ts.segmentsPerTurn = 48
-ts.handed = "right"
-ts.tip = "cut"
-ts.tipCutRatio = 0.35
-ts:normalize()
-
-local stub, major = threaded_rod(20, 12, ts)
-
--- 3) Assemble
-stub = center_xy(stub)
-reducer = center_xy(reducer)
-local assembly = union(reducer, translate(stub, 0, 0, -10))
-emit(assembly)
-```
+- For partial threading, set `threadLength` < `totalLength` (e.g., leave a smooth shank).
+- Use `handed="left"` for reverse threads in anti-rotation features.
+- For small pitches or brittle materials, prefer `tip="cut"` with `tipCutRatio≈0.4`.
+- Increase `segmentsPerTurn` for close-up aesthetics or metal printing.
 
 ## Gotchas
 
 - Units & axes: All distances in mm; axial features are aligned to Z.
-- Validate specs: Always call spec:normalize() to clamp and sanity-check inputs.
-- Wall checks: Ensure rOut − rIn stays positive and realistic for printing or machining.
-- Mating threads: Reuse the same fitDiameter/pitch for male/female; tune clearance for your process.
-- Geometry complexity: Extremely tight bends, tiny pitches, or abrupt transitions may challenge meshing—raise segmentsPerTurn or adjust dimensions.
+- Validate specs: Always call `spec:normalize()` to clamp and sanity-check inputs.
+- Wall checks: Ensure `rOut` − `rIn` stays positive and realistic for printing or machining.
+- Mating threads: Reuse the same `fitDiameter/pitch` for male/female; tune clearance for your process.
+- Geometry complexity: Extremely tight bends, tiny pitches, or abrupt transitions may challenge meshing—raise `segmentsPerTurn` or adjust dimensions.
 
 These mechanical tools give you parametric, fabrication-ready parts—smooth pipe transitions, robust rods, and threads that actually fit.
