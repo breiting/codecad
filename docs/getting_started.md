@@ -1,10 +1,33 @@
 # Getting Started with CodeCAD
 
-CodeCAD is designed to be simple and developer-friendly. The easiest way to begin is through the CLI tool `ccad`.
+CodeCAD is designed to be simple and developer-friendly. Here is a first and simple example modeling a knob with a hex insert, ready to be printed:
+
+```lua
+local hex_across_flats = 13 -- mm
+local hex_height = 6        -- mm
+
+local knob_diameter = 20    -- mm
+local knob_height = 10      -- mm
+
+local hex = hex_prism(hex_across_flats, hex_height)
+hex = translate(hex, 0, 0, knob_height - hex_height)
+
+local cyl = cylinder(knob_diameter, knob_height)
+
+emit(difference(cyl, hex))
+```
+
+<div class="stl-viewer"
+     data-src="/assets/models/hexnut_nobb.stl"
+     data-color="#4b9fea"
+     data-grid="true"
+     data-controls="true"
+     data-autorotate="true">
+</div>
 
 ## The CLI
 
-You can always check available commands with:
+The easiest way to begin is through the CLI tool `ccad`. You can always check available commands with:
 
 ```bash
 ccad --help
