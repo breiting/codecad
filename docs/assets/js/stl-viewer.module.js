@@ -48,6 +48,11 @@ function createViewer(el) {
   dir.position.set(1, 1, 1);
   scene.add(dir);
 
+  // Axis
+  const axesHelper = new THREE.AxesHelper(100);
+  axesHelper.rotateX(-Math.PI / 2);
+  scene.add(axesHelper);
+
   // Grid
   let grid;
   if (showGrid) {
@@ -66,25 +71,13 @@ function createViewer(el) {
       shininess: 60,
     });
     mesh = new THREE.Mesh(geometry, material);
-
-    geometry.computeBoundingBox();
-    const bb = geometry.boundingBox;
-    const size = new THREE.Vector3().subVectors(bb.max, bb.min);
-    const center = new THREE.Vector3()
-      .addVectors(bb.min, bb.max)
-      .multiplyScalar(0.5);
-
     mesh.rotateX(-Math.PI / 2);
-    // mesh.rotateY(Math.PI);
 
-    // center & scale
-    mesh.position.sub(center);
-    const maxDim = Math.max(size.x, size.y, size.z) || 1;
-    mesh.scale.setScalar(100 / maxDim);
+    mesh.scale.setScalar(2.0);
     scene.add(mesh);
 
     // frame
-    const dist = 2.2 * 100;
+    const dist = 2.2 * 20;
     camera.position.set(dist, dist * 0.75, dist);
     controls.target.set(0, 0, 0);
   });

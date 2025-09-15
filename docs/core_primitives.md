@@ -17,8 +17,13 @@ emit(p)
 - depth → size along the Y axis
 - height → size along the Z axis
 
-📷 Example:
-A 20 × 10 × 5 mm box
+<div class="stl-viewer"
+     data-src="/assets/models/cube.stl"
+     data-color="#4b9fea"
+     data-grid="true"
+     data-controls="true"
+     data-autorotate="true">
+</div>
 
 ## cylinder(diameter, height)
 
