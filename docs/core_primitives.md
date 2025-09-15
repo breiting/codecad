@@ -4,13 +4,16 @@ Primitives are the basic building blocks in CodeCAD. They represent simple 3D sh
 
 All primitives are parametric: you specify their size in code, and can later adapt them easily by changing parameters.
 
+!!! note "Model resolution"
+
+    All the models are generated below with deflection 0.2 to lower the file size.
+
 ## box(width, depth, height)
 
 Creates a rectangular box (a cuboid).
 
 ```lua
-local p = box(20, 10, 5)
-emit(p)
+--8<-- "docs/assets/lua/cube.lua"
 ```
 
 - width → size along the X axis
@@ -30,90 +33,114 @@ emit(p)
 Creates a vertical cylinder centered in x/y
 
 ```lua
-local c = cylinder(5, 20)
-emit(c)
+--8<-- "docs/assets/lua/cylinder.lua"
 ```
 
 - diameter → cylinder diameter
 - height → cylinder height
 
-📷 Example:
-A cylinder with radius 5 mm and height 20 mm
+<div class="stl-viewer"
+     data-src="/assets/models/cylinder.stl"
+     data-color="#4b9fea"
+     data-grid="true"
+     data-controls="true"
+     data-autorotate="true">
+</div>
 
 ## sphere(diameter)
 
 Creates a sphere centered in origin.
 
 ```lua
-local s = sphere(10)
-emit(s)
+--8<-- "docs/assets/lua/sphere.lua"
 ```
 
 - diameter → sphere diameter
 
-📷 Example:
-A 10 mm radius sphere
+<div class="stl-viewer"
+     data-src="/assets/models/sphere.stl"
+     data-color="#4b9fea"
+     data-grid="true"
+     data-controls="true"
+     data-autorotate="true">
+</div>
 
 ## cone(d1, d2, height)
 
 Creates a conical or frustum-shaped solid.
 
 ```lua
-local co = cone(10, 5, 20)
-emit(co)
+--8<-- "docs/assets/lua/cone.lua"
 ```
 
 - d1 → bottom diameter
 - d2 → top diameter (set to 0 for a true cone)
 - height → cone height
 
-📷 Example:
-A cone tapering from radius 10 mm to 5 mm over 20 mm height
+<div class="stl-viewer"
+     data-src="/assets/models/cone.stl"
+     data-color="#4b9fea"
+     data-grid="true"
+     data-controls="true"
+     data-autorotate="true">
+</div>
 
 ## wedge(dx, dy, dz, ltx)
 
 Creates a wedge — essentially a box with slanted top faces.
 
 ```lua
-local w = wedge(20, 10, 10, 5)
-emit(w)
+--8<-- "docs/assets/lua/wedge.lua"
 ```
 
 - dx, dy, dz → base box dimensions
 - ltx → shift of left corner
 
-📷 Example:
-A block 20 × 10 × 10 mm with its top sloped
+<div class="stl-viewer"
+     data-src="/assets/models/wedge.stl"
+     data-color="#4b9fea"
+     data-grid="true"
+     data-controls="true"
+     data-autorotate="true">
+</div>
 
 ## hex_prism(diameter, height)
 
 Creates a regular hexagonal prism (like a bolt head).
 
 ```lua
-local h = hex_prism(5, 10)
-emit(h)
+--8<-- "docs/assets/lua/hex_prism.lua"
 ```
 
 - diameter → distance from flat to flat side (across)
 - height → prism height
 
-📷 Example:
-A hex prism with radius 5 mm and height 10 mm
+<div class="stl-viewer"
+     data-src="/assets/models/hex_prism.stl"
+     data-color="#4b9fea"
+     data-grid="true"
+     data-controls="true"
+     data-autorotate="true">
+</div>
 
 ## rod(diameter, height)
 
 Creates a simple cylindrical rod (alias for a cylinder, but semantically useful for mechanical parts).
 
 ```lua
-local r = rod(2.5, 40)
-emit(r)
+--8<-- "docs/assets/lua/rod.lua"
 ```
 
 - diameter → rod diameter
 - height → rod length
 
-📷 Example:
-A 2.5 mm radius, 40 mm long rod
+<div class="stl-viewer"
+     data-src="/assets/models/rod.stl"
+     data-color="#4b9fea"
+     data-grid="true"
+     data-controls="true"
+     data-autorotate="true">
+</div>
 
 ## Tips for Working with Primitives
 
