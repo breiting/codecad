@@ -18,6 +18,13 @@ nav:
   - CodeCAD in Practice: in_practice.md
   - Core Functionality:
       - Primitives: core_primitives.md
+      - Boolean: core_boolean.md
+      - Transformation: core_transform.md
+      - Features: core_features.md
+      - Sketches: core_sketches.md
+      - Construction: core_construction.md
+      - Curves: core_curves.md
+      - Mechanical: core_mechanical.md
   - Terminology: terminology.md
 
 theme:
@@ -28,6 +35,7 @@ theme:
     - navigation.top
     - navigation.footer
     - navigation.tracking
+    - navigation.expand
     - content.code.copy
     - search.suggest
     - search.highlight

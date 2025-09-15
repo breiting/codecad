@@ -123,25 +123,6 @@ Creates a regular hexagonal prism (like a bolt head).
      data-autorotate="true">
 </div>
 
-## rod(diameter, height)
-
-Creates a simple cylindrical rod (alias for a cylinder, but semantically useful for mechanical parts).
-
-```lua
---8<-- "docs/assets/lua/rod.lua"
-```
-
-- diameter → rod diameter
-- height → rod length
-
-<div class="stl-viewer"
-     data-src="/assets/models/rod.stl"
-     data-color="#4b9fea"
-     data-grid="true"
-     data-controls="true"
-     data-autorotate="true">
-</div>
-
 ## Tips for Working with Primitives
 
 - Start simple: Every complex part begins as a box, cylinder, or combination.
