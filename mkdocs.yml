@@ -18,6 +18,7 @@ nav:
   - CodeCAD in Practice: in_practice.md
   - Core Functionality:
       - Primitives: core_primitives.md
+      - Boolean: core_boolean.md
       - Sketches: core_sketches.md
   - Terminology: terminology.md
 

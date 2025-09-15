@@ -12,5 +12,5 @@ local outline = profile_xz({
 }, true)
 
 local body = revolve(outline, 360)
-body = scale(body, 0.5)
+body = scale(body, 0.2)
 emit(body)

@@ -6,4 +6,5 @@ local plate = extrude(
 	}),
 	5
 )
+plate = scale(plate, 0.5)
 emit(plate)
