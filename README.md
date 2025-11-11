@@ -44,7 +44,7 @@ Binds the kernel API to Lua (via sol2). Provides a stable, curated scripting API
 
 Lightweight render engine (GLFW + GLM + ImGui). Accepts TriMeshes from Kernel/Lua/Service, renders them, displays status bar & dock panel.
 
-### CLI
+### CCAD
 
 Project tool (`ccad init/parts/live/build/bom`, etc.). Can execute Lua/kernels locally; shows live geometry through Pure.
 
