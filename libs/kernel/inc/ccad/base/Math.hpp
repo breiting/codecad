@@ -3,6 +3,7 @@
 #include <cmath>
 #include <ostream>
 #include <vector>
+
 namespace ccad {
 
 #ifndef M_PI
