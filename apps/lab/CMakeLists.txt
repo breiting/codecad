@@ -4,6 +4,7 @@ add_executable(clab
 	src/CurveScenario.cpp
 	src/FilletScenario.cpp
 	src/Scenario.cpp
+	src/PoissonScenario.cpp
 	src/ThreadScenario.cpp
 	src/main.cpp
 )

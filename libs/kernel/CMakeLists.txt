@@ -11,6 +11,8 @@ add_library(kernel STATIC
 	src/OcctShape.cpp
 	src/Operations.cpp
 	src/PipeAdapter.cpp
+	src/Poisson.cpp
+	src/PoissonDisk.cpp
 	src/Primitives.cpp
 	src/Rectangle.cpp
 	src/Revolve.cpp

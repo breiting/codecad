@@ -123,6 +123,35 @@ Creates a regular hexagonal prism (like a bolt head).
      data-autorotate="true">
 </div>
 
+## poisson_plate(spec, thickness)
+
+Generates an organic “bubble” plate using Poisson disk sampling.  
+The result is a perforated metal plate with circular holes that look like rising bubbles.
+
+```lua
+--8<-- "docs/assets/lua/poisson_plate.lua"
+```
+
+Key fields on `PoissonDiskSpec`:
+
+- width → plate width in mm (X direction)
+- height → plate height in mm (Y direction)
+- thickness → plate thickness in mm
+- margin → border margin where no bubbles may appear
+- target_points → approximate number of bubbles to try to place
+- r_min / r_max → minimum/maximum bubble radius
+- min_gap → minimum distance between adjacent bubbles
+- radius_falloff → how fast bubble size shrinks towards the top
+- density_falloff → how fast bubble count thins out towards the top
+
+<div class="stl-viewer"
+     data-src="/assets/models/poisson_plate.stl"
+     data-color="#4b9fea"
+     data-grid="true"
+     data-controls="true"
+     data-autorotate="true">
+</div>
+
 ## Tips for Working with Primitives
 
 - Start simple: Every complex part begins as a box, cylinder, or combination.

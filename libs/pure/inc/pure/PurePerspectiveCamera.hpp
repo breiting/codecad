@@ -65,7 +65,7 @@ class PurePerspectiveCamera : public IPureCamera {
 
    private:
     // Grad
-    float m_Yaw = 35.0f;    // around Z
+    float m_Yaw = -60.0f;   // around Z
     float m_Pitch = 22.0f;  // Up/down
 
     float m_Radius = 3.0f;

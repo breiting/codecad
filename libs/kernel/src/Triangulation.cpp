@@ -13,6 +13,7 @@
 #include <TopoDS.hxx>
 #include <TopoDS_Shape.hxx>
 
+#include "ccad/base/Logger.hpp"
 #include "ccad/base/Math.hpp"
 #include "internal/geom/OcctShape.hpp"
 #include "internal/geom/ShapeHelper.hpp"
@@ -68,6 +69,7 @@ TriMesh Triangulate(const Shape& shape, const geom::TriangulationParams& p) {
     mesher.Perform();
 
     TriMesh out;
+    int totalNumTriangles{0};
 
     for (TopExp_Explorer ex(os, TopAbs_FACE); ex.More(); ex.Next()) {
         const TopoDS_Face face = TopoDS::Face(ex.Current());
@@ -90,6 +92,7 @@ TriMesh Triangulate(const Shape& shape, const geom::TriangulationParams& p) {
 
         // collect triangles
         const int nbTris = tri->NbTriangles();
+        totalNumTriangles += nbTris;
         out.indices.reserve(out.indices.size() + static_cast<size_t>(nbTris) * 3);
         for (int i = 1; i <= nbTris; ++i) {
             const Poly_Triangle t = tri->Triangle(i);
@@ -106,6 +109,7 @@ TriMesh Triangulate(const Shape& shape, const geom::TriangulationParams& p) {
             out.indices.push_back(i3);
         }
     }
+    LOG(INFO) << "Triangulation::NumTriangles: " << totalNumTriangles;
 
     return out;
 }

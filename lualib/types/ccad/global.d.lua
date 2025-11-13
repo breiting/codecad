@@ -103,6 +103,76 @@ function lathe(opts) end
 ---@return Shape
 function curved_plate_xy(size_x, size_y, thickness, k_u, k_v) end
 
+--- Poisson Disk Sampling Specification.
+--- Defines geometry, bubble distribution and randomization parameters
+--- for generating a Poisson-based perforated plate.
+---@class PoissonDiskSpec
+local PoissonDiskSpec = {}
+
+--- Width of the plate (in mm).
+--- Defines the X-dimension of the generated bubble field.
+---@type number
+PoissonDiskSpec.width = 0
+
+--- Height of the plate (in mm).
+--- Defines the Y-dimension of the bubble field.
+---@type number
+PoissonDiskSpec.height = 0
+
+--- Thickness of the plate (in mm).
+--- Used when building the 3D geometry (extrusion depth).
+---@type number
+PoissonDiskSpec.thickness = 0
+
+--- Margin from all borders (in mm) where no bubbles may appear.
+--- Ensures clean edges and prevents cut-through near boundaries.
+---@type number
+PoissonDiskSpec.margin = 0
+
+--- Number of bubbles to generate before collision checks.
+--- Higher values increase density but may require more iterations.
+---@type integer
+PoissonDiskSpec.target_points = 0
+
+--- Minimum allowed bubble radius (in mm).
+--- Acts as a hard floor after all radius modulation is applied.
+---@type number
+PoissonDiskSpec.r_min = 0
+
+--- Maximum bubble radius (in mm).
+--- Largest possible radius before falloff/noise adjustments.
+---@type number
+PoissonDiskSpec.r_max = 0
+
+--- Minimum required spacing between bubbles (in mm).
+--- Ensures visually clean patterns and prevents tight clusters.
+---@type number
+PoissonDiskSpec.min_gap = 0
+
+--- How strongly bubble radius decreases with height.
+--- Higher values make bubbles significantly smaller at the top.
+---@type number
+PoissonDiskSpec.radius_falloff = 0
+
+--- Controls vertical distribution density.
+--- Higher values reduce bubble frequency toward the top.
+---@type number
+PoissonDiskSpec.density_falloff = 0
+
+--- Random seed used for deterministic generation.
+--- Changing this value produces a completely new bubble pattern.
+---@type integer
+PoissonDiskSpec.seed = 0
+
+---Constructor for PoissonDiskSpec
+---@return PoissonDiskSpec
+function PoissonDiskSpec.new() end
+
+---@param spec PoissonDiskSpec
+---@param thickness number
+---@return Shape
+function poisson_plate(spec, thickness) end
+
 --==============================================================
 -- TRANSFORMS
 --==============================================================
