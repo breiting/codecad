@@ -153,7 +153,11 @@ void Controller::ViewProject() {
 
     m_PureController.SetRightDockPanel([&panel]() { panel.Draw(); });
 
-    m_PureController.SetMouseMoveHandler([this](double x, double y) { m_Picker->UpdateHover(x, y); });
+    m_PureController.SetMouseMoveHandler([this](double x, double y) {
+        if (m_Measure.Enabled()) {
+            m_Picker->UpdateHover(x, y);
+        }
+    });
     m_PureController.SetMouseButtonHandler([this](int /*button*/, int action, int /*mods*/) {
         bool pressed = (action == GLFW_PRESS);
         if (pressed) {

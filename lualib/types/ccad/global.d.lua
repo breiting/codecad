@@ -103,6 +103,29 @@ function lathe(opts) end
 ---@return Shape
 function curved_plate_xy(size_x, size_y, thickness, k_u, k_v) end
 
+---Create a Poisson Disk Plate
+---@class PoissonDiskSpec
+---@field width number           # Width of the plate (mm)
+---@field height number          # Height of the plate (mm)
+---@field margin number          # Margin from borders where no bubbles may appear
+---@field target_points integer  # Number of bubbles to generate
+---@field r_min number           # Minimum radius (mm)
+---@field r_max number           # Maximum radius (mm)
+---@field min_gap number         # Extra gap between bubbles (mm)
+---@field radius_falloff number  # Controls how fast bubble radius decreases with height
+---@field density_falloff number # Controls vertical density distribution
+---@field seed integer           # Random seed for deterministic generation
+local PoissonDiskSpec = {}
+
+---Constructor for PoissonDiskSpec
+---@return PoissonDiskSpec
+function PoissonDiskSpec.new() end
+
+---@param spec PoissonDiskSpec
+---@param thickness number
+---@return Shape
+function poisson_plate(spec, thickness) end
+
 --==============================================================
 -- TRANSFORMS
 --==============================================================
