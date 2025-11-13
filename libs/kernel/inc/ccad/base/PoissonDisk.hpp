@@ -21,7 +21,7 @@ struct PoissonResult {
 struct PoissonDiskSpec {
     double width = 500.0;
     double height = 1000.0;
-    double margin = 20.0;
+    double margin = 2.0;
 
     std::size_t targetPoints = 300;
 
@@ -40,16 +40,19 @@ class PoissonDiskGenerator {
    public:
     explicit PoissonDiskGenerator(PoissonDiskSpec spec);
 
+    /**
+     * Calculate the distribution
+     */
     PoissonResult Run();
 
    private:
-    PoissonDiskSpec spec_;
-    std::mt19937_64 rng_;
+    double RadiusAtY(double y) const;
+    double DensityAtY(double y) const;
+    bool IsCollision(const std::vector<PoissonPoint>& pts, double x, double y, double r) const;
 
-    double radiusAtY(double y) const;
-    double densityAtY(double y) const;
-
-    bool isCollision(const std::vector<PoissonPoint>& pts, double x, double y, double r) const;
+   private:
+    PoissonDiskSpec m_Spec;
+    std::mt19937_64 m_Rng;
 };
 
 }  // namespace ccad

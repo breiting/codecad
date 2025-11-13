@@ -32,11 +32,11 @@ void PoissonScenario::Build(std::shared_ptr<PureScene> scene) {
     spec.width = width;
     spec.height = height;
     spec.margin = 4;
-    spec.targetPoints = 300;
+    spec.targetPoints = 200;
     spec.rMin = 0.5;
-    spec.rMax = 2.5;
+    spec.rMax = 3.5;
     spec.seed = 42;
-    spec.densityFalloff = 1.5;
+    spec.densityFalloff = 0.5;
 
     PoissonDiskGenerator gen(spec);
     PoissonResult res = gen.Run();
