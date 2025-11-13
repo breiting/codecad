@@ -1,9 +1,11 @@
 #include "PoissonScenario.hpp"
 
+#include <ccad/base/PoissonDisk.hpp>
 #include <ccad/base/Shape.hpp>
 #include <ccad/construct/Revolve.hpp>
 #include <ccad/geom/Box.hpp>
 #include <ccad/geom/Cylinder.hpp>
+#include <ccad/geom/Poisson.hpp>
 #include <ccad/ops/Boolean.hpp>
 #include <iostream>
 #include <memory>
@@ -11,11 +13,7 @@
 #include <pure/PureMeshFactory.hpp>
 #include <pure/PureScene.hpp>
 
-#include "ccad/base/PoissonDisk.hpp"
-#include "ccad/geom/Poisson.hpp"
-
 using namespace std;
-
 using namespace ccad;
 using namespace ccad::geom;
 using namespace ccad::ops;
