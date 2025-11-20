@@ -18,7 +18,7 @@ static inline glm::vec3 closestPointOnSegment(const glm::vec3& p, const glm::vec
         return a;
     }
     float t = glm::dot(p - a, ab) / ab2;
-    t01 = std::clamp(t, 0.f, 1.f);
+    t01 = glm::clamp(t, 0.f, 1.f);
     return a + ab * t01;
 }
 
